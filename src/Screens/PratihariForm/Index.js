@@ -218,10 +218,10 @@ const Index = () => {
                     )}
                 />
             </View>
-            <View style={{ flex: 1 }}>
+            <View style={{ flex: 1, flexDirection: 'column', justifyContent: 'space-between' }}>
                 {activeTab === 'Official' &&
-                    <ScrollView style={{ flex: 1 }}>
-                        <View style={styles.cardBox}>
+                    <View style={styles.cardBox}>
+                        <View style={{ flex: 1 }}>
                             {/* Mobile Number Input */}
                             <Text style={[styles.label, (isFocused === 'mobileNumber' || mobileNumber !== '') && styles.focusedLabel]}>Mobile Number</Text>
                             <TextInput
@@ -275,7 +275,7 @@ const Index = () => {
                                 <Fontisto name="arrow-right" size={20} color="#fff" />
                             </LinearGradient>
                         </TouchableOpacity>
-                    </ScrollView>
+                    </View>
                 }
                 {activeTab === 'id_card' &&
                     <ScrollView style={{ flex: 1 }}>
@@ -986,7 +986,7 @@ const styles = StyleSheet.create({
         color: '#000',
     },
     cardBox: {
-        // flex: 1,
+        flex: 1,
         width: '93%',
         alignSelf: 'center',
         backgroundColor: '#fff',
