@@ -1,4 +1,4 @@
-import { SafeAreaView, StyleSheet, Text, View, TouchableOpacity, ScrollView, FlatList, TextInput } from 'react-native';
+import { SafeAreaView, StyleSheet, Text, View, TouchableOpacity, ScrollView, FlatList, TextInput, Image } from 'react-native';
 import React, { useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
@@ -10,17 +10,26 @@ import DatePicker from 'react-native-date-picker';
 import moment from 'moment';
 import Fontisto from 'react-native-vector-icons/Fontisto';
 import AntDesign from 'react-native-vector-icons/AntDesign';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import Swiper from 'react-native-swiper';
+
+// images
+const image1 = require('../../assets/images/slideImg1.jpeg');
+const image2 = require('../../assets/images/slideImg2.jpeg');
+const image3 = require('../../assets/images/slideImg4.jpeg');
 
 const Index = () => {
 
+    const images = [image1, image2, image3];
+
     const tabs = [
-        { key: 'Official', label: 'Official Information' },
-        { key: 'id_card', label: 'ID Card Information' },
-        { key: 'personal', label: 'Personal Information' },
-        { key: 'family', label: 'Family Information' },
-        { key: 'address', label: 'Address Information' },
-        { key: 'bank', label: 'Bank Information' },
-        { key: 'social', label: 'Social Media' }
+        { key: 'Official', label: 'Official', icon: 'account-tie' },
+        { key: 'id_card', label: 'ID Card', icon: 'id-card' },
+        { key: 'personal', label: 'Personal', icon: 'account' },
+        { key: 'family', label: 'Family', icon: 'account-supervisor' },
+        { key: 'address', label: 'Address', icon: 'map-marker' },
+        { key: 'bank', label: 'Bank', icon: 'bank' },
+        { key: 'social', label: 'Social Media', icon: 'web' },
     ];
     const [activeTab, setActiveTab] = useState('Official');
     const [isFocused, setIsFocused] = useState(null);
@@ -200,28 +209,72 @@ const Index = () => {
     const [linkedin_url, setLinkedin_url] = useState('');
     const [youtube_url, setYoutube_url] = useState('');
 
+    const flatListRef = React.useRef(null);
+
+    const scrollToActiveTab = (index) => {
+        if (flatListRef.current) {
+            flatListRef.current.scrollToIndex({
+                index,
+                animated: true,
+                viewPosition: 0.5, // Align the selected tab in the middle
+            });
+        }
+    };
+
+    const handleNextTab = (nextTab) => {
+        const nextTabIndex = tabs.findIndex((tab) => tab.key === nextTab);
+        setActiveTab(nextTab);
+        scrollToActiveTab(nextTabIndex);
+    };
+
     return (
         <SafeAreaView style={{ flex: 1, backgroundColor: '#f5f5f5' }}>
-            <View style={{ height: 50 }}>
+            <View style={styles.swiperContainer}>
+                <Swiper
+                    showsButtons={false}
+                    autoplay={false}
+                    autoplayTimeout={3}
+                    dotStyle={styles.dotStyle}
+                    activeDotStyle={styles.activeDotStyle}
+                    paginationStyle={{ bottom: 10 }}
+                >
+                    {images.map((image, index) => (
+                        <Image
+                            key={index}
+                            source={image}  // Use local image source
+                            style={styles.sliderImage}
+                            resizeMode="cover"
+                        />
+                    ))}
+                </Swiper>
+            </View>
+            <View style={{ height: 50, marginBottom: 15 }}>
                 <FlatList
+                    ref={flatListRef}
                     data={tabs}
                     keyExtractor={(item) => item.key}
                     horizontal
                     showsHorizontalScrollIndicator={false}
                     renderItem={({ item }) => (
-                        <TouchableOpacity
-                            style={activeTab === item.key ? styles.activeTab : styles.tab}
-                            onPress={() => setActiveTab(item.key)}
-                        >
-                            <Text style={activeTab === item.key ? styles.activeTabText : styles.tabText}>{item.label}</Text>
-                        </TouchableOpacity>
+                        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                            {tabs.findIndex(tab => tab.key === item.key) !== 0 && (
+                                <View style={{ width: 50, height: 3, backgroundColor: activeTab === item.key || tabs.findIndex(tab => tab.key === item.key) < tabs.findIndex(tab => tab.key === activeTab) ? '#c9170a' : '#919090' }} />
+                            )}
+                            <View
+                                style={activeTab === item.key ? styles.activeTab : (tabs.findIndex(tab => tab.key === item.key) < tabs.findIndex(tab => tab.key === activeTab) ? styles.activeTab : styles.tab)}
+                                onPress={() => setActiveTab(item.key)}
+                            >
+                                <MaterialCommunityIcons name={item.icon} size={20} color={activeTab === item.key || tabs.findIndex(tab => tab.key === item.key) < tabs.findIndex(tab => tab.key === activeTab) ? '#fff' : '#000'} />
+                                <Text style={activeTab === item.key || tabs.findIndex(tab => tab.key === item.key) < tabs.findIndex(tab => tab.key === activeTab) ? styles.activeTabText : styles.tabText}>{item.label}</Text>
+                            </View>
+                        </View>
                     )}
                 />
             </View>
             <View style={{ flex: 1, flexDirection: 'column', justifyContent: 'space-between' }}>
                 {activeTab === 'Official' &&
                     <View style={styles.cardBox}>
-                        <View style={{ flex: 1 }}>
+                        <ScrollView style={{ flex: 1 }}>
                             {/* Mobile Number Input */}
                             <Text style={[styles.label, (isFocused === 'mobileNumber' || mobileNumber !== '') && styles.focusedLabel]}>Mobile Number</Text>
                             <TextInput
@@ -267,9 +320,9 @@ const Index = () => {
                                 onFocus={() => setIsFocused('dateOfJoinTempleSeba')}
                                 onBlur={() => setIsFocused(null)}
                             />
-                        </View>
+                        </ScrollView>
                         {/* Submit Button */}
-                        <TouchableOpacity onPress={() => setActiveTab('id_card')}>
+                        <TouchableOpacity onPress={() => handleNextTab('id_card')}>
                             <LinearGradient colors={['#c9170a', '#f0837f']} style={styles.submitButton}>
                                 <Text style={styles.submitText}>Next</Text>
                                 <Fontisto name="arrow-right" size={20} color="#fff" />
@@ -349,13 +402,13 @@ const Index = () => {
                         ))}
                         {/* Submit Button */}
                         <View style={{ width: '100%', flexDirection: 'row', alignItems: 'center' }}>
-                            <TouchableOpacity onPress={() => setActiveTab('Official')} style={{ width: '49%' }}>
+                            <TouchableOpacity onPress={() => handleNextTab('Official')} style={{ width: '49%' }}>
                                 <LinearGradient colors={['#208a20', '#95de95']} style={styles.submitButton}>
                                     <Fontisto name="arrow-left" size={20} color="#fff" />
                                     <Text style={styles.submitText}>Previous</Text>
                                 </LinearGradient>
                             </TouchableOpacity>
-                            <TouchableOpacity onPress={() => setActiveTab('personal')} style={{ width: '49%' }}>
+                            <TouchableOpacity onPress={() => handleNextTab('personal')} style={{ width: '49%' }}>
                                 <LinearGradient colors={['#c9170a', '#f0837f']} style={styles.submitButton}>
                                     <Text style={styles.submitText}>Next</Text>
                                     <Fontisto name="arrow-right" size={20} color="#fff" />
@@ -441,13 +494,13 @@ const Index = () => {
                         </View>
                         {/* Submit Button */}
                         <View style={{ width: '100%', flexDirection: 'row', alignItems: 'center' }}>
-                            <TouchableOpacity style={{ width: '49%' }} onPress={() => setActiveTab('id_card')}>
+                            <TouchableOpacity style={{ width: '49%' }} onPress={() => handleNextTab('id_card')}>
                                 <LinearGradient colors={['#208a20', '#95de95']} style={styles.submitButton}>
                                     <Fontisto name="arrow-left" size={20} color="#fff" />
                                     <Text style={styles.submitText}>Previous</Text>
                                 </LinearGradient>
                             </TouchableOpacity>
-                            <TouchableOpacity style={{ width: '49%' }} onPress={() => setActiveTab('family')}>
+                            <TouchableOpacity style={{ width: '49%' }} onPress={() => handleNextTab('family')}>
                                 <LinearGradient colors={['#c9170a', '#f0837f']} style={styles.submitButton}>
                                     <Text style={styles.submitText}>Next</Text>
                                     <Fontisto name="arrow-right" size={20} color="#fff" />
@@ -628,13 +681,13 @@ const Index = () => {
                         }
                         {/* Submit Button */}
                         <View style={{ width: '100%', flexDirection: 'row', alignItems: 'center' }}>
-                            <TouchableOpacity style={{ width: '49%' }} onPress={() => setActiveTab('personal')}>
+                            <TouchableOpacity style={{ width: '49%' }} onPress={() => handleNextTab('personal')}>
                                 <LinearGradient colors={['#208a20', '#95de95']} style={styles.submitButton}>
                                     <Fontisto name="arrow-left" size={20} color="#fff" />
                                     <Text style={styles.submitText}>Previous</Text>
                                 </LinearGradient>
                             </TouchableOpacity>
-                            <TouchableOpacity style={{ width: '49%' }} onPress={() => setActiveTab('address')}>
+                            <TouchableOpacity style={{ width: '49%' }} onPress={() => handleNextTab('address')}>
                                 <LinearGradient colors={['#c9170a', '#f0837f']} style={styles.submitButton}>
                                     <Text style={styles.submitText}>Next</Text>
                                     <Fontisto name="arrow-right" size={20} color="#fff" />
@@ -796,13 +849,13 @@ const Index = () => {
                         }
                         {/* Submit Button */}
                         <View style={{ width: '100%', flexDirection: 'row', alignItems: 'center' }}>
-                            <TouchableOpacity style={{ width: '49%' }} onPress={() => setActiveTab('family')}>
+                            <TouchableOpacity style={{ width: '49%' }} onPress={() => handleNextTab('family')}>
                                 <LinearGradient colors={['#208a20', '#95de95']} style={styles.submitButton}>
                                     <Fontisto name="arrow-left" size={20} color="#fff" />
                                     <Text style={styles.submitText}>Previous</Text>
                                 </LinearGradient>
                             </TouchableOpacity>
-                            <TouchableOpacity style={{ width: '49%' }} onPress={() => setActiveTab('bank')}>
+                            <TouchableOpacity style={{ width: '49%' }} onPress={() => handleNextTab('bank')}>
                                 <LinearGradient colors={['#c9170a', '#f0837f']} style={styles.submitButton}>
                                     <Text style={styles.submitText}>Next</Text>
                                     <Fontisto name="arrow-right" size={20} color="#fff" />
@@ -862,13 +915,13 @@ const Index = () => {
                         </View>
                         {/* Submit Button */}
                         <View style={{ width: '100%', flexDirection: 'row', alignItems: 'center' }}>
-                            <TouchableOpacity style={{ width: '49%' }} onPress={() => setActiveTab('address')}>
+                            <TouchableOpacity style={{ width: '49%' }} onPress={() => handleNextTab('address')}>
                                 <LinearGradient colors={['#208a20', '#95de95']} style={styles.submitButton}>
                                     <Fontisto name="arrow-left" size={20} color="#fff" />
                                     <Text style={styles.submitText}>Previous</Text>
                                 </LinearGradient>
                             </TouchableOpacity>
-                            <TouchableOpacity style={{ width: '49%' }} onPress={() => setActiveTab('social')}>
+                            <TouchableOpacity style={{ width: '49%' }} onPress={() => handleNextTab('social')}>
                                 <LinearGradient colors={['#c9170a', '#f0837f']} style={styles.submitButton}>
                                     <Text style={styles.submitText}>Next</Text>
                                     <Fontisto name="arrow-right" size={20} color="#fff" />
@@ -928,7 +981,7 @@ const Index = () => {
                         </View>
                         {/* Submit Button */}
                         <View style={{ width: '100%', flexDirection: 'row', alignItems: 'center' }}>
-                            <TouchableOpacity style={{ width: '49%' }} onPress={() => setActiveTab('bank')}>
+                            <TouchableOpacity style={{ width: '49%' }} onPress={() => handleNextTab('bank')}>
                                 <LinearGradient colors={['#208a20', '#95de95']} style={styles.submitButton}>
                                     <Fontisto name="arrow-left" size={20} color="#fff" />
                                     <Text style={styles.submitText}>Previous</Text>
@@ -954,8 +1007,11 @@ const styles = StyleSheet.create({
     tab: {
         padding: 15,
         backgroundColor: '#cfd1cf',
-        // borderRadius: 10,
-        // marginHorizontal: 5,
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderRadius: 10,
+        // marginHorizontal: 10,
         // borderWidth: 1,
         // borderColor: '#d9d9d9',
         // shadowColor: '#000',
@@ -966,9 +1022,12 @@ const styles = StyleSheet.create({
     },
     activeTab: {
         padding: 15,
-        backgroundColor: '#fff',
-        // marginHorizontal: 5,
-        // borderRadius: 10,
+        backgroundColor: '#c9170a',
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'center',
+        // marginHorizontal: 10,
+        borderRadius: 10,
         // shadowColor: '#c3272e',
         // shadowOffset: { width: 0, height: 4 },
         // shadowOpacity: 0.2,
@@ -979,11 +1038,13 @@ const styles = StyleSheet.create({
         fontSize: 14,
         fontWeight: '600',
         color: '#434543',
+        marginLeft: 5,
     },
     activeTabText: {
         fontSize: 15,
         fontWeight: 'bold',
-        color: '#000',
+        color: '#fff',
+        marginLeft: 5,
     },
     cardBox: {
         flex: 1,
@@ -1076,5 +1137,33 @@ const styles = StyleSheet.create({
         marginBottom: 12,
         flexDirection: 'row',
         justifyContent: 'space-around'
-    }
+    },
+    swiperContainer: {
+        // backgroundColor: 'red',
+        width: '100%',
+        alignSelf: 'center',
+        // borderRadius: 10,
+        marginBottom: 20,
+        overflow: 'hidden', // Ensures child elements respect border radius
+        height: 190, // Set height for the Swiper
+    },
+    dotStyle: {
+        backgroundColor: 'rgba(255, 255, 255, 0.3)',
+        width: 10,
+        height: 10,
+        borderRadius: 5,
+        margin: 3,
+    },
+    activeDotStyle: {
+        backgroundColor: '#fff',
+        width: 20,
+        height: 10,
+        borderRadius: 5,
+        margin: 3,
+    },
+    sliderImage: {
+        width: '100%', // Fill the entire Swiper container
+        height: '100%', // Fill the entire Swiper container
+        // borderRadius: 10, // Rounded corners
+    },
 });
