@@ -1,14 +1,16 @@
-import { SafeAreaView, StyleSheet, Text, View, TouchableOpacity, ScrollView, FlatList, TextInput, Image } from 'react-native';
+import { SafeAreaView, StyleSheet, Text, View, TouchableOpacity, ScrollView, FlatList, TextInput, Image, Modal } from 'react-native';
 import React, { useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
 import LinearGradient from 'react-native-linear-gradient';
 import { launchImageLibrary } from 'react-native-image-picker';
+import CheckBox from '@react-native-community/checkbox';
 import DropDownPicker from 'react-native-dropdown-picker';
 import RadioForm from 'react-native-simple-radio-button';
 import DatePicker from 'react-native-date-picker';
 import moment from 'moment';
 import Fontisto from 'react-native-vector-icons/Fontisto';
+import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import Swiper from 'react-native-swiper';
@@ -111,6 +113,10 @@ const Index = () => {
         });
     };
 
+    const [languages, setLanguages] = useState([
+        { lang: '', read: null, write: null, speak: null },
+    ])
+
     // Family Information
     const [fatherName, setFatherName] = useState('');
     const [motherName, setMotherName] = useState('');
@@ -123,6 +129,10 @@ const Index = () => {
         { label: 'Single', value: 'single' },
         { label: 'Married', value: 'married' },
     ];
+    const [isSpouseFamilyModal, setIsSpouseFamilyModal] = useState(false);
+    const openSpouseFamilyModal = () => setIsSpouseFamilyModal(true);
+    const closeSpouseFamilyModal = () => setIsSpouseFamilyModal(false);
+    const [isUnderCommunity, setIsUnderCommunity] = useState(false);
     const [spouseName, setSpouseName] = useState('');
     const [spousePhoto_source, setSpousePhoto_source] = useState(null);
     const [spouse_photo, setSpouse_photo] = useState('Select Image');
@@ -201,6 +211,7 @@ const Index = () => {
     const [ifscCode, setIfscCode] = useState('');
     const [accountNumber, setAccountNumber] = useState('');
     const [accountHolderName, setAccountHolderName] = useState('');
+    const [upi, setUpi] = useState('');
 
     // Social Media
     const [facebook_url, setFacebook_url] = useState('');
@@ -491,6 +502,80 @@ const Index = () => {
                                     <Text style={styles.chooseBtnText}>Choose File</Text>
                                 </View>
                             </TouchableOpacity>
+                            {/* Add more For Language Entry */}
+                            <Text style={[styles.label, { marginTop: 20 }]}>Languages</Text>
+                            {languages.map((language, index) => (
+                                <View key={index} style={{ width: '100%' }}>
+                                    <View style={{ width: '100%', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                                        {/* Language Input */}
+                                        <TextInput
+                                            style={[styles.input, { width: '40%', marginRight: 10, height: 40 }, (isFocused === `language${index}` || language.lang !== '') && styles.focusedInput]}
+                                            value={language.lang}
+                                            onChangeText={(text) => {
+                                                const updatedFields = [...languages];
+                                                updatedFields[index].lang = text;
+                                                setLanguages(updatedFields);
+                                            }}
+                                            placeholder="Language"
+                                            placeholderTextColor={'#6b6b6b'}
+                                        />
+                                        {/* Read Checkbox */}
+                                        <View style={{ alignItems: 'center' }}>
+                                            <CheckBox
+                                                disabled={false}
+                                                value={language.read}
+                                                onValueChange={(newValue) => {
+                                                    const updatedFields = [...languages];
+                                                    updatedFields[index].read = newValue;
+                                                    setLanguages(updatedFields);
+                                                }}
+                                                tintColors={{ true: '#56ab2f', false: '#757473' }}
+                                            />
+                                            <Text style={{ fontSize: 16, marginRight: 10, color: '#757473' }}>Read</Text>
+                                        </View>
+                                        {/* Write Checkbox */}
+                                        <View style={{ alignItems: 'center' }}>
+                                            <CheckBox
+                                                disabled={false}
+                                                value={language.write}
+                                                onValueChange={(newValue) => {
+                                                    const updatedFields = [...languages];
+                                                    updatedFields[index].write = newValue;
+                                                    setLanguages(updatedFields);
+                                                }}
+                                                tintColors={{ true: '#56ab2f', false: '#757473' }}
+                                            />
+                                            <Text style={{ fontSize: 16, marginRight: 10, color: '#757473' }}>Write</Text>
+                                        </View>
+                                        {/* Speak Checkbox */}
+                                        <View style={{ alignItems: 'center' }}>
+                                            <CheckBox
+                                                disabled={false}
+                                                value={language.speak}
+                                                onValueChange={(newValue) => {
+                                                    const updatedFields = [...languages];
+                                                    updatedFields[index].speak = newValue;
+                                                    setLanguages(updatedFields);
+                                                }}
+                                                tintColors={{ true: '#56ab2f', false: '#757473' }}
+                                            />
+                                            <Text style={{ fontSize: 16, marginRight: 10, color: '#757473' }}>Speak</Text>
+                                        </View>
+                                    </View>
+                                    <View style={{ width: '100%', flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-start' }}>
+                                        {index === languages.length - 1 &&
+                                            <TouchableOpacity style={{ marginRight: 20 }} onPress={() => setLanguages([...languages, { lang: '', read: null, write: null, speak: null }])}>
+                                                <AntDesign name="plussquare" color="#016a59" size={40} />
+                                            </TouchableOpacity>
+                                        }
+                                        {index > 0 &&
+                                            <TouchableOpacity onPress={() => setLanguages(languages.filter((_, i) => i !== index))}>
+                                                <AntDesign name="minussquare" color="#c41414" size={40} />
+                                            </TouchableOpacity>
+                                        }
+                                    </View>
+                                </View>
+                            ))}
                         </View>
                         {/* Submit Button */}
                         <View style={{ width: '100%', flexDirection: 'row', alignItems: 'center' }}>
@@ -534,6 +619,8 @@ const Index = () => {
                                     <Text style={styles.chooseBtnText}>Choose File</Text>
                                 </View>
                             </TouchableOpacity>
+                        </View>
+                        <View style={styles.cardBox}>
                             {/* Mother's Name Input */}
                             <Text style={[styles.label, (isFocused === 'motherName' || motherName !== '') && styles.focusedLabel]}>Mother's Name</Text>
                             <TextInput
@@ -556,6 +643,8 @@ const Index = () => {
                                     <Text style={styles.chooseBtnText}>Choose File</Text>
                                 </View>
                             </TouchableOpacity>
+                        </View>
+                        <View style={styles.cardBox}>
                             {/* Marrital Status Input */}
                             <Text style={[styles.label, (marrital_status !== null) && styles.focusedLabel]}>Marrital Status</Text>
                             <RadioForm
@@ -593,6 +682,86 @@ const Index = () => {
                                             <Text style={styles.chooseBtnText}>Choose File</Text>
                                         </View>
                                     </TouchableOpacity>
+                                    <TouchableOpacity onPress={openSpouseFamilyModal} style={{ paddingHorizontal: 20, paddingVertical: 10, alignSelf: 'flex-end', backgroundColor: '#c9170a', borderRadius: 5 }}>
+                                        <Text style={{ color: '#fff', fontSize: 16, fontWeight: '500' }}>Family Details</Text>
+                                    </TouchableOpacity>
+                                    <Modal
+                                        animationType="slide"
+                                        transparent={true}
+                                        visible={isSpouseFamilyModal}
+                                        onRequestClose={closeSpouseFamilyModal}
+                                    >
+                                        <View style={styles.centeredView}>
+                                            <View style={styles.modalView}>
+                                                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+                                                    <Text style={styles.modalText}>Spouse Family Details</Text>
+                                                    <Fontisto name="close-a" size={18} color="#000" onPress={closeSpouseFamilyModal} />
+                                                </View>
+                                                <View style={{ width: '100%' }}>
+                                                    <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
+                                                        <Text style={{ color: '#000', fontSize: 16, fontWeight: '500', marginBottom: 5 }}>Is Under Community</Text>
+                                                        <CheckBox
+                                                            disabled={false}
+                                                            value={isUnderCommunity}
+                                                            onValueChange={(newValue) => setIsUnderCommunity(newValue)}
+                                                            tintColors={{ true: '#56ab2f', false: '#757473' }}
+                                                        />
+                                                    </View>
+                                                    {isUnderCommunity ?
+                                                        <View style={{ width: '100%', borderWidth: 0.5, borderColor: '#000', padding: 10, borderRadius: 10 }}>
+                                                            {/* Father's Name Input */}
+                                                            <Text style={[styles.label, (isFocused === 'fatherName' || fatherName !== '') && styles.focusedLabel]}>Father's Name</Text>
+                                                            <TextInput
+                                                                style={[styles.input, (isFocused === 'fatherName' || fatherName !== '') && styles.focusedInput]}
+                                                                value={fatherName}
+                                                                onChangeText={(text) => setFatherName(text)}
+                                                                onFocus={() => setIsFocused('fatherName')}
+                                                                onBlur={() => setIsFocused(null)}
+                                                            />
+                                                            {/* Father's Photo Input */}
+                                                            <Text style={[styles.label, (fathers_photo !== 'Select Image') && styles.focusedLabel]}>Father's Photo</Text>
+                                                            <TouchableOpacity style={[styles.filePicker, { marginTop: 10 }]} onPress={() => selectParentsImage('father')}>
+                                                                <TextInput
+                                                                    style={styles.filePickerText}
+                                                                    editable={false}
+                                                                    placeholder={fathers_photo}
+                                                                    placeholderTextColor={'#000'}
+                                                                />
+                                                                <View style={styles.chooseBtn}>
+                                                                    <Text style={styles.chooseBtnText}>Choose File</Text>
+                                                                </View>
+                                                            </TouchableOpacity>
+                                                        </View>
+                                                        :
+                                                        <View style={{ width: '100%', borderWidth: 0.5, borderColor: '#000', padding: 10, borderRadius: 10 }}>
+                                                            {/* Father's Name Input */}
+                                                            <Text style={[styles.label, (isFocused === 'fatherName' || fatherName !== '') && styles.focusedLabel]}>Father's Name</Text>
+                                                            <TextInput
+                                                                style={[styles.input, (isFocused === 'fatherName' || fatherName !== '') && styles.focusedInput]}
+                                                                value={fatherName}
+                                                                onChangeText={(text) => setFatherName(text)}
+                                                                onFocus={() => setIsFocused('fatherName')}
+                                                                onBlur={() => setIsFocused(null)}
+                                                            />
+                                                            {/* Father's Photo Input */}
+                                                            <Text style={[styles.label, (fathers_photo !== 'Select Image') && styles.focusedLabel]}>Father's Photo</Text>
+                                                            <TouchableOpacity style={[styles.filePicker, { marginTop: 10 }]} onPress={() => selectParentsImage('father')}>
+                                                                <TextInput
+                                                                    style={styles.filePickerText}
+                                                                    editable={false}
+                                                                    placeholder={fathers_photo}
+                                                                    placeholderTextColor={'#000'}
+                                                                />
+                                                                <View style={styles.chooseBtn}>
+                                                                    <Text style={styles.chooseBtnText}>Choose File</Text>
+                                                                </View>
+                                                            </TouchableOpacity>
+                                                        </View>
+                                                    }
+                                                </View>
+                                            </View>
+                                        </View>
+                                    </Modal>
                                 </>
                             }
                         </View>
@@ -872,6 +1041,7 @@ const Index = () => {
                             <TextInput
                                 style={[styles.input, (isFocused === 'bankName' || bankName !== '') && styles.focusedInput]}
                                 value={bankName}
+                                keyboardType="default"
                                 onChangeText={(text) => setBankName(text)}
                                 onFocus={() => setIsFocused('bankName')}
                                 onBlur={() => setIsFocused(null)}
@@ -881,6 +1051,7 @@ const Index = () => {
                             <TextInput
                                 style={[styles.input, (isFocused === 'branchName' || branchName !== '') && styles.focusedInput]}
                                 value={branchName}
+                                keyboardType="default"
                                 onChangeText={(text) => setBranchName(text)}
                                 onFocus={() => setIsFocused('branchName')}
                                 onBlur={() => setIsFocused(null)}
@@ -890,6 +1061,8 @@ const Index = () => {
                             <TextInput
                                 style={[styles.input, (isFocused === 'ifscCode' || ifscCode !== '') && styles.focusedInput]}
                                 value={ifscCode}
+                                autoCapitalize='characters'
+                                keyboardType='default'
                                 onChangeText={(text) => setIfscCode(text)}
                                 onFocus={() => setIsFocused('ifscCode')}
                                 onBlur={() => setIsFocused(null)}
@@ -899,6 +1072,7 @@ const Index = () => {
                             <TextInput
                                 style={[styles.input, (isFocused === 'accountNumber' || accountNumber !== '') && styles.focusedInput]}
                                 value={accountNumber}
+                                keyboardType='numeric'
                                 onChangeText={(text) => setAccountNumber(text)}
                                 onFocus={() => setIsFocused('accountNumber')}
                                 onBlur={() => setIsFocused(null)}
@@ -908,8 +1082,20 @@ const Index = () => {
                             <TextInput
                                 style={[styles.input, (isFocused === 'accountHolderName' || accountHolderName !== '') && styles.focusedInput]}
                                 value={accountHolderName}
+                                keyboardType='default'
                                 onChangeText={(text) => setAccountHolderName(text)}
                                 onFocus={() => setIsFocused('accountHolderName')}
+                                onBlur={() => setIsFocused(null)}
+                            />
+                            {/* UPI Input Field */}
+                            <Text style={[styles.label, (isFocused === 'upi' || upi !== '') && styles.focusedLabel]}>UPI</Text>
+                            <TextInput
+                                style={[styles.input, (isFocused === 'upi' || upi !== '') && styles.focusedInput]}
+                                value={upi}
+                                keyboardType='default'
+                                autoCapitalize="none"
+                                onChangeText={(text) => setUpi(text)}
+                                onFocus={() => setIsFocused('upi')}
                                 onBlur={() => setIsFocused(null)}
                             />
                         </View>
@@ -1011,14 +1197,6 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         borderRadius: 10,
-        // marginHorizontal: 10,
-        // borderWidth: 1,
-        // borderColor: '#d9d9d9',
-        // shadowColor: '#000',
-        // shadowOffset: { width: 0, height: 2 },
-        // shadowOpacity: 0.1,
-        // shadowRadius: 3,
-        // elevation: 2,
     },
     activeTab: {
         padding: 15,
@@ -1026,13 +1204,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'center',
         alignItems: 'center',
-        // marginHorizontal: 10,
         borderRadius: 10,
-        // shadowColor: '#c3272e',
-        // shadowOffset: { width: 0, height: 4 },
-        // shadowOpacity: 0.2,
-        // shadowRadius: 5,
-        // elevation: 5,
     },
     tabText: {
         fontSize: 14,
@@ -1142,7 +1314,6 @@ const styles = StyleSheet.create({
         // backgroundColor: 'red',
         width: '100%',
         alignSelf: 'center',
-        // borderRadius: 10,
         marginBottom: 20,
         overflow: 'hidden', // Ensures child elements respect border radius
         height: 190, // Set height for the Swiper
@@ -1165,5 +1336,26 @@ const styles = StyleSheet.create({
         width: '100%', // Fill the entire Swiper container
         height: '100%', // Fill the entire Swiper container
         // borderRadius: 10, // Rounded corners
+    },
+    centeredView: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'rgba(0,0,0,0.5)',
+    },
+    modalView: {
+        width: '90%',
+        backgroundColor: '#fff',
+        borderRadius: 10,
+        padding: 20,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.3,
+        elevation: 5,
+    },
+    modalText: {
+        color: '#000',
+        fontSize: 20,
+        fontWeight: 'bold',
     },
 });
