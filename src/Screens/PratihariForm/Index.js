@@ -1,7 +1,9 @@
-import { SafeAreaView, StyleSheet, Text, View, TouchableOpacity, ScrollView, FlatList, TextInput, Image, Modal } from 'react-native';
+import { SafeAreaView, StyleSheet, Text, View, TouchableOpacity, ScrollView, FlatList, TextInput, Image, Modal, KeyboardAvoidingView, Platform, Switch } from 'react-native';
 import React, { useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
+import { FloatingLabelInput } from 'react-native-floating-label-input';
+import { Calendar } from 'react-native-calendars';
 import LinearGradient from 'react-native-linear-gradient';
 import { launchImageLibrary } from 'react-native-image-picker';
 import CheckBox from '@react-native-community/checkbox';
@@ -16,13 +18,13 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import Swiper from 'react-native-swiper';
 
 // images
-const image1 = require('../../assets/images/slideImg1.jpeg');
-const image2 = require('../../assets/images/slideImg2.jpeg');
-const image3 = require('../../assets/images/slideImg4.jpeg');
+const image1 = require('../../assets/images/slideImg5.jpg');
+const image2 = require('../../assets/images/slideImg6.jpg');
+const image3 = require('../../assets/images/slideImg7.webp');
 
 const Index = () => {
 
-    const images = [image1, image2, image3];
+    const images = [image3, image2, image1];
 
     const tabs = [
         { key: 'Official', label: 'Official', icon: 'account-tie' },
@@ -42,7 +44,15 @@ const Index = () => {
     const [emailId, setEmailId] = useState('');
     const [helthCardNumber, setHelthCardNumber] = useState('');
     const [templeId, setTempleId] = useState('');
-    const [dateOfJoinTempleSeba, setDateOfJoinTempleSeba] = useState('');
+    const [dateOfJoinTempleSeba, setDateOfJoinTempleSeba] = useState(null);
+    const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
+    const openDatePicker = () => { setDatePickerVisibility(true) };
+    const closeDatePicker = () => { setDatePickerVisibility(false) };
+
+    const handleDayPress = (day) => {
+        setDateOfJoinTempleSeba(new Date(day.dateString));
+        closeDatePicker();
+    };
 
     // ID Card Information
     const [fields, setFields] = useState([
@@ -83,11 +93,18 @@ const Index = () => {
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
     const [dob, setDob] = useState(null);
-    const [dateOpen, setDateOpen] = useState(false);
+    const [isDateOpen, setDateOpen] = useState(false);
+    const openDobPicker = () => { setDateOpen(true) };
+    const closeDobPicker = () => { setDateOpen(false) };
     const [educational_qualification, setEducational_qualification] = useState('');
     const [bloodGroup, setBloodGroup] = useState('');
     const [userPhoto_source, setUserPhoto_source] = useState(null);
     const [user_photo, setUser_photo] = useState('Select Image');
+
+    const handleDObOpen = (day) => {
+        setDob(new Date(day.dateString));
+        closeDobPicker();
+    };
 
     // Handle document upload using react-native-image-picker
     const selectUserPhoto = async () => {
@@ -129,17 +146,20 @@ const Index = () => {
         { label: 'Single', value: 'single' },
         { label: 'Married', value: 'married' },
     ];
-    const [isSpouseFamilyModal, setIsSpouseFamilyModal] = useState(false);
-    const openSpouseFamilyModal = () => setIsSpouseFamilyModal(true);
-    const closeSpouseFamilyModal = () => setIsSpouseFamilyModal(false);
-    const [isUnderCommunity, setIsUnderCommunity] = useState(false);
+    const [addSpouseFamilyDetails, setAddSpouseFamilyDetails] = useState(false);
     const [spouseName, setSpouseName] = useState('');
     const [spousePhoto_source, setSpousePhoto_source] = useState(null);
     const [spouse_photo, setSpouse_photo] = useState('Select Image');
+    const [isUnderCommunity, setIsUnderCommunity] = useState(false);
+    const [spouseFatherName, setSpouseFatherName] = useState('');
+    const [spouseFathersPhoto_source, setSpouseFathersPhoto_source] = useState(null);
+    const [spouseFathers_photo, setSpouseFathers_photo] = useState('Select Image');
     const [childrenFields, setChildrenFields] = useState([
         { name: '', dob: null, gender: null, image: 'Select Image' },
     ]);
-    const [childrenDOBOpen, setChildrenDOBOpen] = useState(false);
+    const [isChildDobOpen, setChildDobOpen] = useState(false);
+    const openChildDobPicker = () => { setChildDobOpen(true) };
+    const closeChildDobPicker = () => { setChildDobOpen(false) };
 
     // Handle Parents Image Upload using react-native-image-picker
     const selectParentsImage = async (type) => {
@@ -259,7 +279,7 @@ const Index = () => {
                     ))}
                 </Swiper>
             </View>
-            <View style={{ height: 50, marginBottom: 15 }}>
+            <View style={{ height: 50, marginBottom: 15, marginHorizontal: 10 }}>
                 <FlatList
                     ref={flatListRef}
                     data={tabs}
@@ -269,7 +289,7 @@ const Index = () => {
                     renderItem={({ item }) => (
                         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                             {tabs.findIndex(tab => tab.key === item.key) !== 0 && (
-                                <View style={{ width: 50, height: 3, backgroundColor: activeTab === item.key || tabs.findIndex(tab => tab.key === item.key) < tabs.findIndex(tab => tab.key === activeTab) ? '#c9170a' : '#919090' }} />
+                                <View style={{ width: 55, height: 3, backgroundColor: activeTab === item.key || tabs.findIndex(tab => tab.key === item.key) < tabs.findIndex(tab => tab.key === activeTab) ? '#c9170a' : '#919090' }} />
                             )}
                             <View
                                 style={activeTab === item.key ? styles.activeTab : (tabs.findIndex(tab => tab.key === item.key) < tabs.findIndex(tab => tab.key === activeTab) ? styles.activeTab : styles.tab)}
@@ -284,62 +304,88 @@ const Index = () => {
             </View>
             <View style={{ flex: 1, flexDirection: 'column', justifyContent: 'space-between' }}>
                 {activeTab === 'Official' &&
-                    <View style={styles.cardBox}>
-                        <ScrollView style={{ flex: 1 }}>
+                    <ScrollView style={styles.cardBox}>
+                        <View style={{ flex: 1 }}>
                             {/* Mobile Number Input */}
-                            <Text style={[styles.label, (isFocused === 'mobileNumber' || mobileNumber !== '') && styles.focusedLabel]}>Mobile Number</Text>
-                            <TextInput
-                                style={[styles.input, (isFocused === 'mobileNumber' || mobileNumber !== '') && styles.focusedInput]}
+                            <FloatingLabelInput
+                                label="Mobile Number"
                                 value={mobileNumber}
-                                onChangeText={(text) => setMobileNumber(text)}
-                                onFocus={() => setIsFocused('mobileNumber')}
-                                onBlur={() => setIsFocused(null)}
+                                customLabelStyles={{ colorFocused: '#c80100', fontSizeFocused: 14 }}
+                                labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
+                                maxLength={10}
+                                keyboardType="phone-pad"
+                                onChangeText={value => setMobileNumber(value)}
+                                containerStyles={{ borderWidth: 0.5, borderColor: '#353535', backgroundColor: '#ffffff', padding: 10, borderRadius: 8, marginVertical: 12, borderRadius: 10 }}
                             />
                             {/* Email Id Input */}
-                            <Text style={[styles.label, (isFocused === 'emailId' || emailId !== '') && styles.focusedLabel]}>Email Id</Text>
-                            <TextInput
-                                style={[styles.input, (isFocused === 'emailId' || emailId !== '') && styles.focusedInput]}
+                            <FloatingLabelInput
+                                label="Email Id"
                                 value={emailId}
-                                onChangeText={(text) => setEmailId(text)}
-                                onFocus={() => setIsFocused('emailId')}
-                                onBlur={() => setIsFocused(null)}
+                                customLabelStyles={{ colorFocused: '#c80100', fontSizeFocused: 14 }}
+                                labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
+                                keyboardType="email-address"
+                                onChangeText={value => setEmailId(value)}
+                                containerStyles={{ borderWidth: 0.5, borderColor: '#353535', backgroundColor: '#ffffff', padding: 10, borderRadius: 8, marginVertical: 12, borderRadius: 10 }}
                             />
                             {/* Health Card Number Input */}
-                            <Text style={[styles.label, (isFocused === 'helthCardNumber' || helthCardNumber !== '') && styles.focusedLabel]}>Health Card Number</Text>
-                            <TextInput
-                                style={[styles.input, (isFocused === 'helthCardNumber' || helthCardNumber !== '') && styles.focusedInput]}
+                            <FloatingLabelInput
+                                label="Health Card Number"
                                 value={helthCardNumber}
-                                onChangeText={(text) => setHelthCardNumber(text)}
-                                onFocus={() => setIsFocused('helthCardNumber')}
-                                onBlur={() => setIsFocused(null)}
+                                customLabelStyles={{ colorFocused: '#c80100', fontSizeFocused: 14 }}
+                                labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
+                                keyboardType="numeric"
+                                onChangeText={value => setHelthCardNumber(value)}
+                                containerStyles={{ borderWidth: 0.5, borderColor: '#353535', backgroundColor: '#ffffff', padding: 10, borderRadius: 8, marginVertical: 12, borderRadius: 10 }}
                             />
-                            {/* Temple Id Input */}
-                            <Text style={[styles.label, (isFocused === 'templeId' || templeId !== '') && styles.focusedLabel]}>Temple Id</Text>
-                            <TextInput
-                                style={[styles.input, (isFocused === 'templeId' || templeId !== '') && styles.focusedInput]}
+                            {/* Temple ID Input */}
+                            <FloatingLabelInput
+                                label="Temple ID"
                                 value={templeId}
-                                onChangeText={(text) => setTempleId(text)}
-                                onFocus={() => setIsFocused('templeId')}
-                                onBlur={() => setIsFocused(null)}
+                                customLabelStyles={{ colorFocused: '#c80100', fontSizeFocused: 14 }}
+                                labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
+                                keyboardType="numeric"
+                                onChangeText={value => setTempleId(value)}
+                                containerStyles={{ borderWidth: 0.5, borderColor: '#353535', backgroundColor: '#ffffff', padding: 10, borderRadius: 8, marginVertical: 12, borderRadius: 10 }}
                             />
                             {/* Date Of Join Temple Seba Input */}
-                            <Text style={[styles.label, (isFocused === 'dateOfJoinTempleSeba' || dateOfJoinTempleSeba !== '') && styles.focusedLabel]}>Date Of Join Temple Seba</Text>
-                            <TextInput
-                                style={[styles.input, (isFocused === 'dateOfJoinTempleSeba' || dateOfJoinTempleSeba !== '') && styles.focusedInput]}
-                                value={dateOfJoinTempleSeba}
-                                onChangeText={(text) => setDateOfJoinTempleSeba(text)}
-                                onFocus={() => setIsFocused('dateOfJoinTempleSeba')}
-                                onBlur={() => setIsFocused(null)}
-                            />
-                        </ScrollView>
+                            <TouchableOpacity onPress={openDatePicker}>
+                                <TextInput
+                                    style={{ color: '#000', borderWidth: 0.5, borderColor: '#353535', backgroundColor: '#ffffff', padding: 10, paddingLeft: 18, borderRadius: 8, marginVertical: 12, borderRadius: 10 }}
+                                    value={dateOfJoinTempleSeba ? moment(dateOfJoinTempleSeba).format('DD-MM-YYYY') : ''}
+                                    editable={false}
+                                    placeholder="Date Of Joining Temple Seba"
+                                    placeholderTextColor={'#4d6285'}
+                                />
+                                <AntDesign name="calendar" size={25} color="#4d6285" style={{ position: 'absolute', right: 20, top: 22 }} />
+                            </TouchableOpacity>
+                            <Modal
+                                animationType="slide"
+                                transparent={true}
+                                visible={isDatePickerVisible}
+                                onRequestClose={closeDatePicker}
+                            >
+                                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0, 0, 0, 0.5)' }}>
+                                    <View style={{ width: '90%', padding: 20, backgroundColor: 'white', borderRadius: 10, elevation: 5 }}>
+                                        <Calendar
+                                            onDayPress={handleDayPress}
+                                            markedDates={{
+                                                [moment(dateOfJoinTempleSeba).format('YYYY-MM-DD')]: {
+                                                    selected: true,
+                                                    marked: true,
+                                                    selectedColor: 'blue'
+                                                }
+                                            }}
+                                        />
+                                    </View>
+                                </View>
+                            </Modal>
+                        </View>
                         {/* Submit Button */}
-                        <TouchableOpacity onPress={() => handleNextTab('id_card')}>
-                            <LinearGradient colors={['#c9170a', '#f0837f']} style={styles.submitButton}>
-                                <Text style={styles.submitText}>Next</Text>
-                                <Fontisto name="arrow-right" size={20} color="#fff" />
-                            </LinearGradient>
+                        <TouchableOpacity style={styles.submitButton} onPress={() => handleNextTab('id_card')}>
+                            <Text style={styles.submitText}>Next</Text>
+                            <Fontisto name="arrow-right" size={20} color="#fff" />
                         </TouchableOpacity>
-                    </View>
+                    </ScrollView>
                 }
                 {activeTab === 'id_card' &&
                     <ScrollView style={{ flex: 1 }}>
@@ -355,6 +401,8 @@ const Index = () => {
                                             { label: 'Voter ID', value: 'voter' },
                                             { label: 'Driving License', value: 'driving' },
                                         ]}
+                                        placeholder='Select ID Proof'
+                                        placeholderStyle={{ color: '#4d6285' }}
                                         open={focusedField === `idProof${index}`}
                                         value={field.idProof}
                                         setOpen={() => setFocusedField(focusedField === `idProof${index}` ? null : `idProof${index}`)}
@@ -367,7 +415,7 @@ const Index = () => {
                                         style={[styles.input, (focusedField === `idProof${index}` || field.idProof !== null) && styles.focusedInput]}
                                         dropDownContainerStyle={{ backgroundColor: '#fafafa' }}
                                     />
-                                    <View style={{ width: '30%', flexDirection: 'row', marginBottom: 8 }}>
+                                    <View style={{ width: '30%', flexDirection: 'row' }}>
                                         {index > 0 && (
                                             <TouchableOpacity onPress={() => removeFields(index)} style={{ marginLeft: 5 }}>
                                                 <AntDesign name="minussquare" color="#c41414" size={40} />
@@ -383,27 +431,27 @@ const Index = () => {
                                 </View>
 
                                 {/* ID Proof Number Input */}
-                                <Text style={[styles.label, (focusedField === `idProofNumber${index}` || field.idProofNumber !== '') && styles.focusedLabel]}>ID Proof Number</Text>
-                                <TextInput
-                                    style={[styles.input, (focusedField === `idProofNumber${index}` || field.idProofNumber !== '') && styles.focusedInput]}
+                                <FloatingLabelInput
+                                    label="ID Proof Number"
                                     value={field.idProofNumber}
-                                    onChangeText={(text) => {
+                                    customLabelStyles={{ colorFocused: '#c80100', fontSizeFocused: 14 }}
+                                    labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
+                                    keyboardType="numeric"
+                                    onChangeText={value => {
                                         const updatedFields = [...fields];
-                                        updatedFields[index].idProofNumber = text;
+                                        updatedFields[index].idProofNumber = value;
                                         setFields(updatedFields);
                                     }}
-                                    onFocus={() => setFocusedField(`idProofNumber${index}`)}
-                                    onBlur={() => setFocusedField(null)}
+                                    containerStyles={{ borderWidth: 0.5, borderColor: '#353535', backgroundColor: '#ffffff', padding: 10, borderRadius: 8, marginVertical: 12, borderRadius: 10 }}
                                 />
 
                                 {/* ID Proof Image Picker */}
                                 <Text style={[styles.label, field.idProofImage !== 'Select Image' && styles.focusedLabel]}>ID Proof Image</Text>
                                 <TouchableOpacity style={[styles.filePicker, { marginTop: 5 }]} onPress={() => selectIdProofImage(index)}>
                                     <TextInput
-                                        style={{ width: '70%', color: '#000' }}
+                                        style={{ width: '70%', color: '#4d6285' }}
                                         editable={false}
                                         value={field.idProofImage}
-                                        placeholderTextColor="#000"
                                     />
                                     <View style={styles.chooseBtn}>
                                         <Text style={styles.chooseBtnText}>Choose File</Text>
@@ -412,18 +460,14 @@ const Index = () => {
                             </View>
                         ))}
                         {/* Submit Button */}
-                        <View style={{ width: '100%', flexDirection: 'row', alignItems: 'center' }}>
-                            <TouchableOpacity onPress={() => handleNextTab('Official')} style={{ width: '49%' }}>
-                                <LinearGradient colors={['#208a20', '#95de95']} style={styles.submitButton}>
-                                    <Fontisto name="arrow-left" size={20} color="#fff" />
-                                    <Text style={styles.submitText}>Previous</Text>
-                                </LinearGradient>
+                        <View style={{ width: '95%', alignSelf: 'center', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around' }}>
+                            <TouchableOpacity onPress={() => handleNextTab('Official')} style={{ width: '45%', backgroundColor: '#208a20', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', alignSelf: 'center', borderRadius: 6, paddingVertical: 10, marginVertical: 15 }}>
+                                <Fontisto name="arrow-left" size={20} color="#fff" />
+                                <Text style={styles.submitText}>Previous</Text>
                             </TouchableOpacity>
-                            <TouchableOpacity onPress={() => handleNextTab('personal')} style={{ width: '49%' }}>
-                                <LinearGradient colors={['#c9170a', '#f0837f']} style={styles.submitButton}>
-                                    <Text style={styles.submitText}>Next</Text>
-                                    <Fontisto name="arrow-right" size={20} color="#fff" />
-                                </LinearGradient>
+                            <TouchableOpacity onPress={() => handleNextTab('personal')} style={{ width: '45%', backgroundColor: '#c9170a', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', alignSelf: 'center', borderRadius: 6, paddingVertical: 10, marginVertical: 15 }}>
+                                <Text style={styles.submitText}>Next</Text>
+                                <Fontisto name="arrow-right" size={20} color="#fff" />
                             </TouchableOpacity>
                         </View>
                     </ScrollView>
@@ -432,93 +476,106 @@ const Index = () => {
                     <ScrollView style={{ flex: 1 }}>
                         <View style={styles.cardBox}>
                             {/* First Name Input */}
-                            <Text style={[styles.label, (isFocused === 'firstName' || firstName !== '') && styles.focusedLabel]}>First Name</Text>
-                            <TextInput
-                                style={[styles.input, (isFocused === 'firstName' || firstName !== '') && styles.focusedInput]}
+                            <FloatingLabelInput
+                                label="First Name"
                                 value={firstName}
-                                onChangeText={(text) => setFirstName(text)}
-                                onFocus={() => setIsFocused('firstName')}
-                                onBlur={() => setIsFocused(null)}
+                                customLabelStyles={{ colorFocused: '#c80100', fontSizeFocused: 14 }}
+                                labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
+                                onChangeText={value => setFirstName(value)}
+                                containerStyles={{ borderWidth: 0.5, borderColor: '#353535', backgroundColor: '#ffffff', padding: 10, borderRadius: 8, marginVertical: 12, borderRadius: 10 }}
                             />
                             {/* Last Name Input */}
-                            <Text style={[styles.label, (isFocused === 'lastName' || lastName !== '') && styles.focusedLabel]}>Last Name</Text>
-                            <TextInput
-                                style={[styles.input, (isFocused === 'lastName' || lastName !== '') && styles.focusedInput]}
+                            <FloatingLabelInput
+                                label="Last Name"
                                 value={lastName}
-                                onChangeText={(text) => setLastName(text)}
-                                onFocus={() => setIsFocused('lastName')}
-                                onBlur={() => setIsFocused(null)}
+                                customLabelStyles={{ colorFocused: '#c80100', fontSizeFocused: 14 }}
+                                labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
+                                onChangeText={value => setLastName(value)}
+                                containerStyles={{ borderWidth: 0.5, borderColor: '#353535', backgroundColor: '#ffffff', padding: 10, borderRadius: 8, marginVertical: 12, borderRadius: 10 }}
                             />
                             {/* Date Of Birth Input */}
-                            <Text style={[styles.label, (dob !== null) && styles.focusedLabel]}>DOB</Text>
-                            <TouchableOpacity onPress={() => setDateOpen(true)} style={[styles.datePickerStyle, (dob !== null) && { marginTop: 14 }]}>
-                                <Text style={{ color: '#000', width: '90%' }}>{dob ? moment(dob).format("DD/MM/YYYY") : null}</Text>
-                                <Fontisto name="date" size={dob !== null ? 22 : 19} color={dob !== null ? '#56ab2f' : "#161c19"} />
-                            </TouchableOpacity>
-                            <View style={{ backgroundColor: dob !== null ? '#56ab2f' : '#757473', width: '100%', height: dob !== null ? 2 : 0.7, marginBottom: 30 }} />
-                            <View>
-                                <DatePicker
-                                    modal
-                                    mode="date"
-                                    open={dateOpen}
-                                    date={dob || new Date()}
-                                    onConfirm={(data) => {
-                                        setDateOpen(false)
-                                        setDob(data)
-                                    }}
-                                    onCancel={() => {
-                                        setDateOpen(false);
-                                    }}
+                            <TouchableOpacity onPress={openDobPicker}>
+                                <TextInput
+                                    style={{ color: '#000', borderWidth: 0.5, borderColor: '#353535', backgroundColor: '#ffffff', padding: 10, paddingLeft: 18, borderRadius: 8, marginVertical: 12, borderRadius: 10 }}
+                                    value={dob ? moment(dob).format('DD-MM-YYYY') : ''}
+                                    editable={false}
+                                    placeholder="Date Of Birth"
+                                    placeholderTextColor={'#4d6285'}
                                 />
-                            </View>
+                                <AntDesign name="calendar" size={25} color="#4d6285" style={{ position: 'absolute', right: 20, top: 22 }} />
+                            </TouchableOpacity>
+                            <Modal
+                                animationType="slide"
+                                transparent={true}
+                                visible={isDateOpen}
+                                onRequestClose={closeDobPicker}
+                            >
+                                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0, 0, 0, 0.5)' }}>
+                                    <View style={{ width: '90%', padding: 20, backgroundColor: 'white', borderRadius: 10, elevation: 5 }}>
+                                        <Calendar
+                                            onDayPress={handleDObOpen}
+                                            markedDates={{
+                                                [moment(dob).format('YYYY-MM-DD')]: {
+                                                    selected: true,
+                                                    marked: true,
+                                                    selectedColor: 'blue'
+                                                }
+                                            }}
+                                        />
+                                    </View>
+                                </View>
+                            </Modal>
                             {/* Educational Qualification Input */}
-                            <Text style={[styles.label, (isFocused === 'educational_qualification' || educational_qualification !== '') && styles.focusedLabel]}>Educational Qualification</Text>
-                            <TextInput
-                                style={[styles.input, (isFocused === 'educational_qualification' || educational_qualification !== '') && styles.focusedInput]}
+                            <FloatingLabelInput
+                                label="Educational Qualification"
                                 value={educational_qualification}
-                                onChangeText={(text) => setEducational_qualification(text)}
-                                onFocus={() => setIsFocused('educational_qualification')}
-                                onBlur={() => setIsFocused(null)}
+                                customLabelStyles={{ colorFocused: '#c80100', fontSizeFocused: 14 }}
+                                labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
+                                onChangeText={value => setEducational_qualification(value)}
+                                containerStyles={{ borderWidth: 0.5, borderColor: '#353535', backgroundColor: '#ffffff', padding: 10, borderRadius: 8, marginVertical: 12, borderRadius: 10 }}
                             />
                             {/* Blood Group Input */}
-                            <Text style={[styles.label, (isFocused === 'bloodGroup' || bloodGroup !== '') && styles.focusedLabel]}>Blood Group</Text>
-                            <TextInput
-                                style={[styles.input, (isFocused === 'bloodGroup' || bloodGroup !== '') && styles.focusedInput]}
+                            <FloatingLabelInput
+                                label="Blood Group"
                                 value={bloodGroup}
-                                onChangeText={(text) => setBloodGroup(text)}
-                                onFocus={() => setIsFocused('bloodGroup')}
-                                onBlur={() => setIsFocused(null)}
+                                customLabelStyles={{ colorFocused: '#c80100', fontSizeFocused: 14 }}
+                                labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
+                                onChangeText={value => setBloodGroup(value)}
+                                containerStyles={{ borderWidth: 0.5, borderColor: '#353535', backgroundColor: '#ffffff', padding: 10, borderRadius: 8, marginVertical: 12, borderRadius: 10 }}
                             />
                             {/* User Photo Input */}
-                            <Text style={[styles.label, (user_photo !== 'Select Image') && styles.focusedLabel]}>User Photo</Text>
+                            <Text style={[styles.label, user_photo !== 'Select Image' && styles.focusedLabel]}>User Photo</Text>
                             <TouchableOpacity style={[styles.filePicker, { marginTop: 10 }]} onPress={selectUserPhoto}>
                                 <TextInput
                                     style={styles.filePickerText}
                                     editable={false}
                                     placeholder={user_photo}
-                                    placeholderTextColor={'#000'}
+                                    placeholderTextColor={'#4d6285'}
                                 />
                                 <View style={styles.chooseBtn}>
                                     <Text style={styles.chooseBtnText}>Choose File</Text>
                                 </View>
                             </TouchableOpacity>
                             {/* Add more For Language Entry */}
-                            <Text style={[styles.label, { marginTop: 20 }]}>Languages</Text>
+                            <Text style={[styles.label, { marginTop: 0 }]}>Languages</Text>
                             {languages.map((language, index) => (
                                 <View key={index} style={{ width: '100%' }}>
                                     <View style={{ width: '100%', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
                                         {/* Language Input */}
-                                        <TextInput
-                                            style={[styles.input, { width: '40%', marginRight: 10, height: 40 }, (isFocused === `language${index}` || language.lang !== '') && styles.focusedInput]}
-                                            value={language.lang}
-                                            onChangeText={(text) => {
-                                                const updatedFields = [...languages];
-                                                updatedFields[index].lang = text;
-                                                setLanguages(updatedFields);
-                                            }}
-                                            placeholder="Language"
-                                            placeholderTextColor={'#6b6b6b'}
-                                        />
+                                        <View style={{ width: '45%' }}>
+                                            <FloatingLabelInput
+                                                label="Language"
+                                                value={language.lang}
+                                                customLabelStyles={{ colorFocused: '#c80100', fontSizeFocused: 14 }}
+                                                labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
+                                                onChangeText={(text) => {
+                                                    const updatedFields = [...languages];
+                                                    updatedFields[index].lang = text;
+                                                    setLanguages(updatedFields);
+                                                }}
+                                                containerStyles={{ borderWidth: 0.5, borderColor: '#353535', backgroundColor: '#ffffff', padding: 10, borderRadius: 8, marginVertical: 12, borderRadius: 10, width: '100%' }}
+                                            />
+                                        </View>
                                         {/* Read Checkbox */}
                                         <View style={{ alignItems: 'center' }}>
                                             <CheckBox
@@ -562,15 +619,17 @@ const Index = () => {
                                             <Text style={{ fontSize: 16, marginRight: 10, color: '#757473' }}>Speak</Text>
                                         </View>
                                     </View>
-                                    <View style={{ width: '100%', flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-start' }}>
+                                    <View style={{ width: '100%', flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', marginTop: 5 }}>
                                         {index === languages.length - 1 &&
-                                            <TouchableOpacity style={{ marginRight: 20 }} onPress={() => setLanguages([...languages, { lang: '', read: null, write: null, speak: null }])}>
-                                                <AntDesign name="plussquare" color="#016a59" size={40} />
+                                            <TouchableOpacity style={{ backgroundColor: '#1e7836', padding: 10, borderRadius: 6, marginRight: 20 }} onPress={() => setLanguages([...languages, { lang: '', read: null, write: null, speak: null }])}>
+                                                {/* <AntDesign name="plussquare" color="#016a59" size={40} /> */}
+                                                <Text style={{ color: '#fff', fontSize: 14 }}>Add More</Text>
                                             </TouchableOpacity>
                                         }
                                         {index > 0 &&
-                                            <TouchableOpacity onPress={() => setLanguages(languages.filter((_, i) => i !== index))}>
-                                                <AntDesign name="minussquare" color="#c41414" size={40} />
+                                            <TouchableOpacity style={{ backgroundColor: '#ba111e', padding: 10, borderRadius: 6 }} onPress={() => setLanguages(languages.filter((_, i) => i !== index))}>
+                                                {/* <AntDesign name="minussquare" color="#c41414" size={40} /> */}
+                                                <Text style={{ color: '#fff', fontSize: 14 }}>Remove</Text>
                                             </TouchableOpacity>
                                         }
                                     </View>
@@ -578,18 +637,14 @@ const Index = () => {
                             ))}
                         </View>
                         {/* Submit Button */}
-                        <View style={{ width: '100%', flexDirection: 'row', alignItems: 'center' }}>
-                            <TouchableOpacity style={{ width: '49%' }} onPress={() => handleNextTab('id_card')}>
-                                <LinearGradient colors={['#208a20', '#95de95']} style={styles.submitButton}>
-                                    <Fontisto name="arrow-left" size={20} color="#fff" />
-                                    <Text style={styles.submitText}>Previous</Text>
-                                </LinearGradient>
+                        <View style={{ width: '95%', alignSelf: 'center', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around' }}>
+                            <TouchableOpacity onPress={() => handleNextTab('id_card')} style={{ width: '45%', backgroundColor: '#208a20', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', alignSelf: 'center', borderRadius: 6, paddingVertical: 10, marginVertical: 15 }}>
+                                <Fontisto name="arrow-left" size={20} color="#fff" />
+                                <Text style={styles.submitText}>Previous</Text>
                             </TouchableOpacity>
-                            <TouchableOpacity style={{ width: '49%' }} onPress={() => handleNextTab('family')}>
-                                <LinearGradient colors={['#c9170a', '#f0837f']} style={styles.submitButton}>
-                                    <Text style={styles.submitText}>Next</Text>
-                                    <Fontisto name="arrow-right" size={20} color="#fff" />
-                                </LinearGradient>
+                            <TouchableOpacity onPress={() => handleNextTab('family')} style={{ width: '45%', backgroundColor: '#c9170a', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', alignSelf: 'center', borderRadius: 6, paddingVertical: 10, marginVertical: 15 }}>
+                                <Text style={styles.submitText}>Next</Text>
+                                <Fontisto name="arrow-right" size={20} color="#fff" />
                             </TouchableOpacity>
                         </View>
                     </ScrollView>
@@ -598,13 +653,13 @@ const Index = () => {
                     <ScrollView style={{ flex: 1 }}>
                         <View style={styles.cardBox}>
                             {/* Father's Name Input */}
-                            <Text style={[styles.label, (isFocused === 'fatherName' || fatherName !== '') && styles.focusedLabel]}>Father's Name</Text>
-                            <TextInput
-                                style={[styles.input, (isFocused === 'fatherName' || fatherName !== '') && styles.focusedInput]}
+                            <FloatingLabelInput
+                                label="Father's Name"
                                 value={fatherName}
-                                onChangeText={(text) => setFatherName(text)}
-                                onFocus={() => setIsFocused('fatherName')}
-                                onBlur={() => setIsFocused(null)}
+                                customLabelStyles={{ colorFocused: '#c80100', fontSizeFocused: 14 }}
+                                labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
+                                onChangeText={value => setFatherName(value)}
+                                containerStyles={{ borderWidth: 0.5, borderColor: '#353535', backgroundColor: '#ffffff', padding: 10, borderRadius: 8, marginVertical: 12, borderRadius: 10 }}
                             />
                             {/* Father's Photo Input */}
                             <Text style={[styles.label, (fathers_photo !== 'Select Image') && styles.focusedLabel]}>Father's Photo</Text>
@@ -613,7 +668,7 @@ const Index = () => {
                                     style={styles.filePickerText}
                                     editable={false}
                                     placeholder={fathers_photo}
-                                    placeholderTextColor={'#000'}
+                                    placeholderTextColor={'#4d6285'}
                                 />
                                 <View style={styles.chooseBtn}>
                                     <Text style={styles.chooseBtnText}>Choose File</Text>
@@ -622,13 +677,13 @@ const Index = () => {
                         </View>
                         <View style={styles.cardBox}>
                             {/* Mother's Name Input */}
-                            <Text style={[styles.label, (isFocused === 'motherName' || motherName !== '') && styles.focusedLabel]}>Mother's Name</Text>
-                            <TextInput
-                                style={[styles.input, (isFocused === 'motherName' || motherName !== '') && styles.focusedInput]}
+                            <FloatingLabelInput
+                                label="Mother's Name"
                                 value={motherName}
-                                onChangeText={(text) => setMotherName(text)}
-                                onFocus={() => setIsFocused('motherName')}
-                                onBlur={() => setIsFocused(null)}
+                                customLabelStyles={{ colorFocused: '#c80100', fontSizeFocused: 14 }}
+                                labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
+                                onChangeText={value => setMotherName(value)}
+                                containerStyles={{ borderWidth: 0.5, borderColor: '#353535', backgroundColor: '#ffffff', padding: 10, borderRadius: 8, marginVertical: 12, borderRadius: 10 }}
                             />
                             {/* Mother's Photo Input */}
                             <Text style={[styles.label, (mothers_photo !== 'Select Image') && styles.focusedLabel]}>Mother's Photo</Text>
@@ -637,7 +692,7 @@ const Index = () => {
                                     style={styles.filePickerText}
                                     editable={false}
                                     placeholder={mothers_photo}
-                                    placeholderTextColor={'#000'}
+                                    placeholderTextColor={'#4d6285'}
                                 />
                                 <View style={styles.chooseBtn}>
                                     <Text style={styles.chooseBtnText}>Choose File</Text>
@@ -649,7 +704,7 @@ const Index = () => {
                             <Text style={[styles.label, (marrital_status !== null) && styles.focusedLabel]}>Marrital Status</Text>
                             <RadioForm
                                 radio_props={maritalStatusOptions}
-                                initial={-1}
+                                initial={0}
                                 formHorizontal={true}
                                 labelHorizontal={true}
                                 buttonColor={'#56ab2f'}
@@ -661,13 +716,13 @@ const Index = () => {
                             {marrital_status === 'married' &&
                                 <>
                                     {/* Spouse Name Input */}
-                                    <Text style={[styles.label, (isFocused === 'spouseName' || spouseName !== '') && styles.focusedLabel]}>Spouse Name</Text>
-                                    <TextInput
-                                        style={[styles.input, (isFocused === 'spouseName' || spouseName !== '') && styles.focusedInput]}
+                                    <FloatingLabelInput
+                                        label="Spouse Name"
                                         value={spouseName}
-                                        onChangeText={(text) => setSpouseName(text)}
-                                        onFocus={() => setIsFocused('spouseName')}
-                                        onBlur={() => setIsFocused(null)}
+                                        customLabelStyles={{ colorFocused: '#c80100', fontSizeFocused: 14 }}
+                                        labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
+                                        onChangeText={value => setSpouseName(value)}
+                                        containerStyles={{ borderWidth: 0.5, borderColor: '#353535', backgroundColor: '#ffffff', padding: 10, borderRadius: 8, marginVertical: 12, borderRadius: 10 }}
                                     />
                                     {/* Spouse Photo Input */}
                                     <Text style={[styles.label, (spouse_photo !== 'Select Image') && styles.focusedLabel]}>Spouse Photo</Text>
@@ -676,191 +731,174 @@ const Index = () => {
                                             style={styles.filePickerText}
                                             editable={false}
                                             placeholder={spouse_photo}
-                                            placeholderTextColor={'#000'}
+                                            placeholderTextColor={'#4d6285'}
                                         />
                                         <View style={styles.chooseBtn}>
                                             <Text style={styles.chooseBtnText}>Choose File</Text>
                                         </View>
                                     </TouchableOpacity>
-                                    <TouchableOpacity onPress={openSpouseFamilyModal} style={{ paddingHorizontal: 20, paddingVertical: 10, alignSelf: 'flex-end', backgroundColor: '#c9170a', borderRadius: 5 }}>
-                                        <Text style={{ color: '#fff', fontSize: 16, fontWeight: '500' }}>Family Details</Text>
-                                    </TouchableOpacity>
-                                    <Modal
-                                        animationType="slide"
-                                        transparent={true}
-                                        visible={isSpouseFamilyModal}
-                                        onRequestClose={closeSpouseFamilyModal}
-                                    >
-                                        <View style={styles.centeredView}>
-                                            <View style={styles.modalView}>
-                                                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
-                                                    <Text style={styles.modalText}>Spouse Family Details</Text>
-                                                    <Fontisto name="close-a" size={18} color="#000" onPress={closeSpouseFamilyModal} />
+                                    <Text style={{color: '#000', fontSize: 17, fontWeight: 'bold', marginBottom: 10}}>Spouse Family Detail's</Text>
+                                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                        <Text style={{ color: '#000', fontSize: 16, marginRight: 20 }}>Is Under community</Text>
+                                        <Switch
+                                            trackColor={{ false: '#767577', true: '#81b0ff' }}
+                                            thumbColor={'#f4f3f4'}
+                                            ios_backgroundColor="#3e3e3e"
+                                            onValueChange={() => setAddSpouseFamilyDetails(!addSpouseFamilyDetails)}
+                                            value={addSpouseFamilyDetails}
+                                        />
+                                    </View>
+                                    {/* {addSpouseFamilyDetails && */}
+                                        <>
+                                            {/* Spouse Father's Name Input */}
+                                            <FloatingLabelInput
+                                                label="Spouse Father's Name"
+                                                value={spouseFatherName}
+                                                customLabelStyles={{ colorFocused: '#c80100', fontSizeFocused: 14 }}
+                                                labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
+                                                onChangeText={value => setSpouseFatherName(value)}
+                                                containerStyles={{ borderWidth: 0.5, borderColor: '#353535', backgroundColor: '#ffffff', padding: 10, borderRadius: 8, marginVertical: 12, borderRadius: 10 }}
+                                            />
+                                            {/* Spouse Father's Photo Input */}
+                                            <Text style={[styles.label, (spouseFathers_photo !== 'Select Image') && styles.focusedLabel]}>Spouse Father's Photo</Text>
+                                            <TouchableOpacity style={[styles.filePicker, { marginTop: 10 }]} onPress={() => selectParentsImage('spouseFather')}>
+                                                <TextInput
+                                                    style={styles.filePickerText}
+                                                    editable={false}
+                                                    placeholder={spouseFathers_photo}
+                                                    placeholderTextColor={'#4d6285'}
+                                                />
+                                                <View style={styles.chooseBtn}>
+                                                    <Text style={styles.chooseBtnText}>Choose File</Text>
                                                 </View>
-                                                <View style={{ width: '100%' }}>
-                                                    <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
-                                                        <Text style={{ color: '#000', fontSize: 16, fontWeight: '500', marginBottom: 5 }}>Is Under Community</Text>
-                                                        <CheckBox
-                                                            disabled={false}
-                                                            value={isUnderCommunity}
-                                                            onValueChange={(newValue) => setIsUnderCommunity(newValue)}
-                                                            tintColors={{ true: '#56ab2f', false: '#757473' }}
-                                                        />
-                                                    </View>
-                                                    {isUnderCommunity ?
-                                                        <View style={{ width: '100%', borderWidth: 0.5, borderColor: '#000', padding: 10, borderRadius: 10 }}>
-                                                            {/* Father's Name Input */}
-                                                            <Text style={[styles.label, (isFocused === 'fatherName' || fatherName !== '') && styles.focusedLabel]}>Father's Name</Text>
-                                                            <TextInput
-                                                                style={[styles.input, (isFocused === 'fatherName' || fatherName !== '') && styles.focusedInput]}
-                                                                value={fatherName}
-                                                                onChangeText={(text) => setFatherName(text)}
-                                                                onFocus={() => setIsFocused('fatherName')}
-                                                                onBlur={() => setIsFocused(null)}
-                                                            />
-                                                            {/* Father's Photo Input */}
-                                                            <Text style={[styles.label, (fathers_photo !== 'Select Image') && styles.focusedLabel]}>Father's Photo</Text>
-                                                            <TouchableOpacity style={[styles.filePicker, { marginTop: 10 }]} onPress={() => selectParentsImage('father')}>
-                                                                <TextInput
-                                                                    style={styles.filePickerText}
-                                                                    editable={false}
-                                                                    placeholder={fathers_photo}
-                                                                    placeholderTextColor={'#000'}
-                                                                />
-                                                                <View style={styles.chooseBtn}>
-                                                                    <Text style={styles.chooseBtnText}>Choose File</Text>
-                                                                </View>
-                                                            </TouchableOpacity>
-                                                        </View>
-                                                        :
-                                                        <View style={{ width: '100%', borderWidth: 0.5, borderColor: '#000', padding: 10, borderRadius: 10 }}>
-                                                            {/* Father's Name Input */}
-                                                            <Text style={[styles.label, (isFocused === 'fatherName' || fatherName !== '') && styles.focusedLabel]}>Father's Name</Text>
-                                                            <TextInput
-                                                                style={[styles.input, (isFocused === 'fatherName' || fatherName !== '') && styles.focusedInput]}
-                                                                value={fatherName}
-                                                                onChangeText={(text) => setFatherName(text)}
-                                                                onFocus={() => setIsFocused('fatherName')}
-                                                                onBlur={() => setIsFocused(null)}
-                                                            />
-                                                            {/* Father's Photo Input */}
-                                                            <Text style={[styles.label, (fathers_photo !== 'Select Image') && styles.focusedLabel]}>Father's Photo</Text>
-                                                            <TouchableOpacity style={[styles.filePicker, { marginTop: 10 }]} onPress={() => selectParentsImage('father')}>
-                                                                <TextInput
-                                                                    style={styles.filePickerText}
-                                                                    editable={false}
-                                                                    placeholder={fathers_photo}
-                                                                    placeholderTextColor={'#000'}
-                                                                />
-                                                                <View style={styles.chooseBtn}>
-                                                                    <Text style={styles.chooseBtnText}>Choose File</Text>
-                                                                </View>
-                                                            </TouchableOpacity>
-                                                        </View>
-                                                    }
-                                                </View>
-                                            </View>
-                                        </View>
-                                    </Modal>
+                                            </TouchableOpacity>
+                                        </>
+                                    {/* } */}
                                 </>
                             }
                         </View>
                         {marrital_status === 'married' &&
-                            <View style={styles.cardBox}>
-                                {/* Children Fields */}
-                                {childrenFields.map((child, index) => (
-                                    <View key={index} style={{ width: '100%', marginBottom: 20 }}>
-                                        {/* Child Name Input */}
-                                        <Text style={[styles.label, (isFocused === `childName${index}` || child.name !== '') && styles.focusedLabel]}>Child Name</Text>
-                                        <TextInput
-                                            style={[styles.input, (isFocused === `childName${index}` || child.name !== '') && styles.focusedInput]}
-                                            value={child.name}
-                                            onChangeText={(text) => {
-                                                const updatedFields = [...childrenFields];
-                                                updatedFields[index].name = text;
-                                                setChildrenFields(updatedFields);
-                                            }}
-                                            onFocus={() => setIsFocused(`childName${index}`)}
-                                            onBlur={() => setIsFocused(null)}
-                                        />
-                                        {/* Child DOB Input */}
-                                        <Text style={[styles.label, (child.dob !== null) && styles.focusedLabel]}>Child DOB</Text>
-                                        <TouchableOpacity onPress={() => setChildrenDOBOpen(index)} style={[styles.datePickerStyle, (child.dob !== null) && { marginTop: 14 }]}>
-                                            <Text style={{ color: '#000', width: '90%' }}>{child.dob ? moment(child.dob).format("DD/MM/YYYY") : null}</Text>
-                                            <Fontisto name="date" size={child.dob !== null ? 22 : 19} color={child.dob !== null ? '#56ab2f' : "#161c19"} />
-                                        </TouchableOpacity>
-                                        <View style={{ backgroundColor: child.dob !== null ? '#56ab2f' : '#757473', width: '100%', height: child.dob !== null ? 2 : 0.7, marginBottom: 20 }} />
-                                        <View>
-                                            <DatePicker
-                                                modal
-                                                mode="date"
-                                                open={childrenDOBOpen === index}
-                                                date={child.dob || new Date()}
-                                                onConfirm={(data) => {
+                            childrenFields.map((child, index) => (
+                                <View key={index} style={styles.cardBox}>
+                                    <View style={{ width: '100%' }}>
+                                        <View style={{ width: '100%' }}>
+                                            {/* Child Name Input */}
+                                            <FloatingLabelInput
+                                                label="Child Name"
+                                                value={child.name}
+                                                customLabelStyles={{ colorFocused: '#c80100', fontSizeFocused: 14 }}
+                                                labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
+                                                onChangeText={(text) => {
                                                     const updatedFields = [...childrenFields];
-                                                    updatedFields[index].dob = data;
+                                                    updatedFields[index].name = text;
                                                     setChildrenFields(updatedFields);
-                                                    setChildrenDOBOpen(false);
                                                 }}
-                                                onCancel={() => {
-                                                    setChildrenDOBOpen(false);
-                                                }}
+                                                containerStyles={{ borderWidth: 0.5, borderColor: '#353535', backgroundColor: '#ffffff', padding: 10, borderRadius: 8, marginVertical: 12, borderRadius: 10, width: '100%' }}
                                             />
-                                        </View>
-                                        {/* Select Child Gender */}
-                                        <Text style={[styles.label, (isFocused === `gender${index}` || child.gender !== null) && styles.focusedLabel]}>Select Child</Text>
-                                        <DropDownPicker
-                                            items={[
-                                                { label: 'Male', value: 'male' },
-                                                { label: 'Female', value: 'female' },
-                                                { label: 'Other', value: 'other' },
-                                            ]}
-                                            open={isFocused === `gender${index}`}
-                                            value={child.gender}
-                                            setOpen={() => setIsFocused(isFocused === `gender${index}` ? null : `gender${index}`)}
-                                            setValue={(callback) => {
-                                                const updatedFields = [...childrenFields];
-                                                updatedFields[index].gender = callback(child.gender);
-                                                setChildrenFields(updatedFields);
-                                            }}
-                                            containerStyle={{ marginTop: 10, marginBottom: 20, width: '100%' }}
-                                            style={[styles.input, (isFocused === `gender${index}` || null) && styles.focusedInput]}
-                                            dropDownContainerStyle={{ backgroundColor: '#fafafa' }}
-                                        />
-                                        {/* Child Image Picker */}
-                                        <Text style={[styles.label, child.image !== 'Select Image' && styles.focusedLabel]}>Child Image</Text>
-                                        <TouchableOpacity style={[styles.filePicker, { marginTop: 5 }]} onPress={() => selectChildrenImage(index)}>
-                                            <TextInput
-                                                style={{ width: '70%', color: '#000' }}
-                                                editable={false}
-                                                value={child.image}
-                                                placeholderTextColor="#000"
-                                            />
-                                            <View style={styles.chooseBtn}>
-                                                <Text style={styles.chooseBtnText}>Choose File</Text>
+                                            {/* Child Dob Field */}
+                                            <View style={{ width: '100%', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 15 }}>
+                                                <View style={{ width: '45%' }}>
+                                                    <Text style={[styles.label, (focusedField === `dob${index}` || child.dob !== null) && styles.focusedLabel]}>Child DOB</Text>
+                                                    <TouchableOpacity onPress={openChildDobPicker}>
+                                                        <TextInput
+                                                            style={{ color: '#000', borderWidth: 0.5, borderColor: '#353535', backgroundColor: '#ffffff', padding: 10, paddingLeft: 18, borderRadius: 8, borderRadius: 10, marginTop: 10 }}
+                                                            value={child.dob ? moment(child.dob).format('DD-MM-YYYY') : ''}
+                                                            editable={false}
+                                                            placeholder="Child DOB"
+                                                            placeholderTextColor={'#4d6285'}
+                                                        />
+                                                        <AntDesign name="calendar" size={25} color="#353535" style={{ position: 'absolute', right: 20, top: 22 }} />
+                                                    </TouchableOpacity>
+                                                </View>
+                                                {/* Child Gender Dropdown */}
+                                                <View style={{ width: '50%' }}>
+                                                    <Text style={[styles.label, (focusedField === `gender${index}` || child.gender !== null) && styles.focusedLabel]}>Gender</Text>
+                                                    <DropDownPicker
+                                                        items={[
+                                                            { label: 'Male', value: 'male' },
+                                                            { label: 'Female', value: 'female' },
+                                                            { label: 'Other', value: 'other' },
+                                                        ]}
+                                                        placeholder='Child Gender'
+                                                        placeholderStyle={{ color: '#4d6285' }}
+                                                        open={focusedField === `gender${index}`}
+                                                        value={child.gender}
+                                                        setOpen={() => setFocusedField(focusedField === `gender${index}` ? null : `gender${index}`)}
+                                                        setValue={(callback) => {
+                                                            const updatedFields = [...childrenFields];
+                                                            updatedFields[index].gender = callback(child.gender);
+                                                            setChildrenFields(updatedFields);
+                                                        }}
+                                                        containerStyle={{ width: '100%', marginTop: 10 }}
+                                                        dropDownContainerStyle={{ backgroundColor: '#fafafa' }}
+                                                    />
+                                                </View>
                                             </View>
-                                        </TouchableOpacity>
+                                            <Modal
+                                                animationType="slide"
+                                                transparent={true}
+                                                visible={isChildDobOpen}
+                                                onRequestClose={closeChildDobPicker}
+                                            >
+                                                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0, 0, 0, 0.5)' }}>
+                                                    <View style={{ width: '90%', padding: 20, backgroundColor: 'white', borderRadius: 10, elevation: 5 }}>
+                                                        <Calendar
+                                                            onDayPress={(day) => {
+                                                                const updatedFields = [...childrenFields];
+                                                                updatedFields[index].dob = day.dateString;
+                                                                setChildrenFields(updatedFields);
+                                                                closeChildDobPicker();
+                                                            }}
+                                                            markedDates={{
+                                                                [moment(child.dob).format('YYYY-MM-DD')]: {
+                                                                    selected: true,
+                                                                    marked: true,
+                                                                    selectedColor: 'blue'
+                                                                }
+                                                            }}
+                                                        />
+                                                    </View>
+                                                </View>
+                                            </Modal>
+                                            {/* Child Image Picker */}
+                                            <Text style={[styles.label, child.image !== 'Select Image' && styles.focusedLabel]}>Child Image</Text>
+                                            <TouchableOpacity style={[styles.filePicker, { marginTop: 10 }]} onPress={() => selectChildrenImage(index)}>
+                                                <TextInput
+                                                    style={styles.filePickerText}
+                                                    editable={false}
+                                                    placeholder={child.image}
+                                                    placeholderTextColor={'#4d6285'}
+                                                />
+                                                <View style={styles.chooseBtn}>
+                                                    <Text style={styles.chooseBtnText}>Choose File</Text>
+                                                </View>
+                                            </TouchableOpacity>
+                                        </View>
+                                        <View style={{ width: '100%', flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-start' }}>
+                                            {index === childrenFields.length - 1 &&
+                                                <TouchableOpacity style={{ marginRight: 20 }} onPress={() => setChildrenFields([...childrenFields, { name: '', image: 'Select Image' }])}>
+                                                    <AntDesign name="plussquare" color="#016a59" size={40} />
+                                                </TouchableOpacity>
+                                            }
+                                            {index > 0 &&
+                                                <TouchableOpacity onPress={() => setChildrenFields(childrenFields.filter((_, i) => i !== index))}>
+                                                    <AntDesign name="minussquare" color="#c41414" size={40} />
+                                                </TouchableOpacity>
+                                            }
+                                        </View>
                                     </View>
-                                ))}
-                                {/* Add More Child Button */}
-                                <TouchableOpacity style={styles.addButton} onPress={() => setChildrenFields([...childrenFields, { name: '', dob: null }])}>
-                                    <AntDesign name="plussquare" color="#016a59" size={40} />
-                                </TouchableOpacity>
-                            </View>
+                                </View>
+                            ))
                         }
                         {/* Submit Button */}
-                        <View style={{ width: '100%', flexDirection: 'row', alignItems: 'center' }}>
-                            <TouchableOpacity style={{ width: '49%' }} onPress={() => handleNextTab('personal')}>
-                                <LinearGradient colors={['#208a20', '#95de95']} style={styles.submitButton}>
-                                    <Fontisto name="arrow-left" size={20} color="#fff" />
-                                    <Text style={styles.submitText}>Previous</Text>
-                                </LinearGradient>
+                        <View style={{ width: '95%', alignSelf: 'center', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around' }}>
+                            <TouchableOpacity onPress={() => handleNextTab('personal')} style={{ width: '45%', backgroundColor: '#208a20', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', alignSelf: 'center', borderRadius: 6, paddingVertical: 10, marginVertical: 15 }}>
+                                <Fontisto name="arrow-left" size={20} color="#fff" />
+                                <Text style={styles.submitText}>Previous</Text>
                             </TouchableOpacity>
-                            <TouchableOpacity style={{ width: '49%' }} onPress={() => handleNextTab('address')}>
-                                <LinearGradient colors={['#c9170a', '#f0837f']} style={styles.submitButton}>
-                                    <Text style={styles.submitText}>Next</Text>
-                                    <Fontisto name="arrow-right" size={20} color="#fff" />
-                                </LinearGradient>
+                            <TouchableOpacity onPress={() => handleNextTab('address')} style={{ width: '45%', backgroundColor: '#c9170a', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', alignSelf: 'center', borderRadius: 6, paddingVertical: 10, marginVertical: 15 }}>
+                                <Text style={styles.submitText}>Next</Text>
+                                <Fontisto name="arrow-right" size={20} color="#fff" />
                             </TouchableOpacity>
                         </View>
                     </ScrollView>
@@ -869,67 +907,68 @@ const Index = () => {
                     <ScrollView style={{ flex: 1 }}>
                         <View style={styles.cardBox}>
                             {/* Present Address Input */}
-                            <Text style={[styles.label, (isFocused === 'present_address' || present_address !== '') && styles.focusedLabel]}>Present Address</Text>
-                            <TextInput
-                                style={[styles.input, (isFocused === 'present_address' || present_address !== '') && styles.focusedInput]}
+                            <FloatingLabelInput
+                                label="Present Address"
                                 value={present_address}
-                                onChangeText={(text) => setPresent_address(text)}
-                                onFocus={() => setIsFocused('present_address')}
-                                onBlur={() => setIsFocused(null)}
+                                customLabelStyles={{ colorFocused: '#c80100', fontSizeFocused: 14 }}
+                                labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
+                                onChangeText={value => setPresent_address(value)}
+                                containerStyles={{ borderWidth: 0.5, borderColor: '#353535', backgroundColor: '#ffffff', padding: 10, borderRadius: 8, marginVertical: 12, borderRadius: 10 }}
                             />
                             {/* Present Landmark Input */}
-                            <Text style={[styles.label, (isFocused === 'present_landmark' || present_landmark !== '') && styles.focusedLabel]}>Present Landmark</Text>
-                            <TextInput
-                                style={[styles.input, (isFocused === 'present_landmark' || present_landmark !== '') && styles.focusedInput]}
+                            <FloatingLabelInput
+                                label="Present Landmark"
                                 value={present_landmark}
-                                onChangeText={(text) => setPresent_landmark(text)}
-                                onFocus={() => setIsFocused('present_landmark')}
-                                onBlur={() => setIsFocused(null)}
+                                customLabelStyles={{ colorFocused: '#c80100', fontSizeFocused: 14 }}
+                                labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
+                                onChangeText={value => setPresent_landmark(value)}
+                                containerStyles={{ borderWidth: 0.5, borderColor: '#353535', backgroundColor: '#ffffff', padding: 10, borderRadius: 8, marginVertical: 12, borderRadius: 10 }}
                             />
                             {/* Present Post Input */}
-                            <Text style={[styles.label, (isFocused === 'present_post' || present_post !== '') && styles.focusedLabel]}>Present Post</Text>
-                            <TextInput
-                                style={[styles.input, (isFocused === 'present_post' || present_post !== '') && styles.focusedInput]}
+                            <FloatingLabelInput
+                                label="Present Post"
                                 value={present_post}
-                                onChangeText={(text) => setPresent_post(text)}
-                                onFocus={() => setIsFocused('present_post')}
-                                onBlur={() => setIsFocused(null)}
+                                customLabelStyles={{ colorFocused: '#c80100', fontSizeFocused: 14 }}
+                                labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
+                                onChangeText={value => setPresent_post(value)}
+                                containerStyles={{ borderWidth: 0.5, borderColor: '#353535', backgroundColor: '#ffffff', padding: 10, borderRadius: 8, marginVertical: 12, borderRadius: 10 }}
                             />
                             {/* Present District Input */}
-                            <Text style={[styles.label, (isFocused === 'present_district' || present_district !== '') && styles.focusedLabel]}>Present District</Text>
-                            <TextInput
-                                style={[styles.input, (isFocused === 'present_district' || present_district !== '') && styles.focusedInput]}
+                            <FloatingLabelInput
+                                label="Present District"
                                 value={present_district}
-                                onChangeText={(text) => setPresent_district(text)}
-                                onFocus={() => setIsFocused('present_district')}
-                                onBlur={() => setIsFocused(null)}
+                                customLabelStyles={{ colorFocused: '#c80100', fontSizeFocused: 14 }}
+                                labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
+                                onChangeText={value => setPresent_district(value)}
+                                containerStyles={{ borderWidth: 0.5, borderColor: '#353535', backgroundColor: '#ffffff', padding: 10, borderRadius: 8, marginVertical: 12, borderRadius: 10 }}
                             />
                             {/* Present State Input */}
-                            <Text style={[styles.label, (isFocused === 'present_state' || present_state !== '') && styles.focusedLabel]}>Present State</Text>
-                            <TextInput
-                                style={[styles.input, (isFocused === 'present_state' || present_state !== '') && styles.focusedInput]}
+                            <FloatingLabelInput
+                                label="Present State"
                                 value={present_state}
-                                onChangeText={(text) => setPresent_state(text)}
-                                onFocus={() => setIsFocused('present_state')}
-                                onBlur={() => setIsFocused(null)}
+                                customLabelStyles={{ colorFocused: '#c80100', fontSizeFocused: 14 }}
+                                labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
+                                onChangeText={value => setPresent_state(value)}
+                                containerStyles={{ borderWidth: 0.5, borderColor: '#353535', backgroundColor: '#ffffff', padding: 10, borderRadius: 8, marginVertical: 12, borderRadius: 10 }}
                             />
                             {/* Present Pincode Input */}
-                            <Text style={[styles.label, (isFocused === 'present_pincode' || present_pincode !== '') && styles.focusedLabel]}>Present Pincode</Text>
-                            <TextInput
-                                style={[styles.input, (isFocused === 'present_pincode' || present_pincode !== '') && styles.focusedInput]}
+                            <FloatingLabelInput
+                                label="Present Pincode"
                                 value={present_pincode}
-                                onChangeText={(text) => setPresent_pincode(text)}
-                                onFocus={() => setIsFocused('present_pincode')}
-                                onBlur={() => setIsFocused(null)}
+                                customLabelStyles={{ colorFocused: '#c80100', fontSizeFocused: 14 }}
+                                labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
+                                keyboardType="numeric"
+                                onChangeText={value => setPresent_pincode(value)}
+                                containerStyles={{ borderWidth: 0.5, borderColor: '#353535', backgroundColor: '#ffffff', padding: 10, borderRadius: 8, marginVertical: 12, borderRadius: 10 }}
                             />
                             {/* Present Country Input */}
-                            <Text style={[styles.label, (isFocused === 'present_country' || present_country !== '') && styles.focusedLabel]}>Present Country</Text>
-                            <TextInput
-                                style={[styles.input, (isFocused === 'present_country' || present_country !== '') && styles.focusedInput]}
+                            <FloatingLabelInput
+                                label="Present Country"
                                 value={present_country}
-                                onChangeText={(text) => setPresent_country(text)}
-                                onFocus={() => setIsFocused('present_country')}
-                                onBlur={() => setIsFocused(null)}
+                                customLabelStyles={{ colorFocused: '#c80100', fontSizeFocused: 14 }}
+                                labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
+                                onChangeText={value => setPresent_country(value)}
+                                containerStyles={{ borderWidth: 0.5, borderColor: '#353535', backgroundColor: '#ffffff', padding: 10, borderRadius: 8, marginVertical: 12, borderRadius: 10 }}
                             />
                         </View>
                         {/* Is Permanent Same As Present Address */}
@@ -950,85 +989,82 @@ const Index = () => {
                             </View>
                         </View>
                         {!isPermanentSameAsPresent &&
-                            <View style={styles.cardBox}>
+                            <View style={[styles.cardBox, { marginTop: 10 }]}>
                                 {/* Permanent Address Input */}
-                                <Text style={[styles.label, (isFocused === 'permanent_address' || permanent_address !== '') && styles.focusedLabel]}>Permanent Address</Text>
-                                <TextInput
-                                    style={[styles.input, (isFocused === 'permanent_address' || permanent_address !== '') && styles.focusedInput]}
+                                <FloatingLabelInput
+                                    label="Permanent Address"
                                     value={permanent_address}
-                                    onChangeText={(text) => setPermanent_address(text)}
-                                    onFocus={() => setIsFocused('permanent_address')}
-                                    onBlur={() => setIsFocused(null)}
+                                    customLabelStyles={{ colorFocused: '#c80100', fontSizeFocused: 14 }}
+                                    labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
+                                    onChangeText={value => setPermanent_address(value)}
+                                    containerStyles={{ borderWidth: 0.5, borderColor: '#353535', backgroundColor: '#ffffff', padding: 10, borderRadius: 8, marginVertical: 12, borderRadius: 10 }}
                                 />
                                 {/* Permanent Landmark Input */}
-                                <Text style={[styles.label, (isFocused === 'permanent_landmark' || permanent_landmark !== '') && styles.focusedLabel]}>Permanent Landmark</Text>
-                                <TextInput
-                                    style={[styles.input, (isFocused === 'permanent_landmark' || permanent_landmark !== '') && styles.focusedInput]}
+                                <FloatingLabelInput
+                                    label="Permanent Landmark"
                                     value={permanent_landmark}
-                                    onChangeText={(text) => setPermanent_landmark(text)}
-                                    onFocus={() => setIsFocused('permanent_landmark')}
-                                    onBlur={() => setIsFocused(null)}
+                                    customLabelStyles={{ colorFocused: '#c80100', fontSizeFocused: 14 }}
+                                    labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
+                                    onChangeText={value => setPermanent_landmark(value)}
+                                    containerStyles={{ borderWidth: 0.5, borderColor: '#353535', backgroundColor: '#ffffff', padding: 10, borderRadius: 8, marginVertical: 12, borderRadius: 10 }}
                                 />
                                 {/* Permanent Post Input */}
-                                <Text style={[styles.label, (isFocused === 'permanent_post' || permanent_post !== '') && styles.focusedLabel]}>Permanent Post</Text>
-                                <TextInput
-                                    style={[styles.input, (isFocused === 'permanent_post' || permanent_post !== '') && styles.focusedInput]}
+                                <FloatingLabelInput
+                                    label="Permanent Post"
                                     value={permanent_post}
-                                    onChangeText={(text) => setPermanent_post(text)}
-                                    onFocus={() => setIsFocused('permanent_post')}
-                                    onBlur={() => setIsFocused(null)}
+                                    customLabelStyles={{ colorFocused: '#c80100', fontSizeFocused: 14 }}
+                                    labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
+                                    onChangeText={value => setPermanent_post(value)}
+                                    containerStyles={{ borderWidth: 0.5, borderColor: '#353535', backgroundColor: '#ffffff', padding: 10, borderRadius: 8, marginVertical: 12, borderRadius: 10 }}
                                 />
                                 {/* Permanent District Input */}
-                                <Text style={[styles.label, (isFocused === 'permanent_district' || permanent_district !== '') && styles.focusedLabel]}>Permanent District</Text>
-                                <TextInput
-                                    style={[styles.input, (isFocused === 'permanent_district' || permanent_district !== '') && styles.focusedInput]}
+                                <FloatingLabelInput
+                                    label="Permanent District"
                                     value={permanent_district}
-                                    onChangeText={(text) => setPermanent_district(text)}
-                                    onFocus={() => setIsFocused('permanent_district')}
-                                    onBlur={() => setIsFocused(null)}
+                                    customLabelStyles={{ colorFocused: '#c80100', fontSizeFocused: 14 }}
+                                    labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
+                                    onChangeText={value => setPermanent_district(value)}
+                                    containerStyles={{ borderWidth: 0.5, borderColor: '#353535', backgroundColor: '#ffffff', padding: 10, borderRadius: 8, marginVertical: 12, borderRadius: 10 }}
                                 />
                                 {/* Permanent State Input */}
-                                <Text style={[styles.label, (isFocused === 'permanent_state' || permanent_state !== '') && styles.focusedLabel]}>Permanent State</Text>
-                                <TextInput
-                                    style={[styles.input, (isFocused === 'permanent_state' || permanent_state !== '') && styles.focusedInput]}
+                                <FloatingLabelInput
+                                    label="Permanent State"
                                     value={permanent_state}
-                                    onChangeText={(text) => setPermanent_state(text)}
-                                    onFocus={() => setIsFocused('permanent_state')}
-                                    onBlur={() => setIsFocused(null)}
+                                    customLabelStyles={{ colorFocused: '#c80100', fontSizeFocused: 14 }}
+                                    labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
+                                    onChangeText={value => setPermanent_state(value)}
+                                    containerStyles={{ borderWidth: 0.5, borderColor: '#353535', backgroundColor: '#ffffff', padding: 10, borderRadius: 8, marginVertical: 12, borderRadius: 10 }}
                                 />
                                 {/* Permanent Pincode Input */}
-                                <Text style={[styles.label, (isFocused === 'permanent_pincode' || permanent_pincode !== '') && styles.focusedLabel]}>Permanent Pincode</Text>
-                                <TextInput
-                                    style={[styles.input, (isFocused === 'permanent_pincode' || permanent_pincode !== '') && styles.focusedInput]}
+                                <FloatingLabelInput
+                                    label="Permanent Pincode"
                                     value={permanent_pincode}
-                                    onChangeText={(text) => setPermanent_pincode(text)}
-                                    onFocus={() => setIsFocused('permanent_pincode')}
-                                    onBlur={() => setIsFocused(null)}
+                                    customLabelStyles={{ colorFocused: '#c80100', fontSizeFocused: 14 }}
+                                    labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
+                                    keyboardType="numeric"
+                                    onChangeText={value => setPermanent_pincode(value)}
+                                    containerStyles={{ borderWidth: 0.5, borderColor: '#353535', backgroundColor: '#ffffff', padding: 10, borderRadius: 8, marginVertical: 12, borderRadius: 10 }}
                                 />
                                 {/* Permanent Country Input */}
-                                <Text style={[styles.label, (isFocused === 'permanent_country' || permanent_country !== '') && styles.focusedLabel]}>Permanent Country</Text>
-                                <TextInput
-                                    style={[styles.input, (isFocused === 'permanent_country' || permanent_country !== '') && styles.focusedInput]}
+                                <FloatingLabelInput
+                                    label="Permanent Country"
                                     value={permanent_country}
-                                    onChangeText={(text) => setPermanent_country(text)}
-                                    onFocus={() => setIsFocused('permanent_country')}
-                                    onBlur={() => setIsFocused(null)}
+                                    customLabelStyles={{ colorFocused: '#c80100', fontSizeFocused: 14 }}
+                                    labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
+                                    onChangeText={value => setPermanent_country(value)}
+                                    containerStyles={{ borderWidth: 0.5, borderColor: '#353535', backgroundColor: '#ffffff', padding: 10, borderRadius: 8, marginVertical: 12, borderRadius: 10 }}
                                 />
                             </View>
                         }
                         {/* Submit Button */}
-                        <View style={{ width: '100%', flexDirection: 'row', alignItems: 'center' }}>
-                            <TouchableOpacity style={{ width: '49%' }} onPress={() => handleNextTab('family')}>
-                                <LinearGradient colors={['#208a20', '#95de95']} style={styles.submitButton}>
-                                    <Fontisto name="arrow-left" size={20} color="#fff" />
-                                    <Text style={styles.submitText}>Previous</Text>
-                                </LinearGradient>
+                        <View style={{ width: '95%', alignSelf: 'center', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around' }}>
+                            <TouchableOpacity onPress={() => handleNextTab('family')} style={{ width: '45%', backgroundColor: '#208a20', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', alignSelf: 'center', borderRadius: 6, paddingVertical: 10, marginVertical: 15 }}>
+                                <Fontisto name="arrow-left" size={20} color="#fff" />
+                                <Text style={styles.submitText}>Previous</Text>
                             </TouchableOpacity>
-                            <TouchableOpacity style={{ width: '49%' }} onPress={() => handleNextTab('bank')}>
-                                <LinearGradient colors={['#c9170a', '#f0837f']} style={styles.submitButton}>
-                                    <Text style={styles.submitText}>Next</Text>
-                                    <Fontisto name="arrow-right" size={20} color="#fff" />
-                                </LinearGradient>
+                            <TouchableOpacity onPress={() => handleNextTab('bank')} style={{ width: '45%', backgroundColor: '#c9170a', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', alignSelf: 'center', borderRadius: 6, paddingVertical: 10, marginVertical: 15 }}>
+                                <Text style={styles.submitText}>Next</Text>
+                                <Fontisto name="arrow-right" size={20} color="#fff" />
                             </TouchableOpacity>
                         </View>
                     </ScrollView>
@@ -1037,81 +1073,70 @@ const Index = () => {
                     <ScrollView style={{ flex: 1 }}>
                         <View style={styles.cardBox}>
                             {/* Bank Name Input */}
-                            <Text style={[styles.label, (isFocused === 'bankName' || bankName !== '') && styles.focusedLabel]}>Bank Name</Text>
-                            <TextInput
-                                style={[styles.input, (isFocused === 'bankName' || bankName !== '') && styles.focusedInput]}
+                            <FloatingLabelInput
+                                label="Bank Name"
                                 value={bankName}
-                                keyboardType="default"
-                                onChangeText={(text) => setBankName(text)}
-                                onFocus={() => setIsFocused('bankName')}
-                                onBlur={() => setIsFocused(null)}
+                                customLabelStyles={{ colorFocused: '#c80100', fontSizeFocused: 14 }}
+                                labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
+                                onChangeText={value => setBankName(value)}
+                                containerStyles={{ borderWidth: 0.5, borderColor: '#353535', backgroundColor: '#ffffff', padding: 10, borderRadius: 8, marginVertical: 12, borderRadius: 10 }}
                             />
-                            {/* Branch Name Input */}
-                            <Text style={[styles.label, (isFocused === 'branchName' || branchName !== '') && styles.focusedLabel]}>Branch Name</Text>
-                            <TextInput
-                                style={[styles.input, (isFocused === 'branchName' || branchName !== '') && styles.focusedInput]}
+                            {/* Bank Branch Input */}
+                            <FloatingLabelInput
+                                label="Bank Branch"
                                 value={branchName}
-                                keyboardType="default"
-                                onChangeText={(text) => setBranchName(text)}
-                                onFocus={() => setIsFocused('branchName')}
-                                onBlur={() => setIsFocused(null)}
+                                customLabelStyles={{ colorFocused: '#c80100', fontSizeFocused: 14 }}
+                                labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
+                                onChangeText={value => setBranchName(value)}
+                                containerStyles={{ borderWidth: 0.5, borderColor: '#353535', backgroundColor: '#ffffff', padding: 10, borderRadius: 8, marginVertical: 12, borderRadius: 10 }}
+                            />
+                            {/* Bank Account Number Input */}
+                            <FloatingLabelInput
+                                label="Bank Account Number"
+                                value={accountNumber}
+                                customLabelStyles={{ colorFocused: '#c80100', fontSizeFocused: 14 }}
+                                labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
+                                keyboardType="numeric"
+                                onChangeText={value => setAccountNumber(value)}
+                                containerStyles={{ borderWidth: 0.5, borderColor: '#353535', backgroundColor: '#ffffff', padding: 10, borderRadius: 8, marginVertical: 12, borderRadius: 10 }}
                             />
                             {/* IFSC Code Input */}
-                            <Text style={[styles.label, (isFocused === 'ifscCode' || ifscCode !== '') && styles.focusedLabel]}>IFSC Code</Text>
-                            <TextInput
-                                style={[styles.input, (isFocused === 'ifscCode' || ifscCode !== '') && styles.focusedInput]}
+                            <FloatingLabelInput
+                                label="IFSC Code"
                                 value={ifscCode}
-                                autoCapitalize='characters'
-                                keyboardType='default'
-                                onChangeText={(text) => setIfscCode(text)}
-                                onFocus={() => setIsFocused('ifscCode')}
-                                onBlur={() => setIsFocused(null)}
+                                customLabelStyles={{ colorFocused: '#c80100', fontSizeFocused: 14 }}
+                                labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
+                                onChangeText={value => setIfscCode(value)}
+                                containerStyles={{ borderWidth: 0.5, borderColor: '#353535', backgroundColor: '#ffffff', padding: 10, borderRadius: 8, marginVertical: 12, borderRadius: 10 }}
                             />
-                            {/* Account Number Input */}
-                            <Text style={[styles.label, (isFocused === 'accountNumber' || accountNumber !== '') && styles.focusedLabel]}>Account Number</Text>
-                            <TextInput
-                                style={[styles.input, (isFocused === 'accountNumber' || accountNumber !== '') && styles.focusedInput]}
-                                value={accountNumber}
-                                keyboardType='numeric'
-                                onChangeText={(text) => setAccountNumber(text)}
-                                onFocus={() => setIsFocused('accountNumber')}
-                                onBlur={() => setIsFocused(null)}
-                            />
-                            {/* Account Holder Name Input */}
-                            <Text style={[styles.label, (isFocused === 'accountHolderName' || accountHolderName !== '') && styles.focusedLabel]}>Account Holder Name</Text>
-                            <TextInput
-                                style={[styles.input, (isFocused === 'accountHolderName' || accountHolderName !== '') && styles.focusedInput]}
+                            {/* Account Holder Name Input  */}
+                            <FloatingLabelInput
+                                label="Account Holder Name"
                                 value={accountHolderName}
-                                keyboardType='default'
-                                onChangeText={(text) => setAccountHolderName(text)}
-                                onFocus={() => setIsFocused('accountHolderName')}
-                                onBlur={() => setIsFocused(null)}
+                                customLabelStyles={{ colorFocused: '#c80100', fontSizeFocused: 14 }}
+                                labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
+                                onChangeText={value => setAccountHolderName(value)}
+                                containerStyles={{ borderWidth: 0.5, borderColor: '#353535', backgroundColor: '#ffffff', padding: 10, borderRadius: 8, marginVertical: 12, borderRadius: 10 }}
                             />
-                            {/* UPI Input Field */}
-                            <Text style={[styles.label, (isFocused === 'upi' || upi !== '') && styles.focusedLabel]}>UPI</Text>
-                            <TextInput
-                                style={[styles.input, (isFocused === 'upi' || upi !== '') && styles.focusedInput]}
+                            {/* UPI Input */}
+                            <FloatingLabelInput
+                                label="UPI"
                                 value={upi}
-                                keyboardType='default'
-                                autoCapitalize="none"
-                                onChangeText={(text) => setUpi(text)}
-                                onFocus={() => setIsFocused('upi')}
-                                onBlur={() => setIsFocused(null)}
+                                customLabelStyles={{ colorFocused: '#c80100', fontSizeFocused: 14 }}
+                                labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
+                                onChangeText={value => setUpi(value)}
+                                containerStyles={{ borderWidth: 0.5, borderColor: '#353535', backgroundColor: '#ffffff', padding: 10, borderRadius: 8, marginVertical: 12, borderRadius: 10 }}
                             />
                         </View>
                         {/* Submit Button */}
-                        <View style={{ width: '100%', flexDirection: 'row', alignItems: 'center' }}>
-                            <TouchableOpacity style={{ width: '49%' }} onPress={() => handleNextTab('address')}>
-                                <LinearGradient colors={['#208a20', '#95de95']} style={styles.submitButton}>
-                                    <Fontisto name="arrow-left" size={20} color="#fff" />
-                                    <Text style={styles.submitText}>Previous</Text>
-                                </LinearGradient>
+                        <View style={{ width: '95%', alignSelf: 'center', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around' }}>
+                            <TouchableOpacity onPress={() => handleNextTab('address')} style={{ width: '45%', backgroundColor: '#208a20', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', alignSelf: 'center', borderRadius: 6, paddingVertical: 10, marginVertical: 15 }}>
+                                <Fontisto name="arrow-left" size={20} color="#fff" />
+                                <Text style={styles.submitText}>Previous</Text>
                             </TouchableOpacity>
-                            <TouchableOpacity style={{ width: '49%' }} onPress={() => handleNextTab('social')}>
-                                <LinearGradient colors={['#c9170a', '#f0837f']} style={styles.submitButton}>
-                                    <Text style={styles.submitText}>Next</Text>
-                                    <Fontisto name="arrow-right" size={20} color="#fff" />
-                                </LinearGradient>
+                            <TouchableOpacity onPress={() => handleNextTab('social')} style={{ width: '45%', backgroundColor: '#c9170a', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', alignSelf: 'center', borderRadius: 6, paddingVertical: 10, marginVertical: 15 }}>
+                                <Text style={styles.submitText}>Next</Text>
+                                <Fontisto name="arrow-right" size={20} color="#fff" />
                             </TouchableOpacity>
                         </View>
                     </ScrollView>
@@ -1120,64 +1145,60 @@ const Index = () => {
                     <ScrollView style={{ flex: 1 }}>
                         <View style={styles.cardBox}>
                             {/* Facebook URL Input */}
-                            <Text style={[styles.label, (isFocused === 'facebook_url' || facebook_url !== '') && styles.focusedLabel]}>Facebook URL</Text>
-                            <TextInput
-                                style={[styles.input, (isFocused === 'facebook_url' || facebook_url !== '') && styles.focusedInput]}
+                            <FloatingLabelInput
+                                label="Facebook URL"
                                 value={facebook_url}
-                                onChangeText={(text) => setFacebook_url(text)}
-                                onFocus={() => setIsFocused('facebook_url')}
-                                onBlur={() => setIsFocused(null)}
+                                customLabelStyles={{ colorFocused: '#c80100', fontSizeFocused: 14 }}
+                                labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
+                                onChangeText={value => setFacebook_url(value)}
+                                containerStyles={{ borderWidth: 0.5, borderColor: '#353535', backgroundColor: '#ffffff', padding: 10, borderRadius: 8, marginVertical: 12, borderRadius: 10 }}
                             />
                             {/* Twitter URL Input */}
-                            <Text style={[styles.label, (isFocused === 'twitter_url' || twitter_url !== '') && styles.focusedLabel]}>Twitter URL</Text>
-                            <TextInput
-                                style={[styles.input, (isFocused === 'twitter_url' || twitter_url !== '') && styles.focusedInput]}
+                            <FloatingLabelInput
+                                label="Twitter URL"
                                 value={twitter_url}
-                                onChangeText={(text) => setTwitter_url(text)}
-                                onFocus={() => setIsFocused('twitter_url')}
-                                onBlur={() => setIsFocused(null)}
+                                customLabelStyles={{ colorFocused: '#c80100', fontSizeFocused: 14 }}
+                                labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
+                                onChangeText={value => setTwitter_url(value)}
+                                containerStyles={{ borderWidth: 0.5, borderColor: '#353535', backgroundColor: '#ffffff', padding: 10, borderRadius: 8, marginVertical: 12, borderRadius: 10 }}
                             />
                             {/* Instagram URL Input */}
-                            <Text style={[styles.label, (isFocused === 'instagram_url' || instagram_url !== '') && styles.focusedLabel]}>Instagram URL</Text>
-                            <TextInput
-                                style={[styles.input, (isFocused === 'instagram_url' || instagram_url !== '') && styles.focusedInput]}
+                            <FloatingLabelInput
+                                label="Instagram URL"
                                 value={instagram_url}
-                                onChangeText={(text) => setInstagram_url(text)}
-                                onFocus={() => setIsFocused('instagram_url')}
-                                onBlur={() => setIsFocused(null)}
+                                customLabelStyles={{ colorFocused: '#c80100', fontSizeFocused: 14 }}
+                                labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
+                                onChangeText={value => setInstagram_url(value)}
+                                containerStyles={{ borderWidth: 0.5, borderColor: '#353535', backgroundColor: '#ffffff', padding: 10, borderRadius: 8, marginVertical: 12, borderRadius: 10 }}
                             />
-                            {/* Linkedin URL Input */}
-                            <Text style={[styles.label, (isFocused === 'linkedin_url' || linkedin_url !== '') && styles.focusedLabel]}>Linkedin URL</Text>
-                            <TextInput
-                                style={[styles.input, (isFocused === 'linkedin_url' || linkedin_url !== '') && styles.focusedInput]}
+                            {/* LinkedIn URL Input */}
+                            <FloatingLabelInput
+                                label="LinkedIn URL"
                                 value={linkedin_url}
-                                onChangeText={(text) => setLinkedin_url(text)}
-                                onFocus={() => setIsFocused('linkedin_url')}
-                                onBlur={() => setIsFocused(null)}
+                                customLabelStyles={{ colorFocused: '#c80100', fontSizeFocused: 14 }}
+                                labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
+                                onChangeText={value => setLinkedin_url(value)}
+                                containerStyles={{ borderWidth: 0.5, borderColor: '#353535', backgroundColor: '#ffffff', padding: 10, borderRadius: 8, marginVertical: 12, borderRadius: 10 }}
                             />
                             {/* Youtube URL Input */}
-                            <Text style={[styles.label, (isFocused === 'youtube_url' || youtube_url !== '') && styles.focusedLabel]}>Youtube URL</Text>
-                            <TextInput
-                                style={[styles.input, (isFocused === 'youtube_url' || youtube_url !== '') && styles.focusedInput]}
+                            <FloatingLabelInput
+                                label="Youtube URL"
                                 value={youtube_url}
-                                onChangeText={(text) => setYoutube_url(text)}
-                                onFocus={() => setIsFocused('youtube_url')}
-                                onBlur={() => setIsFocused(null)}
+                                customLabelStyles={{ colorFocused: '#c80100', fontSizeFocused: 14 }}
+                                labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
+                                onChangeText={value => setYoutube_url(value)}
+                                containerStyles={{ borderWidth: 0.5, borderColor: '#353535', backgroundColor: '#ffffff', padding: 10, borderRadius: 8, marginVertical: 12, borderRadius: 10 }}
                             />
                         </View>
                         {/* Submit Button */}
-                        <View style={{ width: '100%', flexDirection: 'row', alignItems: 'center' }}>
-                            <TouchableOpacity style={{ width: '49%' }} onPress={() => handleNextTab('bank')}>
-                                <LinearGradient colors={['#208a20', '#95de95']} style={styles.submitButton}>
-                                    <Fontisto name="arrow-left" size={20} color="#fff" />
-                                    <Text style={styles.submitText}>Previous</Text>
-                                </LinearGradient>
+                        <View style={{ width: '95%', alignSelf: 'center', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around' }}>
+                            <TouchableOpacity onPress={() => handleNextTab('bank')} style={{ width: '45%', backgroundColor: '#208a20', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', alignSelf: 'center', borderRadius: 6, paddingVertical: 10, marginVertical: 15 }}>
+                                <Fontisto name="arrow-left" size={20} color="#fff" />
+                                <Text style={styles.submitText}>Previous</Text>
                             </TouchableOpacity>
-                            <TouchableOpacity style={{ width: '49%' }} onPress={() => navigation.navigate('Home')}>
-                                <LinearGradient colors={['#c9170a', '#f0837f']} style={styles.submitButton}>
-                                    <Text style={styles.submitText}>Next</Text>
-                                    <Fontisto name="arrow-right" size={20} color="#fff" />
-                                </LinearGradient>
+                            <TouchableOpacity onPress={() => navigation.navigate('Home')} style={{ width: '45%', backgroundColor: '#c9170a', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', alignSelf: 'center', borderRadius: 6, paddingVertical: 10, marginVertical: 15 }}>
+                                <Text style={styles.submitText}>Next</Text>
+                                <Fontisto name="arrow-right" size={20} color="#fff" />
                             </TouchableOpacity>
                         </View>
                     </ScrollView>
@@ -1191,20 +1212,24 @@ export default Index;
 
 const styles = StyleSheet.create({
     tab: {
-        padding: 15,
+        // padding: 15,
+        paddingHorizontal: 20,
+        paddingVertical: 12,
         backgroundColor: '#cfd1cf',
         flexDirection: 'row',
         justifyContent: 'center',
         alignItems: 'center',
-        borderRadius: 10,
+        borderRadius: 8,
     },
     activeTab: {
-        padding: 15,
+        // padding: 15,
+        paddingHorizontal: 20,
+        paddingVertical: 12,
         backgroundColor: '#c9170a',
         flexDirection: 'row',
         justifyContent: 'center',
         alignItems: 'center',
-        borderRadius: 10,
+        borderRadius: 8,
     },
     tabText: {
         fontSize: 14,
@@ -1220,7 +1245,7 @@ const styles = StyleSheet.create({
     },
     cardBox: {
         flex: 1,
-        width: '93%',
+        width: '95%',
         alignSelf: 'center',
         backgroundColor: '#fff',
         padding: 15,
@@ -1246,31 +1271,32 @@ const styles = StyleSheet.create({
         height: 25,
         borderBottomWidth: 0.7,
         borderBottomColor: '#757473',
-        marginBottom: 30,
+        marginBottom: 20,
         color: '#000',
     },
     focusedInput: {
         height: 50,
         borderBottomColor: '#56ab2f',
-        borderBottomWidth: 2
+        borderBottomWidth: 1
     },
     submitButton: {
-        width: '90%',
+        backgroundColor: '#c9170a',
+        width: '60%',
         flexDirection: 'row',
         justifyContent: 'center',
         alignItems: 'center',
         alignSelf: 'center',
-        borderRadius: 12,
-        paddingVertical: 15,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.3,
-        elevation: 3,
+        borderRadius: 6,
+        paddingVertical: 10,
+        // shadowColor: '#000',
+        // shadowOffset: { width: 0, height: 2 },
+        // shadowOpacity: 0.3,
+        // elevation: 3,
         marginVertical: 10,
     },
     submitText: {
         color: '#fff',
-        fontSize: 20,
+        fontSize: 16,
         fontWeight: 'bold',
         letterSpacing: 1,  // Spacing for the button text
         marginBottom: 2,
