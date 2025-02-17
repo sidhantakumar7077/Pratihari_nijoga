@@ -22,6 +22,8 @@ import ThankYouPage from './src/Screens/ThankYouPage/Index.js'
 
 const Stack = createNativeStackNavigator();
 
+export const base_url = "http://pratiharinijog.mandirparikrama.com/";
+
 const App = () => {
 
   const [showSplash, setShowSplash] = useState(true);

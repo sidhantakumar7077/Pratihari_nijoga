@@ -26,6 +26,7 @@
     "react-native-calendars": "^1.1307.0",
     "react-native-cardview": "^2.0.5",
     "react-native-date-picker": "^5.0.7",
+    "react-native-device-info": "^14.0.4",
     "react-native-dropdown-picker": "^5.4.6",
     "react-native-flatlist-slider": "^1.0.6",
     "react-native-floating-label-input": "^1.4.3",
