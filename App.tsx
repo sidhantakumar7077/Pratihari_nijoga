@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react'
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { NavigationContainer } from '@react-navigation/native';
 import NetInfo from "@react-native-community/netinfo";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // SplashScreen
 import SplashScreen from './src/Screens/SplashScreen/Index'
@@ -22,13 +23,14 @@ import ThankYouPage from './src/Screens/ThankYouPage/Index.js'
 
 const Stack = createNativeStackNavigator();
 
+// export const base_url = "http://pratiharinijog.mandirparikrama.com/";
 export const base_url = "http://pratiharinijog.mandirparikrama.com/";
 
 const App = () => {
 
   const [showSplash, setShowSplash] = useState(true);
   const [isConnected, setIsConnected] = useState(true);
-  const [access_token, setAccess_token] = useState('');
+  const [access_token, setAccess_token] = useState<string | null>(null);
 
   useEffect(() => {
     const unsubscribe = NetInfo.addEventListener(state => {
@@ -43,9 +45,17 @@ const App = () => {
   }, []);
 
   useEffect(() => {
+    const getToken = async () => {
+      const token = await AsyncStorage.getItem('storeAccesstoken');
+      setAccess_token(token);
+      console.log("access_token-=-=-=-=-=-=-", token);
+    };
+
+    getToken();
+
     setTimeout(() => {
       setShowSplash(false);
-    }, 5000)
+    }, 5000);
   }, []);
 
   return (
@@ -57,13 +67,10 @@ const App = () => {
           <Stack.Screen name="NoInternet" component={NoInternet} />
         ) : (
           <>
-            {/* {access_token ? <Stack.Screen name="Home" component={Home} /> : <Stack.Screen name="Login" component={Login} />}
-            {!access_token ? <Stack.Screen name="Home" component={Home} /> : <Stack.Screen name="Login" component={Login} />} */}
-            {/* <Stack.Screen name="Home" component={Home} /> */}
-            <Stack.Screen name="Login" component={Login} />
+            {access_token ? <Stack.Screen name="PratihariForm" component={PratihariForm} /> : <Stack.Screen name="Login" component={Login} />}
+            {!access_token ? <Stack.Screen name="PratihariForm" component={PratihariForm} /> : <Stack.Screen name="Login" component={Login} />}
             <Stack.Screen name="Otp" component={Otp} />
             <Stack.Screen name="Register" component={Register} />
-            <Stack.Screen name="PratihariForm" component={PratihariForm} />
             <Stack.Screen name="ThankYouPage" component={ThankYouPage} />
             <Stack.Screen name="Home" component={Home} />
           </>
