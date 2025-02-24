@@ -27,12 +27,12 @@ const Login = () => {
                 return;
             }
 
-            const formData = new FormData();
-            formData.append('phone', phone);
-
             const response = await fetch(base_url + 'api/send-otp', {
                 method: 'POST',
-                body: formData,
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ phone: phone }),
             });
 
             const data = await response.json();

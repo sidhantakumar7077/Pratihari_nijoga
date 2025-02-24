@@ -69,6 +69,7 @@ const App = () => {
           <>
             {access_token ? <Stack.Screen name="PratihariForm" component={PratihariForm} /> : <Stack.Screen name="Login" component={Login} />}
             {!access_token ? <Stack.Screen name="PratihariForm" component={PratihariForm} /> : <Stack.Screen name="Login" component={Login} />}
+            {/* <Stack.Screen name="PratihariForm" component={PratihariForm} /> */}
             <Stack.Screen name="Otp" component={Otp} />
             <Stack.Screen name="Register" component={Register} />
             <Stack.Screen name="ThankYouPage" component={ThankYouPage} />

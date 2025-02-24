@@ -16,6 +16,7 @@ import Fontisto from 'react-native-vector-icons/Fontisto';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import Swiper from 'react-native-swiper';
+import Collapsible from 'react-native-collapsible';
 import { base_url } from '../../../App';
 
 // images
@@ -42,9 +43,10 @@ const Index = () => {
 
     // ID Card Information
     const [fields, setFields] = useState([
-        { idProof: null, idProofNumber: '', idProofImage: 'Select Image' },
+        { idProof: null, idProofNumber: '', idProofImage: 'Select Image', uri: null, type: null },
     ]);
     const [focusedField, setFocusedField] = useState(null);
+    const [idCardDetailsErrors, setIdCardDetailsErrors] = useState({});
 
     const selectIdProofImage = (index) => {
         launchImageLibrary(
@@ -54,9 +56,12 @@ const Index = () => {
             },
             (response) => {
                 if (!response.didCancel && response.assets) {
-                    const { fileName } = response.assets[0];
+                    // console.log("response", response.assets[0]);
+                    const { fileName, type, uri } = response.assets[0];
                     const updatedFields = [...fields];
-                    updatedFields[index].idProofImage = fileName || 'Image Selected';
+                    updatedFields[index].idProofImage = fileName || 'Select Image';
+                    updatedFields[index].uri = uri;
+                    updatedFields[index].type = type;
                     setFields(updatedFields);
                 }
             }
@@ -75,7 +80,22 @@ const Index = () => {
         setFields(updatedFields);
     };
 
+    const validateFields = () => {
+        const newErrors = {};
+
+        fields.forEach((field, index) => {
+            if (!field.idProof) newErrors[`idProof${index}`] = 'ID Proof Type is required';
+            if (!field.idProofNumber) newErrors[`idProofNumber${index}`] = 'ID Proof Number is required';
+            if (!field.uri) newErrors[`idProofImage${index}`] = 'ID Proof Image is required';
+        });
+
+        setIdCardDetailsErrors(newErrors);
+        setTimeout(() => setIdCardDetailsErrors({}), 5000);
+        return Object.keys(newErrors).length === 0;
+    };
+
     const saveIdCardDetails = async () => {
+        if (!validateFields()) return;
         const token = await AsyncStorage.getItem('storeAccesstoken');
         const formData = new FormData();
         fields.forEach((field, index) => {
@@ -83,22 +103,21 @@ const Index = () => {
             formData.append(`id_number[${index}]`, field.idProofNumber);
             if (field.idProofImage) {
                 formData.append(`id_photo[${index}]`, {
-                    uri: field.idProofImage.uri,
-                    type: field.idProofImage.type,
-                    name: field.idProofImage.fileName,
+                    uri: field.uri,
+                    type: field.type,
+                    name: field.idProofImage,
                 });
             }
         });
 
-        console.log("ID Card Data", formData._parts);
-        return;
+        // console.log("ID Card Data", formData._parts);
+        // return;
 
         try {
             const response = await fetch(base_url + "api/save-idcard", {
                 method: 'POST',
                 headers: {
                     Authorization: `Bearer ${token}`,
-                    "Accept": "application/json",
                 },
                 body: formData,
             });
@@ -280,10 +299,11 @@ const Index = () => {
     const [spouseFathersPhoto_source, setSpouseFathersPhoto_source] = useState(null);
     const [spouseFathers_photo, setSpouseFathers_photo] = useState('Select Image');
     const [childrenFields, setChildrenFields] = useState([
-        { name: '', dob: null, gender: null, image: 'Select Image' },
+        { name: '', dob: null, gender: null, image: 'Select Image', uri: null, type: null },
     ]);
     const [isChildDobOpen, setIsChildDobOpen] = useState(false);
     const [selectedChildIndex, setSelectedChildIndex] = useState(null);
+    const [familyDetailsErrors, setFamilyDetailsErrors] = useState({});
 
     const openChildDobPicker = (index) => {
         setSelectedChildIndex(index);
@@ -343,13 +363,44 @@ const Index = () => {
                     const { fileName } = response.assets[0];
                     const updatedFields = [...childrenFields];
                     updatedFields[index].image = fileName || 'Image Selected';
+                    updatedFields[index].uri = response.assets[0].uri;
+                    updatedFields[index].type = response.assets[0].type;
                     setChildrenFields(updatedFields);
                 }
             }
         );
     }
 
+    const validateFamilyFields = () => {
+        const newErrors = {};
+
+        if (!fatherName) newErrors.fatherName = 'Father Name is required';
+        if (!motherName) newErrors.motherName = 'Mother Name is required';
+        if (!fathersPhoto_source) newErrors.fathersPhoto_source = 'Father Photo is required';
+        if (!mothersPhoto_source) newErrors.mothersPhoto_source = 'Mother Photo is required';
+        if (!marrital_status) newErrors.marrital_status = 'Marital Status is required';
+        if (marrital_status === 'married') {
+            if (!spouseName) newErrors.spouseName = 'Spouse Name is required';
+            if (!spousePhoto_source) newErrors.spousePhoto_source = 'Spouse Photo is required';
+            // if (childrenFields?.length > 0 && childrenFields[0]?.name) {
+            //     childrenFields.forEach((child, index) => {
+            //         if (!child.name) newErrors[`childName${index}`] = 'Child Name is required';
+            //         if (!child.dob) newErrors[`childDob${index}`] = 'Child Date of Birth is required';
+            //         if (!child.gender) newErrors[`childGender${index}`] = 'Child Gender is required';
+            //         if (!child.uri) newErrors[`childImage${index}`] = 'Child Image is required';
+            //     });
+            // }
+        }
+
+        // Set errors and clear them after 5 seconds
+        setFamilyDetailsErrors(newErrors);
+        setTimeout(() => setFamilyDetailsErrors({}), 5000);
+
+        return Object.keys(newErrors).length === 0; // Returns true if no errors
+    };
+
     const saveFamilyDetails = async () => {
+        if (!validateFamilyFields()) return;
         const token = await AsyncStorage.getItem('storeAccesstoken');
         const formData = new FormData();
         formData.append('father_name', fatherName);
@@ -369,7 +420,7 @@ const Index = () => {
             });
         }
         formData.append('marital_status', marrital_status);
-        if(marrital_status === 'married') {
+        if (marrital_status === 'married') {
             formData.append('spouse_name', spouseName);
             if (spousePhoto_source) {
                 formData.append('spouse_photo', {
@@ -378,7 +429,24 @@ const Index = () => {
                     name: spousePhoto_source.fileName,
                 });
             }
+            if (childrenFields?.length > 0 && childrenFields[0]?.name) {
+                childrenFields.forEach((child, index) => {
+                    formData.append(`child_name[${index}]`, child.name);
+                    formData.append(`child_dob[${index}]`, child.dob ? moment(child.dob).format('YYYY-MM-DD') : '');
+                    formData.append(`child_gender[${index}]`, child.gender);
+                    if (child.uri) {
+                        formData.append(`child_photo[${index}]`, {
+                            uri: child.uri,
+                            type: child.type,
+                            name: child.image,
+                        });
+                    }
+                });
+            }
         }
+
+        // console.log("Family Data", formData._parts);
+        // return;
 
         try {
             const response = await fetch(base_url + "api/save-family", {
@@ -615,6 +683,24 @@ const Index = () => {
             ]
         }
     ]);
+
+    const [activeSections, setActiveSections] = useState([]);
+    const [selectedBedhas, setSelectedBedhas] = useState({});
+
+    const toggleSection = (sebaId) => {
+        setActiveSections((prevSections) =>
+            prevSections.includes(sebaId)
+                ? prevSections.filter((id) => id !== sebaId)
+                : [...prevSections, sebaId]
+        );
+    };
+
+    const toggleBedhaSelection = (bedhaId) => {
+        setSelectedBedhas((prevSelected) => ({
+            ...prevSelected,
+            [bedhaId]: !prevSelected[bedhaId],
+        }));
+    };
 
     // Social Media
     const [facebook_url, setFacebook_url] = useState('');
@@ -1122,6 +1208,7 @@ const Index = () => {
                                     onChangeText={value => setFatherName(value)}
                                     containerStyles={{ borderWidth: 0.5, borderColor: '#353535', backgroundColor: '#ffffff', padding: 10, borderRadius: 8, marginVertical: 12, borderRadius: 10 }}
                                 />
+                                {familyDetailsErrors.fatherName && <Text style={styles.errorText}>{familyDetailsErrors.fatherName}</Text>}
                                 {/* Father's Photo Input */}
                                 <Text style={[styles.label, (fathers_photo !== 'Select Image') && styles.focusedLabel]}>Father's Photo</Text>
                                 <TouchableOpacity style={[styles.filePicker, { marginTop: 10 }]} onPress={() => selectParentsImage('father')}>
@@ -1135,6 +1222,7 @@ const Index = () => {
                                         <Text style={styles.chooseBtnText}>Choose File</Text>
                                     </View>
                                 </TouchableOpacity>
+                                {familyDetailsErrors.fathersPhoto_source && <Text style={styles.errorText}>{familyDetailsErrors.fathersPhoto_source}</Text>}
                             </View>
                             <View style={styles.cardBox}>
                                 {/* Mother's Name Input */}
@@ -1146,6 +1234,7 @@ const Index = () => {
                                     onChangeText={value => setMotherName(value)}
                                     containerStyles={{ borderWidth: 0.5, borderColor: '#353535', backgroundColor: '#ffffff', padding: 10, borderRadius: 8, marginVertical: 12, borderRadius: 10 }}
                                 />
+                                {familyDetailsErrors.motherName && <Text style={styles.errorText}>{familyDetailsErrors.motherName}</Text>}
                                 {/* Mother's Photo Input */}
                                 <Text style={[styles.label, (mothers_photo !== 'Select Image') && styles.focusedLabel]}>Mother's Photo</Text>
                                 <TouchableOpacity style={[styles.filePicker, { marginTop: 10 }]} onPress={() => selectParentsImage('mother')}>
@@ -1159,6 +1248,7 @@ const Index = () => {
                                         <Text style={styles.chooseBtnText}>Choose File</Text>
                                     </View>
                                 </TouchableOpacity>
+                                {familyDetailsErrors.mothersPhoto_source && <Text style={styles.errorText}>{familyDetailsErrors.mothersPhoto_source}</Text>}
                             </View>
                             <View style={styles.cardBox}>
                                 {/* Marrital Status Input */}
@@ -1185,6 +1275,7 @@ const Index = () => {
                                             onChangeText={value => setSpouseName(value)}
                                             containerStyles={{ borderWidth: 0.5, borderColor: '#353535', backgroundColor: '#ffffff', padding: 10, borderRadius: 8, marginVertical: 12, borderRadius: 10 }}
                                         />
+                                        {familyDetailsErrors.spouseName && <Text style={styles.errorText}>{familyDetailsErrors.spouseName}</Text>}
                                         {/* Spouse Photo Input */}
                                         <Text style={[styles.label, (spouse_photo !== 'Select Image') && styles.focusedLabel]}>Spouse Photo</Text>
                                         <TouchableOpacity style={[styles.filePicker, { marginTop: 10 }]} onPress={() => selectParentsImage('spouse')}>
@@ -1198,6 +1289,7 @@ const Index = () => {
                                                 <Text style={styles.chooseBtnText}>Choose File</Text>
                                             </View>
                                         </TouchableOpacity>
+                                        {familyDetailsErrors.spousePhoto_source && <Text style={styles.errorText}>{familyDetailsErrors.spousePhoto_source}</Text>}
                                         {/* <Text style={{ color: '#000', fontSize: 17, fontWeight: 'bold', marginBottom: 10 }}>Spouse Family Detail's</Text>
                                         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                                         <Text style={{ color: '#000', fontSize: 16, marginRight: 20 }}>Is Under community</Text>
@@ -1348,7 +1440,7 @@ const Index = () => {
                                     <Fontisto name="arrow-left" size={20} color="#fff" />
                                     <Text style={styles.submitText}>Previous</Text>
                                 </TouchableOpacity>
-                                <TouchableOpacity onPress={() => handleNextTab('id_card')} style={{ width: '45%', backgroundColor: '#c9170a', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', alignSelf: 'center', borderRadius: 50, paddingVertical: 10, marginVertical: 15 }}>
+                                <TouchableOpacity onPress={saveFamilyDetails} style={{ width: '45%', backgroundColor: '#c9170a', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', alignSelf: 'center', borderRadius: 50, paddingVertical: 10, marginVertical: 15 }}>
                                     <Text style={styles.submitText}>Next</Text>
                                     <Fontisto name="arrow-right" size={20} color="#fff" />
                                 </TouchableOpacity>
@@ -1404,6 +1496,7 @@ const Index = () => {
                                             }
                                         </View>
                                     </View>
+                                    {idCardDetailsErrors[`idProof${index}`] && <Text style={styles.errorText}>{idCardDetailsErrors[`idProof${index}`]}</Text>}
 
                                     {/* ID Proof Number Input */}
                                     <FloatingLabelInput
@@ -1420,6 +1513,7 @@ const Index = () => {
                                         }}
                                         containerStyles={{ borderWidth: 0.5, borderColor: '#353535', backgroundColor: '#ffffff', padding: 10, borderRadius: 8, marginVertical: 12, borderRadius: 10 }}
                                     />
+                                    {idCardDetailsErrors[`idProofNumber${index}`] && <Text style={styles.errorText}>{idCardDetailsErrors[`idProofNumber${index}`]}</Text>}
 
                                     {/* ID Proof Image Picker */}
                                     <Text style={[styles.label, field.idProofImage !== 'Select Image' && styles.focusedLabel]}>ID Proof Image</Text>
@@ -1433,6 +1527,7 @@ const Index = () => {
                                             <Text style={styles.chooseBtnText}>Choose File</Text>
                                         </View>
                                     </TouchableOpacity>
+                                    {idCardDetailsErrors[`idProofImage${index}`] && <Text style={styles.errorText}>{idCardDetailsErrors[`idProofImage${index}`]}</Text>}
                                 </View>
                             ))}
                             {/* Submit Button */}
@@ -1763,7 +1858,7 @@ const Index = () => {
                         <ScrollView style={{ flex: 1 }}>
                             <View style={styles.cardBox}>
                                 {/* Seba Type Dropdown */}
-                                <Text style={[styles.label, (focusedField === 'sebaType' || sebaType !== null) && styles.focusedLabel]}>Seba Type</Text>
+                                <Text style={[styles.label, (focusedField === 'sebaType' || sebaType !== null) ? styles.focusedLabel : { marginBottom: 10 }]}>Seba Type</Text>
                                 <View style={{ width: '100%', flexDirection: 'row', alignItems: 'center' }}>
                                     <DropDownPicker
                                         open={focusedField === 'sebaType'}
@@ -1773,11 +1868,32 @@ const Index = () => {
                                         setValue={(callback) => setSebaType(callback(sebaType))}
                                         placeholder='Select Seba Type'
                                         placeholderStyle={{ color: '#4d6285' }}
+                                        listMode='SCROLLVIEW'
                                         containerStyle={{ width: '100%', marginTop: 5 }}
                                         style={[styles.input, (focusedField === 'sebaType' || sebaType !== null) && styles.focusedInput]}
                                         dropDownContainerStyle={{ backgroundColor: '#fafafa', zIndex: 999 }}
                                     />
                                 </View>
+                                {/* Seba Details */}
+                                {sebaDetails.map((seba) => (
+                                    <View key={seba.id} style={styles.sebaContainer}>
+                                        <TouchableOpacity onPress={() => toggleSection(seba.id)} style={styles.sebaHeader}>
+                                            <Text style={styles.sebaHeaderText}>{seba.name}</Text>
+                                        </TouchableOpacity>
+                                        <Collapsible collapsed={!activeSections.includes(seba.id)}>
+                                            {seba.bedha.map((bedha) => (
+                                                <View key={bedha.id} style={styles.bedhaItem}>
+                                                    <CheckBox
+                                                        value={selectedBedhas[bedha.id] || false}
+                                                        onValueChange={() => toggleBedhaSelection(bedha.id)}
+                                                        tintColors={{ true: '#56ab2f', false: '#757473' }}
+                                                    />
+                                                    <Text style={styles.bedhaText}>{bedha.name}</Text>
+                                                </View>
+                                            ))}
+                                        </Collapsible>
+                                    </View>
+                                ))}
                             </View>
                             {/* Submit Button */}
                             <View style={{ width: '95%', alignSelf: 'center', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around' }}>
@@ -2047,5 +2163,34 @@ const styles = StyleSheet.create({
         fontSize: 12,
         marginTop: -8,
         marginBottom: 5,
+    },
+    sebaContainer: {
+        marginBottom: 10,
+        borderWidth: 1,
+        borderColor: '#757473',
+        borderRadius: 8,
+    },
+    sebaHeader: {
+        padding: 10,
+        backgroundColor: '#f0f0f0',
+        borderRadius: 8,
+    },
+    sebaHeaderText: {
+        fontSize: 16,
+        // fontWeight: 'bold',
+        color: '#000',
+    },
+    bedhaItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        padding: 10,
+        paddingLeft: 20,
+        borderTopWidth: 1,
+        borderTopColor: '#eee',
+    },
+    bedhaText: {
+        marginLeft: 10,
+        fontSize: 14,
+        color: '#000',
     },
 });
