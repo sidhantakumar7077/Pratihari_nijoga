@@ -1,5 +1,5 @@
 import { SafeAreaView, StyleSheet, Text, View, TouchableOpacity, ScrollView, FlatList, TextInput, Image, Modal, KeyboardAvoidingView, Platform, Switch } from 'react-native';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
 import { FloatingLabelInput } from 'react-native-floating-label-input';
@@ -18,6 +18,7 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import Swiper from 'react-native-swiper';
 import Collapsible from 'react-native-collapsible';
 import { base_url } from '../../../App';
+import { get } from 'react-native/Libraries/TurboModule/TurboModuleRegistry';
 
 // images
 const image1 = require('../../assets/images/slideImg5.jpg');
@@ -37,7 +38,7 @@ const Index = () => {
         { key: 'seba', label: 'Seba', icon: 'bank' },
         { key: 'social', label: 'Social Media', icon: 'web' },
     ];
-    const [activeTab, setActiveTab] = useState('id_card');
+    const [activeTab, setActiveTab] = useState('seba');
     const [isFocused, setIsFocused] = useState(null);
     const navigation = useNavigation();
 
@@ -124,7 +125,8 @@ const Index = () => {
             const data = await response.json();
             if (response.ok) {
                 console.log('ID Card Details saved successfully', data);
-                setActiveTab('address');
+                // setActiveTab('address');
+                handleNextTab('address');
             } else {
                 console.log("Error: ", data.message || 'Failed to save ID Card Details. Please try again.');
             }
@@ -140,6 +142,7 @@ const Index = () => {
     const [alias, setAlias] = useState('');
     const [emailId, setEmailId] = useState('');
     const [mobileNumber, setMobileNumber] = useState('');
+    const [alterNumber, setAlterNumber] = useState('');
     const [whatsappNumber, setWhatsappNumber] = useState('');
     const [helthCardNumber, setHelthCardNumber] = useState('');
     const [dob, setDob] = useState(null);
@@ -242,6 +245,7 @@ const Index = () => {
         formData.append('alias_name', alias);
         formData.append('email', emailId);
         formData.append('phone_no', mobileNumber);
+        formData.append('alt_phone_no', alterNumber);
         formData.append('whatsapp_no', whatsappNumber);
         formData.append('date_of_birth', moment(dob).format('YYYY-MM-DD'));
         formData.append('blood_group', bloodGroup);
@@ -268,7 +272,8 @@ const Index = () => {
             const data = await response.json();
             if (response.ok) {
                 console.log('Personal Details saved successfully', data);
-                setActiveTab('family');
+                // setActiveTab('family');
+                handleNextTab('family');
             } else {
                 console.log("Error: ", data.message || 'Failed to save Personal Details. Please try again.');
             }
@@ -459,7 +464,8 @@ const Index = () => {
             const data = await response.json();
             if (response.ok) {
                 console.log('Family Details saved successfully', data);
-                setActiveTab('id_card');
+                // setActiveTab('id_card');
+                handleNextTab('id_card');
             } else {
                 console.log("Error: ", data.message || 'Failed to save Family Details. Please try again.');
             }
@@ -559,7 +565,8 @@ const Index = () => {
             const data = await response.json();
             if (response.ok) {
                 console.log('Address Details saved successfully', data);
-                setActiveTab('occupation');
+                // setActiveTab('occupation');
+                handleNextTab('occupation');
             } else {
                 console.log("Error: ", data.message || 'Failed to save Address Details. Please try again.');
             }
@@ -626,7 +633,8 @@ const Index = () => {
             const data = await response.json();
             if (response.ok) {
                 console.log('Occupation Details saved successfully', data);
-                setActiveTab('seba');
+                // setActiveTab('seba');
+                handleNextTab('seba');
             } else {
                 console.log("Error: ", data.message || 'Failed to save Occupation Details. Please try again.');
             }
@@ -644,48 +652,55 @@ const Index = () => {
     // const [upi, setUpi] = useState('');
 
     // Seba Information
-    const [sebaTypeOpen, setSebaTypeOpen] = useState(false);
-    const [sebaType, setSebaType] = useState(null);
-    const [sebaTypeList, setSebaTypeList] = useState([
-        { label: 'Seba Type 1', value: 'seba1' },
-        { label: 'Seba Type 2', value: 'seba2' },
-    ]);
-
-    const [sebaDetails, setSebaDetails] = useState([
-        {
-            id: 1,
-            name: 'seba1',
-            bedha: [
-                { id: 1, name: 'bedha1' },
-                { id: 2, name: 'bedha2' },
-                { id: 3, name: 'bedha3' },
-            ]
-        },
-        {
-            id: 2,
-            name: 'seba2',
-            bedha: [
-                { id: 4, name: 'bedha4' },
-                { id: 5, name: 'bedha5' },
-                { id: 6, name: 'bedha6' },
-                { id: 7, name: 'bedha7' },
-            ]
-        },
-        {
-            id: 3,
-            name: 'seba3',
-            bedha: [
-                { id: 8, name: 'bedha8' },
-                { id: 9, name: 'bedha9' },
-                { id: 10, name: 'bedha10' },
-                { id: 11, name: 'bedha11' },
-                { id: 12, name: 'bedha12' },
-            ]
-        }
-    ]);
-
+    const [nijogaType, setNijogaType] = useState(null);
+    const [nijogaList, setNijogaList] = useState([]);
+    const [sebaDetails, setSebaDetails] = useState([]);
     const [activeSections, setActiveSections] = useState([]);
     const [selectedBedhas, setSelectedBedhas] = useState({});
+
+    // Fetch Nijoga list on component mount
+    useEffect(() => {
+        const fetchNijogas = async () => {
+            try {
+                const response = await fetch(base_url + "api/nijogas");
+                const data = await response.json();
+                if (response.ok) {
+                    const formattedNijogaList = data.data.map((nijoga) => ({
+                        label: nijoga.nijoga_name,
+                        value: nijoga.id,
+                    }));
+                    setNijogaList(formattedNijogaList);
+                } else {
+                    console.error('Failed to fetch Nijogas:', data.message);
+                }
+            } catch (error) {
+                console.error('Network request failed:', error);
+            }
+        };
+
+        fetchNijogas();
+    }, []);
+
+    // Fetch Seba and Bedha details when nijogaType changes
+    useEffect(() => {
+        if (nijogaType) {
+            const fetchSebaAndBedhas = async () => {
+                try {
+                    const response = await fetch(`${base_url}api/beddhas`);
+                    const data = await response.json();
+                    if (response.ok) {
+                        setSebaDetails(data.data);
+                    } else {
+                        console.error('Failed to fetch Seba and Bedhas:', data.message);
+                    }
+                } catch (error) {
+                    console.error('Network request failed:', error);
+                }
+            };
+
+            fetchSebaAndBedhas();
+        }
+    }, [nijogaType]);
 
     const toggleSection = (sebaId) => {
         setActiveSections((prevSections) =>
@@ -701,6 +716,61 @@ const Index = () => {
             [bedhaId]: !prevSelected[bedhaId],
         }));
     };
+
+    const saveSebaDetails = async () => {
+        const token = await AsyncStorage.getItem('storeAccesstoken');
+
+        // Organize selected Bedhas under their respective Seba
+        const sebaBedhaMap = {};
+        sebaDetails.forEach((seba) => {
+            const selectedBedhaIds = seba.bedha
+                .filter((bedha) => selectedBedhas[bedha.id])
+                .map((bedha) => bedha.id);
+
+            if (selectedBedhaIds.length > 0) {
+                sebaBedhaMap[seba.id] = selectedBedhaIds;
+            }
+        });
+
+        // Extract seba_ids and beddha_id mapping
+        const sebaIds = Object.keys(sebaBedhaMap).map(Number);
+        const bedhaIdMapping = {};
+        sebaIds.forEach((sebaId) => {
+            bedhaIdMapping[sebaId] = sebaBedhaMap[sebaId];
+        });
+
+        // Construct the payload
+        const sebaData = {
+            nijoga_type: nijogaType,
+            seba_id: sebaIds,
+            beddha_id: bedhaIdMapping,
+        };
+
+        // console.log("Seba Details", JSON.stringify(sebaData));
+        // return;
+
+        try {
+            const response = await fetch(base_url + "api/save-seba", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify(sebaData),
+            });
+
+            const data = await response.json();
+            if (response.ok) {
+                console.log('Seba Details saved successfully', data);
+                handleNextTab('social');
+            } else {
+                console.log("Error: ", data.message || 'Failed to save Seba Details. Please try again.');
+            }
+        } catch (error) {
+            console.error("Network request failed: ", error);
+        }
+    };
+
 
     // Social Media
     const [facebook_url, setFacebook_url] = useState('');
@@ -908,6 +978,17 @@ const Index = () => {
                                     containerStyles={{ borderWidth: 0.5, borderColor: '#353535', backgroundColor: '#ffffff', padding: 10, borderRadius: 8, marginVertical: 12, borderRadius: 10 }}
                                 />
                                 {personalDetailsErrors.mobileNumber && <Text style={styles.errorText}>{personalDetailsErrors.mobileNumber}</Text>}
+                                {/* Alternate Number */}
+                                <FloatingLabelInput
+                                    label="Alternate Number (Optional)"
+                                    value={alterNumber}
+                                    customLabelStyles={{ colorFocused: '#c80100', fontSizeFocused: 14 }}
+                                    labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
+                                    onChangeText={value => setAlterNumber(value)}
+                                    keyboardType="phone-pad"
+                                    maxLength={10}
+                                    containerStyles={{ borderWidth: 0.5, borderColor: '#353535', backgroundColor: '#ffffff', padding: 10, borderRadius: 8, marginVertical: 12, borderRadius: 10 }}
+                                />
                                 {/* Whatsapp Number Input */}
                                 <FloatingLabelInput
                                     label="Whatsapp Number"
@@ -1619,6 +1700,7 @@ const Index = () => {
                                     customLabelStyles={{ colorFocused: '#c80100', fontSizeFocused: 14 }}
                                     labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
                                     keyboardType="numeric"
+                                    maxLength={6}
                                     onChangeText={value => setPresent_pincode(value)}
                                     containerStyles={{ borderWidth: 0.5, borderColor: '#353535', backgroundColor: '#ffffff', padding: 10, borderRadius: 8, marginVertical: 12, borderRadius: 10 }}
                                 />
@@ -1730,6 +1812,7 @@ const Index = () => {
                                         customLabelStyles={{ colorFocused: '#c80100', fontSizeFocused: 14 }}
                                         labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
                                         keyboardType="numeric"
+                                        maxLength={6}
                                         onChangeText={value => setPermanent_pincode(value)}
                                         containerStyles={{ borderWidth: 0.5, borderColor: '#353535', backgroundColor: '#ffffff', padding: 10, borderRadius: 8, marginVertical: 12, borderRadius: 10 }}
                                     />
@@ -1857,20 +1940,20 @@ const Index = () => {
                         </View>
                         <ScrollView style={{ flex: 1 }}>
                             <View style={styles.cardBox}>
-                                {/* Seba Type Dropdown */}
-                                <Text style={[styles.label, (focusedField === 'sebaType' || sebaType !== null) ? styles.focusedLabel : { marginBottom: 10 }]}>Seba Type</Text>
+                                {/* Nijoga Type Dropdown */}
+                                {nijogaType !== null && <Text style={[styles.label, (focusedField === 'nijogaType' || nijogaType !== null) ? styles.focusedLabel : { marginBottom: 10 }]}>Select Nijoga</Text>}
                                 <View style={{ width: '100%', flexDirection: 'row', alignItems: 'center' }}>
                                     <DropDownPicker
-                                        open={focusedField === 'sebaType'}
-                                        value={sebaType}
-                                        items={sebaTypeList}
-                                        setOpen={() => setFocusedField(focusedField === 'sebaType' ? null : 'sebaType')}
-                                        setValue={(callback) => setSebaType(callback(sebaType))}
-                                        placeholder='Select Seba Type'
+                                        open={focusedField === 'nijogaType'}
+                                        value={nijogaType}
+                                        items={nijogaList}
+                                        setOpen={() => setFocusedField(focusedField === 'nijogaType' ? null : 'nijogaType')}
+                                        setValue={(callback) => setNijogaType(callback(nijogaType))}
+                                        placeholder='Select Nijoga'
                                         placeholderStyle={{ color: '#4d6285' }}
                                         listMode='SCROLLVIEW'
                                         containerStyle={{ width: '100%', marginTop: 5 }}
-                                        style={[styles.input, (focusedField === 'sebaType' || sebaType !== null) && styles.focusedInput]}
+                                        style={[styles.input, (focusedField === 'nijogaType' || nijogaType !== null) && styles.focusedInput]}
                                         dropDownContainerStyle={{ backgroundColor: '#fafafa', zIndex: 999 }}
                                     />
                                 </View>
@@ -1901,7 +1984,7 @@ const Index = () => {
                                     <Fontisto name="arrow-left" size={20} color="#fff" />
                                     <Text style={styles.submitText}>Previous</Text>
                                 </TouchableOpacity>
-                                <TouchableOpacity onPress={() => handleNextTab('social')} style={{ width: '45%', backgroundColor: '#c9170a', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', alignSelf: 'center', borderRadius: 50, paddingVertical: 10, marginVertical: 15 }}>
+                                <TouchableOpacity onPress={saveSebaDetails} style={{ width: '45%', backgroundColor: '#c9170a', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', alignSelf: 'center', borderRadius: 50, paddingVertical: 10, marginVertical: 15 }}>
                                     <Text style={styles.submitText}>Next</Text>
                                     <Fontisto name="arrow-right" size={20} color="#fff" />
                                 </TouchableOpacity>
