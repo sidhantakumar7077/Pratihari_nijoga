@@ -18,7 +18,6 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import Swiper from 'react-native-swiper';
 import Collapsible from 'react-native-collapsible';
 import { base_url } from '../../../App';
-import { get } from 'react-native/Libraries/TurboModule/TurboModuleRegistry';
 
 // images
 const image1 = require('../../assets/images/slideImg5.jpg');
@@ -38,7 +37,7 @@ const Index = () => {
         { key: 'seba', label: 'Seba', icon: 'bank' },
         { key: 'social', label: 'Social Media', icon: 'web' },
     ];
-    const [activeTab, setActiveTab] = useState('seba');
+    const [activeTab, setActiveTab] = useState('personal');
     const [isFocused, setIsFocused] = useState(null);
     const navigation = useNavigation();
 
