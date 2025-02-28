@@ -1,9 +1,10 @@
-import { View, Text, StyleSheet, Image, ImageBackground } from 'react-native';
+import { View, Text, StyleSheet, Image, ImageBackground, StatusBar } from 'react-native';
 import React from 'react'
 
 const Index = () => {
     return (
         <View style={styles.container}>
+            <StatusBar hidden={true} />
             <ImageBackground
                 source={require('../../assets/images/Background.png')}
                 style={{

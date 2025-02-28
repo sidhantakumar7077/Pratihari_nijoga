@@ -95,13 +95,13 @@ const Index = () => {
     };
 
     const saveIdCardDetails = async () => {
-        if (!validateFields()) return;
+        // if (!validateFields()) return;
         const token = await AsyncStorage.getItem('storeAccesstoken');
         const formData = new FormData();
         fields.forEach((field, index) => {
             formData.append(`id_type[${index}]`, field.idProof);
             formData.append(`id_number[${index}]`, field.idProofNumber);
-            if (field.idProofImage) {
+            if (field.uri) {
                 formData.append(`id_photo[${index}]`, {
                     uri: field.uri,
                     type: field.type,
@@ -146,8 +146,6 @@ const Index = () => {
     const [helthCardNumber, setHelthCardNumber] = useState('');
     const [dob, setDob] = useState(null);
     const [isDateOpen, setDateOpen] = useState(false);
-    const openDobPicker = () => { setDateOpen(true) };
-    const closeDobPicker = () => { setDateOpen(false) };
     const [educational_qualification, setEducational_qualification] = useState('');
     const [openBloodGroup, setOpenBloodGroup] = useState(false);
     const [bloodGroup, setBloodGroup] = useState(null);
@@ -205,7 +203,7 @@ const Index = () => {
         if (!firstName) newErrors.firstName = 'First Name is required';
         if (!middleName) newErrors.middleName = 'Middle Name is required';
         if (!lastName) newErrors.lastName = 'Last Name is required';
-        if (!alias) newErrors.alias = 'Alias is required';
+        // if (!alias) newErrors.alias = 'Alias is required';
 
         // Phone Number Validation (10 digits only)
         if (!mobileNumber) {
@@ -214,17 +212,17 @@ const Index = () => {
             newErrors.mobileNumber = 'Enter a valid 10-digit Mobile Number';
         }
 
-        if (!whatsappNumber) {
-            newErrors.whatsappNumber = 'Whatsapp Number is required';
-        } else if (!/^\d{10}$/.test(whatsappNumber)) {
-            newErrors.whatsappNumber = 'Enter a valid 10-digit Whatsapp Number';
-        }
+        // if (!whatsappNumber) {
+        //     newErrors.whatsappNumber = 'Whatsapp Number is required';
+        // } else if (!/^\d{10}$/.test(whatsappNumber)) {
+        //     newErrors.whatsappNumber = 'Enter a valid 10-digit Whatsapp Number';
+        // }
 
-        if (!dob) newErrors.dob = 'Date of Birth is required';
-        if (!bloodGroup) newErrors.bloodGroup = 'Blood Group is required';
+        // if (!dob) newErrors.dob = 'Date of Birth is required';
+        // if (!bloodGroup) newErrors.bloodGroup = 'Blood Group is required';
         if (!helthCardNumber) newErrors.helthCardNumber = 'Health Card Number is required';
         if (!userPhoto_source) newErrors.userPhoto_source = 'User Photo is required';
-        if (!dateOfJoinTempleSeba) newErrors.dateOfJoinTempleSeba = 'Date of Joining Temple Seba is required';
+        // if (!dateOfJoinTempleSeba) newErrors.dateOfJoinTempleSeba = 'Date of Joining Temple Seba is required';
 
         // Set errors and clear them after 5 seconds
         setPersonalDetailsErrors(newErrors);
@@ -404,7 +402,7 @@ const Index = () => {
     };
 
     const saveFamilyDetails = async () => {
-        if (!validateFamilyFields()) return;
+        // if (!validateFamilyFields()) return;
         const token = await AsyncStorage.getItem('storeAccesstoken');
         const formData = new FormData();
         formData.append('father_name', fatherName);
@@ -527,7 +525,7 @@ const Index = () => {
     };
 
     const saveAddressDetails = async () => {
-        if (!validateAddressFields()) return;
+        // if (!validateAddressFields()) return;
 
         const token = await AsyncStorage.getItem('storeAccesstoken');
         const formData = new FormData();
@@ -609,7 +607,7 @@ const Index = () => {
     };
 
     const saveOccupationDetails = async () => {
-        if (!validateOccupationFields()) return;
+        // if (!validateOccupationFields()) return;
 
         const token = await AsyncStorage.getItem('storeAccesstoken');
         const formData = new FormData();
@@ -833,7 +831,7 @@ const Index = () => {
     return (
         <SafeAreaView style={{ flex: 1, backgroundColor: '#f5f5f5' }}>
             <View style={styles.swiperContainer}>
-                <Swiper
+                {/* <Swiper
                     showsButtons={false}
                     autoplay={false}
                     autoplayTimeout={3}
@@ -849,7 +847,7 @@ const Index = () => {
                             resizeMode="cover"
                         />
                     ))}
-                </Swiper>
+                </Swiper> */}
             </View>
             <View style={{ height: 50, marginBottom: 15, marginHorizontal: 10 }}>
                 <FlatList
@@ -861,7 +859,7 @@ const Index = () => {
                     renderItem={({ item }) => (
                         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                             {tabs.findIndex(tab => tab.key === item.key) !== 0 && (
-                                <View style={{ width: 55, height: 3, backgroundColor: activeTab === item.key || tabs.findIndex(tab => tab.key === item.key) < tabs.findIndex(tab => tab.key === activeTab) ? '#c9170a' : '#919090' }} />
+                                <View style={{ width: 55, height: 3, backgroundColor: activeTab === item.key || tabs.findIndex(tab => tab.key === item.key) < tabs.findIndex(tab => tab.key === activeTab) ? '#e96a01' : '#919090' }} />
                             )}
                             <View
                                 style={activeTab === item.key ? styles.activeTab : (tabs.findIndex(tab => tab.key === item.key) < tabs.findIndex(tab => tab.key === activeTab) ? styles.activeTab : styles.tab)}
@@ -885,9 +883,9 @@ const Index = () => {
                             <View style={styles.cardBox}>
                                 {/* First Name Input */}
                                 <FloatingLabelInput
-                                    label="First Name"
+                                    label="First Name*"
                                     value={firstName}
-                                    customLabelStyles={{ colorFocused: '#c80100', fontSizeFocused: 14 }}
+                                    customLabelStyles={{ colorFocused: '#e96a01', fontSizeFocused: 14 }}
                                     labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
                                     onChangeText={value => setFirstName(value)}
                                     containerStyles={{ borderWidth: 0.5, borderColor: '#353535', backgroundColor: '#ffffff', padding: 10, borderRadius: 8, marginVertical: 12, borderRadius: 10 }}
@@ -895,9 +893,9 @@ const Index = () => {
                                 {personalDetailsErrors.firstName && <Text style={styles.errorText}>{personalDetailsErrors.firstName}</Text>}
                                 {/* Middle Name Input */}
                                 <FloatingLabelInput
-                                    label="Middle Name"
+                                    label="Middle Name*"
                                     value={middleName}
-                                    customLabelStyles={{ colorFocused: '#c80100', fontSizeFocused: 14 }}
+                                    customLabelStyles={{ colorFocused: '#e96a01', fontSizeFocused: 14 }}
                                     labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
                                     onChangeText={value => setMiddleName(value)}
                                     containerStyles={{ borderWidth: 0.5, borderColor: '#353535', backgroundColor: '#ffffff', padding: 10, borderRadius: 8, marginVertical: 12, borderRadius: 10 }}
@@ -905,9 +903,9 @@ const Index = () => {
                                 {personalDetailsErrors.middleName && <Text style={styles.errorText}>{personalDetailsErrors.middleName}</Text>}
                                 {/* Last Name Input */}
                                 <FloatingLabelInput
-                                    label="Last Name"
+                                    label="Last Name*"
                                     value={lastName}
-                                    customLabelStyles={{ colorFocused: '#c80100', fontSizeFocused: 14 }}
+                                    customLabelStyles={{ colorFocused: '#e96a01', fontSizeFocused: 14 }}
                                     labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
                                     onChangeText={value => setLastName(value)}
                                     containerStyles={{ borderWidth: 0.5, borderColor: '#353535', backgroundColor: '#ffffff', padding: 10, borderRadius: 8, marginVertical: 12, borderRadius: 10 }}
@@ -917,7 +915,7 @@ const Index = () => {
                                 <FloatingLabelInput
                                     label="Alias"
                                     value={alias}
-                                    customLabelStyles={{ colorFocused: '#c80100', fontSizeFocused: 14 }}
+                                    customLabelStyles={{ colorFocused: '#e96a01', fontSizeFocused: 14 }}
                                     labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
                                     onChangeText={value => setAlias(value)}
                                     containerStyles={{ borderWidth: 0.5, borderColor: '#353535', backgroundColor: '#ffffff', padding: 10, borderRadius: 8, marginVertical: 12, borderRadius: 10 }}
@@ -925,7 +923,7 @@ const Index = () => {
                                 {personalDetailsErrors.alias && <Text style={styles.errorText}>{personalDetailsErrors.alias}</Text>}
                                 {/* DOB Input */}
                                 <Text style={[styles.label, (focusedField === 'dob' || dob !== null) && styles.focusedLabel]}>Date Of Birth</Text>
-                                <TouchableOpacity onPress={openDobPicker}>
+                                <TouchableOpacity onPress={() => setDateOpen(true)}>
                                     <TextInput
                                         style={{ color: '#000', borderWidth: 0.5, borderColor: '#353535', backgroundColor: '#ffffff', padding: 10, paddingLeft: 18, borderRadius: 10, marginVertical: 12 }}
                                         value={dob ? moment(dob).format('DD-MM-YYYY') : ''}
@@ -935,31 +933,26 @@ const Index = () => {
                                     />
                                     <AntDesign name="calendar" size={25} color="#4d6285" style={{ position: 'absolute', right: 20, top: 22 }} />
                                 </TouchableOpacity>
-                                <Modal animationType="slide" transparent={true} visible={isDateOpen} onRequestClose={closeDobPicker}>
-                                    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0, 0, 0, 0.5)' }}>
-                                        <View style={{ width: '90%', padding: 20, backgroundColor: 'white', borderRadius: 10, elevation: 5 }}>
-                                            <Calendar
-                                                onDayPress={(day) => {
-                                                    setDob(new Date(day.timestamp));
-                                                    setDateOpen(false);
-                                                }}
-                                                markedDates={{
-                                                    [moment(dob).format('YYYY-MM-DD')]: {
-                                                        selected: true,
-                                                        marked: true,
-                                                        selectedColor: 'blue'
-                                                    }
-                                                }}
-                                            />
-                                        </View>
-                                    </View>
-                                </Modal>
+                                <DatePicker
+                                    modal
+                                    mode="date"
+                                    open={isDateOpen}
+                                    date={dob || new Date()}
+                                    onConfirm={(date) => {
+                                        setDateOpen(false);
+                                        setDob(date);
+                                    }}
+                                    onCancel={() => {
+                                        setDateOpen(false);
+                                    }}
+                                    maximumDate={new Date()}
+                                />
                                 {personalDetailsErrors.dob && <Text style={styles.errorText}>{personalDetailsErrors.dob}</Text>}
                                 {/* Email Input */}
                                 <FloatingLabelInput
                                     label="Email (Optional)"
                                     value={emailId}
-                                    customLabelStyles={{ colorFocused: '#c80100', fontSizeFocused: 14 }}
+                                    customLabelStyles={{ colorFocused: '#e96a01', fontSizeFocused: 14 }}
                                     labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
                                     onChangeText={value => setEmailId(value)}
                                     keyboardType="email-address"
@@ -967,9 +960,9 @@ const Index = () => {
                                 />
                                 {/* Mobile Number Input */}
                                 <FloatingLabelInput
-                                    label="Mobile Number"
+                                    label="Mobile Number*"
                                     value={mobileNumber}
-                                    customLabelStyles={{ colorFocused: '#c80100', fontSizeFocused: 14 }}
+                                    customLabelStyles={{ colorFocused: '#e96a01', fontSizeFocused: 14 }}
                                     labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
                                     onChangeText={value => setMobileNumber(value)}
                                     keyboardType="phone-pad"
@@ -981,7 +974,7 @@ const Index = () => {
                                 <FloatingLabelInput
                                     label="Alternate Number (Optional)"
                                     value={alterNumber}
-                                    customLabelStyles={{ colorFocused: '#c80100', fontSizeFocused: 14 }}
+                                    customLabelStyles={{ colorFocused: '#e96a01', fontSizeFocused: 14 }}
                                     labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
                                     onChangeText={value => setAlterNumber(value)}
                                     keyboardType="phone-pad"
@@ -992,7 +985,7 @@ const Index = () => {
                                 <FloatingLabelInput
                                     label="Whatsapp Number"
                                     value={whatsappNumber}
-                                    customLabelStyles={{ colorFocused: '#c80100', fontSizeFocused: 14 }}
+                                    customLabelStyles={{ colorFocused: '#e96a01', fontSizeFocused: 14 }}
                                     labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
                                     onChangeText={value => setWhatsappNumber(value)}
                                     keyboardType="phone-pad"
@@ -1031,7 +1024,7 @@ const Index = () => {
                                 {/* <FloatingLabelInput
                                 label="Educational Qualification"
                                 value={educational_qualification}
-                                customLabelStyles={{ colorFocused: '#c80100', fontSizeFocused: 14 }}
+                                customLabelStyles={{ colorFocused: '#e96a01', fontSizeFocused: 14 }}
                                 labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
                                 onChangeText={value => setEducational_qualification(value)}
                                 containerStyles={{ borderWidth: 0.5, borderColor: '#353535', backgroundColor: '#ffffff', padding: 10, borderRadius: 8, marginVertical: 12, borderRadius: 10 }}
@@ -1058,9 +1051,9 @@ const Index = () => {
                                 {personalDetailsErrors.bloodGroup && <Text style={styles.errorText}>{personalDetailsErrors.bloodGroup}</Text>}
                                 {/* Helth Card Number Input */}
                                 <FloatingLabelInput
-                                    label="Helth Card Number"
+                                    label="Helth Card Number*"
                                     value={helthCardNumber}
-                                    customLabelStyles={{ colorFocused: '#c80100', fontSizeFocused: 14 }}
+                                    customLabelStyles={{ colorFocused: '#e96a01', fontSizeFocused: 14 }}
                                     labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
                                     onChangeText={value => setHelthCardNumber(value)}
                                     keyboardType="default"
@@ -1068,7 +1061,7 @@ const Index = () => {
                                 />
                                 {personalDetailsErrors.helthCardNumber && <Text style={styles.errorText}>{personalDetailsErrors.helthCardNumber}</Text>}
                                 {/* User Photo Input */}
-                                <Text style={[styles.label, user_photo !== 'Select Image' && styles.focusedLabel]}>User Photo</Text>
+                                <Text style={[styles.label, user_photo !== 'Select Image' && styles.focusedLabel]}>User Photo*</Text>
                                 <TouchableOpacity style={[styles.filePicker, { marginTop: 10 }]} onPress={selectUserPhoto}>
                                     <TextInput
                                         style={styles.filePickerText}
@@ -1091,7 +1084,7 @@ const Index = () => {
                                             <FloatingLabelInput
                                                 label="Language"
                                                 value={language.lang}
-                                                customLabelStyles={{ colorFocused: '#c80100', fontSizeFocused: 14 }}
+                                                customLabelStyles={{ colorFocused: '#e96a01', fontSizeFocused: 14 }}
                                                 labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
                                                 onChangeText={(text) => {
                                                     const updatedFields = [...languages];
@@ -1230,7 +1223,7 @@ const Index = () => {
                                                 style={{
                                                     marginTop: 15,
                                                     padding: 12,
-                                                    backgroundColor: '#FF4D4D',
+                                                    backgroundColor: '#e96a01',
                                                     borderRadius: 10,
                                                     alignItems: 'center',
                                                     shadowColor: '#000',
@@ -1253,7 +1246,7 @@ const Index = () => {
                                             setDateRemember(newValue);
                                             setDateOfJoinTempleSeba(null); // Reset value when switching
                                         }}
-                                        tintColors={{ true: '#56ab2f', false: '#757473' }}
+                                        tintColors={{ true: '#e96a01', false: '#757473' }}
                                     />
                                     <Text style={{ fontSize: 16, marginRight: 10, color: '#757473' }}>Date Not Remembered</Text>
                                 </View>
@@ -1262,10 +1255,10 @@ const Index = () => {
                             <View style={{ width: '95%', alignSelf: 'center', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around' }}>
                                 <TouchableOpacity
                                     onPress={SavePersonalDetails}
-                                    style={{ width: '45%', backgroundColor: '#c9170a', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', alignSelf: 'center', borderRadius: 50, paddingVertical: 10, marginVertical: 15 }}
+                                    style={{ width: '45%', backgroundColor: '#e96a01', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', alignSelf: 'center', borderRadius: 50, paddingVertical: 10, marginVertical: 15 }}
                                 >
                                     <Text style={styles.submitText}>Next</Text>
-                                    <Fontisto name="arrow-right" size={20} color="#fff" />
+                                    <MaterialCommunityIcons name="hand-pointing-right" size={23} color="#fff" />
                                 </TouchableOpacity>
                             </View>
                         </ScrollView>
@@ -1283,7 +1276,7 @@ const Index = () => {
                                 <FloatingLabelInput
                                     label="Father's Name"
                                     value={fatherName}
-                                    customLabelStyles={{ colorFocused: '#c80100', fontSizeFocused: 14 }}
+                                    customLabelStyles={{ colorFocused: '#e96a01', fontSizeFocused: 14 }}
                                     labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
                                     onChangeText={value => setFatherName(value)}
                                     containerStyles={{ borderWidth: 0.5, borderColor: '#353535', backgroundColor: '#ffffff', padding: 10, borderRadius: 8, marginVertical: 12, borderRadius: 10 }}
@@ -1309,7 +1302,7 @@ const Index = () => {
                                 <FloatingLabelInput
                                     label="Mother's Name"
                                     value={motherName}
-                                    customLabelStyles={{ colorFocused: '#c80100', fontSizeFocused: 14 }}
+                                    customLabelStyles={{ colorFocused: '#e96a01', fontSizeFocused: 14 }}
                                     labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
                                     onChangeText={value => setMotherName(value)}
                                     containerStyles={{ borderWidth: 0.5, borderColor: '#353535', backgroundColor: '#ffffff', padding: 10, borderRadius: 8, marginVertical: 12, borderRadius: 10 }}
@@ -1338,8 +1331,8 @@ const Index = () => {
                                     initial={0}
                                     formHorizontal={true}
                                     labelHorizontal={true}
-                                    buttonColor={'#56ab2f'}
-                                    selectedButtonColor={'#56ab2f'}
+                                    buttonColor={'#e96a01'}
+                                    selectedButtonColor={'#e96a01'}
                                     animation={true}
                                     onPress={(value) => setMarrital_status(value)}
                                     style={{ justifyContent: 'space-around', marginTop: 10, marginBottom: marrital_status === 'married' ? 20 : 0 }}
@@ -1350,7 +1343,7 @@ const Index = () => {
                                         <FloatingLabelInput
                                             label="Spouse Name"
                                             value={spouseName}
-                                            customLabelStyles={{ colorFocused: '#c80100', fontSizeFocused: 14 }}
+                                            customLabelStyles={{ colorFocused: '#e96a01', fontSizeFocused: 14 }}
                                             labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
                                             onChangeText={value => setSpouseName(value)}
                                             containerStyles={{ borderWidth: 0.5, borderColor: '#353535', backgroundColor: '#ffffff', padding: 10, borderRadius: 8, marginVertical: 12, borderRadius: 10 }}
@@ -1385,7 +1378,7 @@ const Index = () => {
                                         <FloatingLabelInput
                                             label="Spouse Father's Name"
                                             value={spouseFatherName}
-                                            customLabelStyles={{ colorFocused: '#c80100', fontSizeFocused: 14 }}
+                                            customLabelStyles={{ colorFocused: '#e96a01', fontSizeFocused: 14 }}
                                             labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
                                             onChangeText={value => setSpouseFatherName(value)}
                                             containerStyles={{ borderWidth: 0.5, borderColor: '#353535', backgroundColor: '#ffffff', padding: 10, borderRadius: 8, marginVertical: 12, borderRadius: 10 }}
@@ -1416,7 +1409,7 @@ const Index = () => {
                                                     <FloatingLabelInput
                                                         label="Child Name"
                                                         value={child.name}
-                                                        customLabelStyles={{ colorFocused: '#c80100', fontSizeFocused: 14 }}
+                                                        customLabelStyles={{ colorFocused: '#e96a01', fontSizeFocused: 14 }}
                                                         labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
                                                         onChangeText={(text) => {
                                                             const updatedChildrenFields = [...childrenFields];
@@ -1438,6 +1431,15 @@ const Index = () => {
                                                                 />
                                                                 <AntDesign name="calendar" size={25} color="#353535" style={{ position: 'absolute', right: 20, top: 22 }} />
                                                             </TouchableOpacity>
+                                                            <DatePicker
+                                                                modal
+                                                                mode="date"
+                                                                open={isChildDobOpen && selectedChildIndex === index}
+                                                                date={child.dob || new Date()}
+                                                                onConfirm={(date) => handleChildDobChange(date)}
+                                                                onCancel={closeChildDobPicker}
+                                                                maximumDate={new Date()}
+                                                            />
                                                         </View>
                                                         <View style={{ width: '50%' }}>
                                                             <Text style={[styles.label, (focusedField === `gender${index}` || child.gender !== null) && styles.focusedLabel]}>Gender</Text>
@@ -1463,27 +1465,6 @@ const Index = () => {
                                                             />
                                                         </View>
                                                     </View>
-                                                    <Modal
-                                                        animationType="slide"
-                                                        transparent={true}
-                                                        visible={isChildDobOpen}
-                                                        onRequestClose={closeChildDobPicker}
-                                                    >
-                                                        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0, 0, 0, 0.5)' }}>
-                                                            <View style={{ width: '90%', padding: 20, backgroundColor: 'white', borderRadius: 10, elevation: 5 }}>
-                                                                <Calendar
-                                                                    onDayPress={(day) => handleChildDobChange(new Date(day.timestamp))}
-                                                                    markedDates={{
-                                                                        [moment(child.dob).format('YYYY-MM-DD')]: {
-                                                                            selected: true,
-                                                                            marked: true,
-                                                                            selectedColor: 'blue'
-                                                                        }
-                                                                    }}
-                                                                />
-                                                            </View>
-                                                        </View>
-                                                    </Modal>
                                                     <Text style={[styles.label, child.image !== 'Select Image' && styles.focusedLabel]}>Child Image</Text>
                                                     <TouchableOpacity style={[styles.filePicker, { marginTop: 10 }]} onPress={() => selectChildrenImage(index)}>
                                                         <TextInput
@@ -1505,7 +1486,7 @@ const Index = () => {
                                                     }
                                                     {index > 0 &&
                                                         <TouchableOpacity onPress={() => setChildrenFields(childrenFields.filter((_, i) => i !== index))}>
-                                                            <AntDesign name="minussquare" color="#c41414" size={40} />
+                                                            <AntDesign name="minussquare" color="#e96a01" size={40} />
                                                         </TouchableOpacity>
                                                     }
                                                 </View>
@@ -1516,13 +1497,13 @@ const Index = () => {
                             }
                             {/* Submit Button */}
                             <View style={{ width: '95%', alignSelf: 'center', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around' }}>
-                                <TouchableOpacity onPress={() => handleNextTab('personal')} style={{ width: '45%', backgroundColor: '#208a20', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', alignSelf: 'center', borderRadius: 50, paddingVertical: 10, marginVertical: 15 }}>
-                                    <Fontisto name="arrow-left" size={20} color="#fff" />
+                                <TouchableOpacity onPress={() => handleNextTab('personal')} style={{ width: '45%', backgroundColor: '#016a59', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', alignSelf: 'center', borderRadius: 50, paddingVertical: 10, marginVertical: 15 }}>
+                                    <MaterialCommunityIcons name="hand-pointing-left" size={23} color="#fff" />
                                     <Text style={styles.submitText}>Previous</Text>
                                 </TouchableOpacity>
-                                <TouchableOpacity onPress={saveFamilyDetails} style={{ width: '45%', backgroundColor: '#c9170a', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', alignSelf: 'center', borderRadius: 50, paddingVertical: 10, marginVertical: 15 }}>
+                                <TouchableOpacity onPress={saveFamilyDetails} style={{ width: '45%', backgroundColor: '#e96a01', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', alignSelf: 'center', borderRadius: 50, paddingVertical: 10, marginVertical: 15 }}>
                                     <Text style={styles.submitText}>Next</Text>
-                                    <Fontisto name="arrow-right" size={20} color="#fff" />
+                                    <MaterialCommunityIcons name="hand-pointing-right" size={23} color="#fff" />
                                 </TouchableOpacity>
                             </View>
                         </ScrollView>
@@ -1565,13 +1546,13 @@ const Index = () => {
                                         <View style={{ width: '30%', flexDirection: 'row' }}>
                                             {index > 0 && (
                                                 <TouchableOpacity onPress={() => removeFields(index)} style={{ marginLeft: 5 }}>
-                                                    <AntDesign name="minussquare" color="#c41414" size={40} />
+                                                    <AntDesign name="minussquare" color="#e96a01" size={37} />
                                                 </TouchableOpacity>
                                             )}
                                             {/* Add More Button */}
                                             {index === fields.length - 1 &&
                                                 <TouchableOpacity style={[styles.addButton, { marginLeft: 5 }]} onPress={addMoreFields}>
-                                                    <AntDesign name="plussquare" color="#016a59" size={40} />
+                                                    <AntDesign name="plussquare" color="#016a59" size={37} />
                                                 </TouchableOpacity>
                                             }
                                         </View>
@@ -1582,7 +1563,7 @@ const Index = () => {
                                     <FloatingLabelInput
                                         label="ID Proof Number"
                                         value={field.idProofNumber}
-                                        customLabelStyles={{ colorFocused: '#c80100', fontSizeFocused: 14 }}
+                                        customLabelStyles={{ colorFocused: '#e96a01', fontSizeFocused: 14 }}
                                         labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
                                         keyboardType="name-phone-pad"
                                         // maxLength={field.idProof === 'pan' ? 10 : 12}
@@ -1612,13 +1593,13 @@ const Index = () => {
                             ))}
                             {/* Submit Button */}
                             <View style={{ width: '95%', alignSelf: 'center', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around' }}>
-                                <TouchableOpacity onPress={() => handleNextTab('family')} style={{ width: '45%', backgroundColor: '#208a20', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', alignSelf: 'center', borderRadius: 50, paddingVertical: 10, marginVertical: 15 }}>
-                                    <Fontisto name="arrow-left" size={20} color="#fff" />
+                                <TouchableOpacity onPress={() => handleNextTab('family')} style={{ width: '45%', backgroundColor: '#016a59', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', alignSelf: 'center', borderRadius: 50, paddingVertical: 10, marginVertical: 15 }}>
+                                    <MaterialCommunityIcons name="hand-pointing-left" size={23} color="#fff" />
                                     <Text style={styles.submitText}>Previous</Text>
                                 </TouchableOpacity>
-                                <TouchableOpacity onPress={saveIdCardDetails} style={{ width: '45%', backgroundColor: '#c9170a', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', alignSelf: 'center', borderRadius: 50, paddingVertical: 10, marginVertical: 15 }}>
+                                <TouchableOpacity onPress={saveIdCardDetails} style={{ width: '45%', backgroundColor: '#e96a01', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', alignSelf: 'center', borderRadius: 50, paddingVertical: 10, marginVertical: 15 }}>
                                     <Text style={styles.submitText}>Next</Text>
-                                    <Fontisto name="arrow-right" size={20} color="#fff" />
+                                    <MaterialCommunityIcons name="hand-pointing-right" size={23} color="#fff" />
                                 </TouchableOpacity>
                             </View>
                         </ScrollView>
@@ -1636,7 +1617,7 @@ const Index = () => {
                                 <FloatingLabelInput
                                     label="Present Sahi"
                                     value={present_sahi}
-                                    customLabelStyles={{ colorFocused: '#c80100', fontSizeFocused: 14 }}
+                                    customLabelStyles={{ colorFocused: '#e96a01', fontSizeFocused: 14 }}
                                     labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
                                     onChangeText={value => setPresent_sahi(value)}
                                     containerStyles={{ borderWidth: 0.5, borderColor: '#353535', backgroundColor: '#ffffff', padding: 10, borderRadius: 8, marginVertical: 12, borderRadius: 10 }}
@@ -1646,7 +1627,7 @@ const Index = () => {
                                 <FloatingLabelInput
                                     label="Present Landmark"
                                     value={present_landmark}
-                                    customLabelStyles={{ colorFocused: '#c80100', fontSizeFocused: 14 }}
+                                    customLabelStyles={{ colorFocused: '#e96a01', fontSizeFocused: 14 }}
                                     labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
                                     onChangeText={value => setPresent_landmark(value)}
                                     containerStyles={{ borderWidth: 0.5, borderColor: '#353535', backgroundColor: '#ffffff', padding: 10, borderRadius: 8, marginVertical: 12, borderRadius: 10 }}
@@ -1656,7 +1637,7 @@ const Index = () => {
                                 <FloatingLabelInput
                                     label="Present Post"
                                     value={present_post}
-                                    customLabelStyles={{ colorFocused: '#c80100', fontSizeFocused: 14 }}
+                                    customLabelStyles={{ colorFocused: '#e96a01', fontSizeFocused: 14 }}
                                     labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
                                     onChangeText={value => setPresent_post(value)}
                                     containerStyles={{ borderWidth: 0.5, borderColor: '#353535', backgroundColor: '#ffffff', padding: 10, borderRadius: 8, marginVertical: 12, borderRadius: 10 }}
@@ -1666,7 +1647,7 @@ const Index = () => {
                                 <FloatingLabelInput
                                     label="Present Police Station"
                                     value={present_PS}
-                                    customLabelStyles={{ colorFocused: '#c80100', fontSizeFocused: 14 }}
+                                    customLabelStyles={{ colorFocused: '#e96a01', fontSizeFocused: 14 }}
                                     labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
                                     onChangeText={value => setPresent_PS(value)}
                                     containerStyles={{ borderWidth: 0.5, borderColor: '#353535', backgroundColor: '#ffffff', padding: 10, borderRadius: 8, marginVertical: 12, borderRadius: 10 }}
@@ -1676,7 +1657,7 @@ const Index = () => {
                                 <FloatingLabelInput
                                     label="Present District"
                                     value={present_district}
-                                    customLabelStyles={{ colorFocused: '#c80100', fontSizeFocused: 14 }}
+                                    customLabelStyles={{ colorFocused: '#e96a01', fontSizeFocused: 14 }}
                                     labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
                                     onChangeText={value => setPresent_district(value)}
                                     containerStyles={{ borderWidth: 0.5, borderColor: '#353535', backgroundColor: '#ffffff', padding: 10, borderRadius: 8, marginVertical: 12, borderRadius: 10 }}
@@ -1686,7 +1667,7 @@ const Index = () => {
                                 <FloatingLabelInput
                                     label="Present State"
                                     value={present_state}
-                                    customLabelStyles={{ colorFocused: '#c80100', fontSizeFocused: 14 }}
+                                    customLabelStyles={{ colorFocused: '#e96a01', fontSizeFocused: 14 }}
                                     labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
                                     onChangeText={value => setPresent_state(value)}
                                     containerStyles={{ borderWidth: 0.5, borderColor: '#353535', backgroundColor: '#ffffff', padding: 10, borderRadius: 8, marginVertical: 12, borderRadius: 10 }}
@@ -1696,7 +1677,7 @@ const Index = () => {
                                 <FloatingLabelInput
                                     label="Present Pincode"
                                     value={present_pincode}
-                                    customLabelStyles={{ colorFocused: '#c80100', fontSizeFocused: 14 }}
+                                    customLabelStyles={{ colorFocused: '#e96a01', fontSizeFocused: 14 }}
                                     labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
                                     keyboardType="numeric"
                                     maxLength={6}
@@ -1708,7 +1689,7 @@ const Index = () => {
                                 <FloatingLabelInput
                                     label="Present Country"
                                     value={present_country}
-                                    customLabelStyles={{ colorFocused: '#c80100', fontSizeFocused: 14 }}
+                                    customLabelStyles={{ colorFocused: '#e96a01', fontSizeFocused: 14 }}
                                     labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
                                     onChangeText={value => setPresent_country(value)}
                                     containerStyles={{ borderWidth: 0.5, borderColor: '#353535', backgroundColor: '#ffffff', padding: 10, borderRadius: 8, marginVertical: 12, borderRadius: 10 }}
@@ -1718,7 +1699,7 @@ const Index = () => {
                                 <FloatingLabelInput
                                     label="Present Address"
                                     value={present_address}
-                                    customLabelStyles={{ colorFocused: '#c80100', fontSizeFocused: 14 }}
+                                    customLabelStyles={{ colorFocused: '#e96a01', fontSizeFocused: 14 }}
                                     labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
                                     onChangeText={value => setPresent_address(value)}
                                     containerStyles={{ borderWidth: 0.5, borderColor: '#353535', backgroundColor: '#ffffff', padding: 10, borderRadius: 8, marginVertical: 12, borderRadius: 10 }}
@@ -1734,8 +1715,8 @@ const Index = () => {
                                         initial={isPermanentSameAsPresent ? 0 : 1}
                                         formHorizontal={true}
                                         labelHorizontal={true}
-                                        buttonColor={'#56ab2f'}
-                                        selectedButtonColor={'#56ab2f'}
+                                        buttonColor={'#e96a01'}
+                                        selectedButtonColor={'#e96a01'}
                                         animation={true}
                                         onPress={(value) => setIsPermanentSameAsPresent(value)}
                                         style={{ justifyContent: 'space-between' }}
@@ -1748,7 +1729,7 @@ const Index = () => {
                                     <FloatingLabelInput
                                         label="Permanent Sahi"
                                         value={permanent_sahi}
-                                        customLabelStyles={{ colorFocused: '#c80100', fontSizeFocused: 14 }}
+                                        customLabelStyles={{ colorFocused: '#e96a01', fontSizeFocused: 14 }}
                                         labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
                                         onChangeText={value => setPermanent_sahi(value)}
                                         containerStyles={{ borderWidth: 0.5, borderColor: '#353535', backgroundColor: '#ffffff', padding: 10, borderRadius: 8, marginVertical: 12, borderRadius: 10 }}
@@ -1758,7 +1739,7 @@ const Index = () => {
                                     <FloatingLabelInput
                                         label="Permanent Landmark"
                                         value={permanent_landmark}
-                                        customLabelStyles={{ colorFocused: '#c80100', fontSizeFocused: 14 }}
+                                        customLabelStyles={{ colorFocused: '#e96a01', fontSizeFocused: 14 }}
                                         labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
                                         onChangeText={value => setPermanent_landmark(value)}
                                         containerStyles={{ borderWidth: 0.5, borderColor: '#353535', backgroundColor: '#ffffff', padding: 10, borderRadius: 8, marginVertical: 12, borderRadius: 10 }}
@@ -1768,7 +1749,7 @@ const Index = () => {
                                     <FloatingLabelInput
                                         label="Permanent Post"
                                         value={permanent_post}
-                                        customLabelStyles={{ colorFocused: '#c80100', fontSizeFocused: 14 }}
+                                        customLabelStyles={{ colorFocused: '#e96a01', fontSizeFocused: 14 }}
                                         labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
                                         onChangeText={value => setPermanent_post(value)}
                                         containerStyles={{ borderWidth: 0.5, borderColor: '#353535', backgroundColor: '#ffffff', padding: 10, borderRadius: 8, marginVertical: 12, borderRadius: 10 }}
@@ -1778,7 +1759,7 @@ const Index = () => {
                                     <FloatingLabelInput
                                         label="Permanent Police Station"
                                         value={permanent_PS}
-                                        customLabelStyles={{ colorFocused: '#c80100', fontSizeFocused: 14 }}
+                                        customLabelStyles={{ colorFocused: '#e96a01', fontSizeFocused: 14 }}
                                         labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
                                         onChangeText={value => setPermanent_PS(value)}
                                         containerStyles={{ borderWidth: 0.5, borderColor: '#353535', backgroundColor: '#ffffff', padding: 10, borderRadius: 8, marginVertical: 12, borderRadius: 10 }}
@@ -1788,7 +1769,7 @@ const Index = () => {
                                     <FloatingLabelInput
                                         label="Permanent District"
                                         value={permanent_district}
-                                        customLabelStyles={{ colorFocused: '#c80100', fontSizeFocused: 14 }}
+                                        customLabelStyles={{ colorFocused: '#e96a01', fontSizeFocused: 14 }}
                                         labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
                                         onChangeText={value => setPermanent_district(value)}
                                         containerStyles={{ borderWidth: 0.5, borderColor: '#353535', backgroundColor: '#ffffff', padding: 10, borderRadius: 8, marginVertical: 12, borderRadius: 10 }}
@@ -1798,7 +1779,7 @@ const Index = () => {
                                     <FloatingLabelInput
                                         label="Permanent State"
                                         value={permanent_state}
-                                        customLabelStyles={{ colorFocused: '#c80100', fontSizeFocused: 14 }}
+                                        customLabelStyles={{ colorFocused: '#e96a01', fontSizeFocused: 14 }}
                                         labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
                                         onChangeText={value => setPermanent_state(value)}
                                         containerStyles={{ borderWidth: 0.5, borderColor: '#353535', backgroundColor: '#ffffff', padding: 10, borderRadius: 8, marginVertical: 12, borderRadius: 10 }}
@@ -1808,7 +1789,7 @@ const Index = () => {
                                     <FloatingLabelInput
                                         label="Permanent Pincode"
                                         value={permanent_pincode}
-                                        customLabelStyles={{ colorFocused: '#c80100', fontSizeFocused: 14 }}
+                                        customLabelStyles={{ colorFocused: '#e96a01', fontSizeFocused: 14 }}
                                         labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
                                         keyboardType="numeric"
                                         maxLength={6}
@@ -1820,7 +1801,7 @@ const Index = () => {
                                     <FloatingLabelInput
                                         label="Permanent Country"
                                         value={permanent_country}
-                                        customLabelStyles={{ colorFocused: '#c80100', fontSizeFocused: 14 }}
+                                        customLabelStyles={{ colorFocused: '#e96a01', fontSizeFocused: 14 }}
                                         labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
                                         onChangeText={value => setPermanent_country(value)}
                                         containerStyles={{ borderWidth: 0.5, borderColor: '#353535', backgroundColor: '#ffffff', padding: 10, borderRadius: 8, marginVertical: 12, borderRadius: 10 }}
@@ -1830,7 +1811,7 @@ const Index = () => {
                                     <FloatingLabelInput
                                         label="Permanent Address"
                                         value={permanent_address}
-                                        customLabelStyles={{ colorFocused: '#c80100', fontSizeFocused: 14 }}
+                                        customLabelStyles={{ colorFocused: '#e96a01', fontSizeFocused: 14 }}
                                         labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
                                         onChangeText={value => setPermanent_address(value)}
                                         containerStyles={{ borderWidth: 0.5, borderColor: '#353535', backgroundColor: '#ffffff', padding: 10, borderRadius: 8, marginVertical: 12, borderRadius: 10 }}
@@ -1840,13 +1821,13 @@ const Index = () => {
                             }
                             {/* Submit Button */}
                             <View style={{ width: '95%', alignSelf: 'center', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around' }}>
-                                <TouchableOpacity onPress={() => handleNextTab('id_card')} style={{ width: '45%', backgroundColor: '#208a20', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', alignSelf: 'center', borderRadius: 50, paddingVertical: 10, marginVertical: 15 }}>
-                                    <Fontisto name="arrow-left" size={20} color="#fff" />
+                                <TouchableOpacity onPress={() => handleNextTab('id_card')} style={{ width: '45%', backgroundColor: '#016a59', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', alignSelf: 'center', borderRadius: 50, paddingVertical: 10, marginVertical: 15 }}>
+                                    <MaterialCommunityIcons name="hand-pointing-left" size={23} color="#fff" />
                                     <Text style={styles.submitText}>Previous</Text>
                                 </TouchableOpacity>
-                                <TouchableOpacity onPress={saveAddressDetails} style={{ width: '45%', backgroundColor: '#c9170a', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', alignSelf: 'center', borderRadius: 50, paddingVertical: 10, marginVertical: 15 }}>
+                                <TouchableOpacity onPress={saveAddressDetails} style={{ width: '45%', backgroundColor: '#e96a01', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', alignSelf: 'center', borderRadius: 50, paddingVertical: 10, marginVertical: 15 }}>
                                     <Text style={styles.submitText}>Next</Text>
-                                    <Fontisto name="arrow-right" size={20} color="#fff" />
+                                    <MaterialCommunityIcons name="hand-pointing-right" size={23} color="#fff" />
                                 </TouchableOpacity>
                             </View>
                         </ScrollView>
@@ -1864,7 +1845,7 @@ const Index = () => {
                                 <FloatingLabelInput
                                     label="Occupatio Type"
                                     value={occupationType}
-                                    customLabelStyles={{ colorFocused: '#c80100', fontSizeFocused: 14 }}
+                                    customLabelStyles={{ colorFocused: '#e96a01', fontSizeFocused: 14 }}
                                     labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
                                     onChangeText={value => setOccupationType(value)}
                                     containerStyles={{ borderWidth: 0.5, borderColor: '#353535', backgroundColor: '#ffffff', padding: 10, borderRadius: 8, marginVertical: 12, borderRadius: 10 }}
@@ -1877,7 +1858,7 @@ const Index = () => {
                                             <FloatingLabelInput
                                                 label="Extra Curricular Activity"
                                                 value={field}
-                                                customLabelStyles={{ colorFocused: '#c80100', fontSizeFocused: 14 }}
+                                                customLabelStyles={{ colorFocused: '#e96a01', fontSizeFocused: 14 }}
                                                 labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
                                                 onChangeText={(value) => {
                                                     const updatedFields = [...extraCuricularActivity];
@@ -1903,14 +1884,14 @@ const Index = () => {
                                             {/* Remove Button (Hidden for first index) */}
                                             {index > 0 && (
                                                 <TouchableOpacity onPress={() => removeExtraCuricularFields(index)} style={{ marginLeft: 5 }}>
-                                                    <AntDesign name="minussquare" color="#c41414" size={40} />
+                                                    <AntDesign name="minussquare" color="#e96a01" size={37} />
                                                 </TouchableOpacity>
                                             )}
 
                                             {/* Add More Button (Only on the last item) */}
                                             {index === extraCuricularActivity.length - 1 && (
                                                 <TouchableOpacity style={{ marginLeft: 5 }} onPress={addMoreExtraCuricularFields}>
-                                                    <AntDesign name="plussquare" color="#016a59" size={40} />
+                                                    <AntDesign name="plussquare" color="#016a59" size={37} />
                                                 </TouchableOpacity>
                                             )}
                                         </View>
@@ -1919,13 +1900,13 @@ const Index = () => {
                             </View>
                             {/* Submit Button */}
                             <View style={{ width: '95%', alignSelf: 'center', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around' }}>
-                                <TouchableOpacity onPress={() => handleNextTab('address')} style={{ width: '45%', backgroundColor: '#208a20', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', alignSelf: 'center', borderRadius: 50, paddingVertical: 10, marginVertical: 15 }}>
-                                    <Fontisto name="arrow-left" size={20} color="#fff" />
+                                <TouchableOpacity onPress={() => handleNextTab('address')} style={{ width: '45%', backgroundColor: '#016a59', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', alignSelf: 'center', borderRadius: 50, paddingVertical: 10, marginVertical: 15 }}>
+                                    <MaterialCommunityIcons name="hand-pointing-left" size={23} color="#fff" />
                                     <Text style={styles.submitText}>Previous</Text>
                                 </TouchableOpacity>
-                                <TouchableOpacity onPress={saveOccupationDetails} style={{ width: '45%', backgroundColor: '#c9170a', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', alignSelf: 'center', borderRadius: 50, paddingVertical: 10, marginVertical: 15 }}>
+                                <TouchableOpacity onPress={saveOccupationDetails} style={{ width: '45%', backgroundColor: '#e96a01', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', alignSelf: 'center', borderRadius: 50, paddingVertical: 10, marginVertical: 15 }}>
                                     <Text style={styles.submitText}>Next</Text>
-                                    <Fontisto name="arrow-right" size={20} color="#fff" />
+                                    <MaterialCommunityIcons name="hand-pointing-right" size={23} color="#fff" />
                                 </TouchableOpacity>
                             </View>
                         </ScrollView>
@@ -1968,7 +1949,7 @@ const Index = () => {
                                                     <CheckBox
                                                         value={selectedBedhas[bedha.id] || false}
                                                         onValueChange={() => toggleBedhaSelection(bedha.id)}
-                                                        tintColors={{ true: '#56ab2f', false: '#757473' }}
+                                                        tintColors={{ true: '#e96a01', false: '#757473' }}
                                                     />
                                                     <Text style={styles.bedhaText}>{bedha.name}</Text>
                                                 </View>
@@ -1979,13 +1960,13 @@ const Index = () => {
                             </View>
                             {/* Submit Button */}
                             <View style={{ width: '95%', alignSelf: 'center', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around' }}>
-                                <TouchableOpacity onPress={() => handleNextTab('occupation')} style={{ width: '45%', backgroundColor: '#208a20', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', alignSelf: 'center', borderRadius: 50, paddingVertical: 10, marginVertical: 15 }}>
-                                    <Fontisto name="arrow-left" size={20} color="#fff" />
+                                <TouchableOpacity onPress={() => handleNextTab('occupation')} style={{ width: '45%', backgroundColor: '#016a59', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', alignSelf: 'center', borderRadius: 50, paddingVertical: 10, marginVertical: 15 }}>
+                                    <MaterialCommunityIcons name="hand-pointing-left" size={23} color="#fff" />
                                     <Text style={styles.submitText}>Previous</Text>
                                 </TouchableOpacity>
-                                <TouchableOpacity onPress={saveSebaDetails} style={{ width: '45%', backgroundColor: '#c9170a', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', alignSelf: 'center', borderRadius: 50, paddingVertical: 10, marginVertical: 15 }}>
+                                <TouchableOpacity onPress={saveSebaDetails} style={{ width: '45%', backgroundColor: '#e96a01', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', alignSelf: 'center', borderRadius: 50, paddingVertical: 10, marginVertical: 15 }}>
                                     <Text style={styles.submitText}>Next</Text>
-                                    <Fontisto name="arrow-right" size={20} color="#fff" />
+                                    <MaterialCommunityIcons name="hand-pointing-right" size={23} color="#fff" />
                                 </TouchableOpacity>
                             </View>
                         </ScrollView>
@@ -2003,7 +1984,7 @@ const Index = () => {
                                 <FloatingLabelInput
                                     label="Facebook URL"
                                     value={facebook_url}
-                                    customLabelStyles={{ colorFocused: '#c80100', fontSizeFocused: 14 }}
+                                    customLabelStyles={{ colorFocused: '#e96a01', fontSizeFocused: 14 }}
                                     labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
                                     onChangeText={value => setFacebook_url(value)}
                                     containerStyles={{ borderWidth: 0.5, borderColor: '#353535', backgroundColor: '#ffffff', padding: 10, borderRadius: 8, marginVertical: 12, borderRadius: 10 }}
@@ -2012,7 +1993,7 @@ const Index = () => {
                                 <FloatingLabelInput
                                     label="Instagram URL"
                                     value={instagram_url}
-                                    customLabelStyles={{ colorFocused: '#c80100', fontSizeFocused: 14 }}
+                                    customLabelStyles={{ colorFocused: '#e96a01', fontSizeFocused: 14 }}
                                     labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
                                     onChangeText={value => setInstagram_url(value)}
                                     containerStyles={{ borderWidth: 0.5, borderColor: '#353535', backgroundColor: '#ffffff', padding: 10, borderRadius: 8, marginVertical: 12, borderRadius: 10 }}
@@ -2021,7 +2002,7 @@ const Index = () => {
                                 <FloatingLabelInput
                                     label="Twitter URL"
                                     value={twitter_url}
-                                    customLabelStyles={{ colorFocused: '#c80100', fontSizeFocused: 14 }}
+                                    customLabelStyles={{ colorFocused: '#e96a01', fontSizeFocused: 14 }}
                                     labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
                                     onChangeText={value => setTwitter_url(value)}
                                     containerStyles={{ borderWidth: 0.5, borderColor: '#353535', backgroundColor: '#ffffff', padding: 10, borderRadius: 8, marginVertical: 12, borderRadius: 10 }}
@@ -2030,7 +2011,7 @@ const Index = () => {
                                 <FloatingLabelInput
                                     label="LinkedIn URL"
                                     value={linkedin_url}
-                                    customLabelStyles={{ colorFocused: '#c80100', fontSizeFocused: 14 }}
+                                    customLabelStyles={{ colorFocused: '#e96a01', fontSizeFocused: 14 }}
                                     labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
                                     onChangeText={value => setLinkedin_url(value)}
                                     containerStyles={{ borderWidth: 0.5, borderColor: '#353535', backgroundColor: '#ffffff', padding: 10, borderRadius: 8, marginVertical: 12, borderRadius: 10 }}
@@ -2039,7 +2020,7 @@ const Index = () => {
                                 <FloatingLabelInput
                                     label="Youtube URL"
                                     value={youtube_url}
-                                    customLabelStyles={{ colorFocused: '#c80100', fontSizeFocused: 14 }}
+                                    customLabelStyles={{ colorFocused: '#e96a01', fontSizeFocused: 14 }}
                                     labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
                                     onChangeText={value => setYoutube_url(value)}
                                     containerStyles={{ borderWidth: 0.5, borderColor: '#353535', backgroundColor: '#ffffff', padding: 10, borderRadius: 8, marginVertical: 12, borderRadius: 10 }}
@@ -2047,13 +2028,13 @@ const Index = () => {
                             </View>
                             {/* Submit Button */}
                             <View style={{ width: '95%', alignSelf: 'center', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around' }}>
-                                <TouchableOpacity onPress={() => handleNextTab('seba')} style={{ width: '45%', backgroundColor: '#208a20', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', alignSelf: 'center', borderRadius: 50, paddingVertical: 10, marginVertical: 15 }}>
-                                    <Fontisto name="arrow-left" size={20} color="#fff" />
+                                <TouchableOpacity onPress={() => handleNextTab('seba')} style={{ width: '45%', backgroundColor: '#016a59', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', alignSelf: 'center', borderRadius: 50, paddingVertical: 10, marginVertical: 15 }}>
+                                    <MaterialCommunityIcons name="hand-pointing-left" size={23} color="#fff" />
                                     <Text style={styles.submitText}>Previous</Text>
                                 </TouchableOpacity>
-                                <TouchableOpacity onPress={saveSocialMediaDetails} style={{ width: '45%', backgroundColor: '#c9170a', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', alignSelf: 'center', borderRadius: 50, paddingVertical: 10, marginVertical: 15 }}>
+                                <TouchableOpacity onPress={saveSocialMediaDetails} style={{ width: '45%', backgroundColor: '#e96a01', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', alignSelf: 'center', borderRadius: 50, paddingVertical: 10, marginVertical: 15 }}>
                                     <Text style={styles.submitText}>Next</Text>
-                                    <Fontisto name="arrow-right" size={20} color="#fff" />
+                                    <MaterialCommunityIcons name="hand-pointing-right" size={23} color="#fff" />
                                 </TouchableOpacity>
                             </View>
                         </ScrollView>
@@ -2081,7 +2062,7 @@ const styles = StyleSheet.create({
         // padding: 15,
         paddingHorizontal: 20,
         paddingVertical: 12,
-        backgroundColor: '#c9170a',
+        backgroundColor: '#e96a01',
         flexDirection: 'row',
         justifyContent: 'center',
         alignItems: 'center',
@@ -2111,15 +2092,16 @@ const styles = StyleSheet.create({
         shadowRadius: 5,
         elevation: 3,
         marginBottom: 10,
-        borderBottomLeftRadius: 10,
-        borderBottomRightRadius: 10,
+        borderRadius: 10,
+        // borderBottomLeftRadius: 10,
+        // borderBottomRightRadius: 10,
     },
     label: {
         color: '#757473',
         fontSize: 16,
     },
     focusedLabel: {
-        color: '#c80100',
+        color: '#e96a01',
         fontSize: 16,
         fontWeight: '500'
     },
@@ -2193,12 +2175,13 @@ const styles = StyleSheet.create({
         justifyContent: 'space-around'
     },
     swiperContainer: {
-        // backgroundColor: 'red',
+        backgroundColor: '#e96a01',
         width: '100%',
-        alignSelf: 'center',
-        marginBottom: 20,
+        marginBottom: 10,
         overflow: 'hidden', // Ensures child elements respect border radius
-        height: 190, // Set height for the Swiper
+        height: 60,
+        borderBottomRightRadius: 12,
+        borderBottomLeftRadius: 12,
     },
     dotStyle: {
         backgroundColor: 'rgba(255, 255, 255, 0.3)',
@@ -2241,7 +2224,7 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
     },
     errorText: {
-        color: 'red',
+        color: '#e96a01',
         fontSize: 12,
         marginTop: -8,
         marginBottom: 5,
