@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
 import { FloatingLabelInput } from 'react-native-floating-label-input';
-import { Calendar } from 'react-native-calendars';
+// import { Calendar } from 'react-native-calendars';
 // import LinearGradient from 'react-native-linear-gradient';
 import { launchImageLibrary } from 'react-native-image-picker';
 import CheckBox from '@react-native-community/checkbox';
@@ -11,11 +11,11 @@ import DropDownPicker from 'react-native-dropdown-picker';
 import RadioForm from 'react-native-simple-radio-button';
 import DatePicker from 'react-native-date-picker';
 import moment from 'moment';
-import Fontisto from 'react-native-vector-icons/Fontisto';
+// import Fontisto from 'react-native-vector-icons/Fontisto';
 // import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import Swiper from 'react-native-swiper';
+// import Swiper from 'react-native-swiper';
 import Collapsible from 'react-native-collapsible';
 import { base_url } from '../../../App';
 
@@ -831,6 +831,10 @@ const Index = () => {
     return (
         <SafeAreaView style={{ flex: 1, backgroundColor: '#f5f5f5' }}>
             <View style={styles.swiperContainer}>
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                    <Image source={require('../../assets/images/priest.png')} style={{ width: 35, height: 35, marginRight: 10 }} />
+                    <Text style={{ color: '#fff', fontSize: 18, fontFamily: 'Lora-BoldItalic', textTransform: 'capitalize' }}>Pratihari Nijoga</Text>
+                </View>
                 {/* <Swiper
                     showsButtons={false}
                     autoplay={false}
@@ -2177,11 +2181,13 @@ const styles = StyleSheet.create({
     swiperContainer: {
         backgroundColor: '#e96a01',
         width: '100%',
+        justifyContent: 'center',
         marginBottom: 10,
         overflow: 'hidden', // Ensures child elements respect border radius
         height: 60,
         borderBottomRightRadius: 12,
         borderBottomLeftRadius: 12,
+        paddingHorizontal: 18
     },
     dotStyle: {
         backgroundColor: 'rgba(255, 255, 255, 0.3)',
