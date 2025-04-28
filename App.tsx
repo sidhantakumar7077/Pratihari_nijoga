@@ -20,6 +20,7 @@ import Otp from './src/Screens/Auth/OTP.js'
 import Home from './src/Screens/Home/Index'
 import PratihariForm from './src/Screens/PratihariForm/Index.js'
 import ThankYouPage from './src/Screens/ThankYouPage/Index.js'
+import MessageScreen from './src/Screens/MessageScreen/Index.js'
 
 const Stack = createNativeStackNavigator();
 
@@ -72,6 +73,7 @@ const App = () => {
             <Stack.Screen name="Otp" component={Otp} />
             <Stack.Screen name="Register" component={Register} />
             <Stack.Screen name="ThankYouPage" component={ThankYouPage} />
+            <Stack.Screen name="MessageScreen" component={MessageScreen} />
             <Stack.Screen name="Home" component={Home} />
           </>
         )}

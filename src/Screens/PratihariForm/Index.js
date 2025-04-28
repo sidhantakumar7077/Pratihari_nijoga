@@ -880,7 +880,7 @@ const Index = () => {
                 {activeTab === 'personal' && (
                     <View style={{ flex: 1 }}>
                         <View style={{ alignItems: 'center', marginBottom: 8 }}>
-                            <Text style={{ color: '#000', fontSize: 18, fontWeight: 'bold' }}>Personal Details</Text>
+                            <Text style={{ color: '#000', fontSize: 18, fontFamily: 'Lora-BoldItalic' }}>Personal Details</Text>
                             <Image source={require('../../assets/images/element1.png')} style={{ width: 140, height: 15 }} />
                         </View>
                         <ScrollView style={{ flex: 1 }}>
@@ -1271,7 +1271,7 @@ const Index = () => {
                 {activeTab === 'family' && (
                     <View style={{ flex: 1 }}>
                         <View style={{ alignItems: 'center', marginBottom: 8 }}>
-                            <Text style={{ color: '#000', fontSize: 18, fontWeight: 'bold' }}>Family Details</Text>
+                            <Text style={{ color: '#000', fontSize: 18, fontFamily: 'Lora-BoldItalic' }}>Family Details</Text>
                             <Image source={require('../../assets/images/element1.png')} style={{ width: 120, height: 15 }} />
                         </View>
                         <ScrollView style={{ flex: 1 }}>
@@ -1516,7 +1516,7 @@ const Index = () => {
                 {activeTab === 'id_card' && (
                     <View style={{ flex: 1 }}>
                         <View style={{ alignItems: 'center', marginBottom: 8 }}>
-                            <Text style={{ color: '#000', fontSize: 18, fontWeight: 'bold' }}>ID Card Details</Text>
+                            <Text style={{ color: '#000', fontSize: 18, fontFamily: 'Lora-BoldItalic' }}>ID Card Details</Text>
                             <Image source={require('../../assets/images/element1.png')} style={{ width: 130, height: 15 }} />
                         </View>
                         <ScrollView style={{ flex: 1 }}>
@@ -1612,7 +1612,7 @@ const Index = () => {
                 {activeTab === 'address' && (
                     <View style={{ flex: 1 }}>
                         <View style={{ alignItems: 'center', marginBottom: 8 }}>
-                            <Text style={{ color: '#000', fontSize: 18, fontWeight: 'bold' }}>Address</Text>
+                            <Text style={{ color: '#000', fontSize: 18, fontFamily: 'Lora-BoldItalic' }}>Address</Text>
                             <Image source={require('../../assets/images/element1.png')} style={{ width: 90, height: 10 }} />
                         </View>
                         <ScrollView style={{ flex: 1 }}>
@@ -1840,7 +1840,7 @@ const Index = () => {
                 {activeTab === 'occupation' && (
                     <View style={{ flex: 1 }}>
                         <View style={{ alignItems: 'center', marginBottom: 8 }}>
-                            <Text style={{ color: '#000', fontSize: 18, fontWeight: 'bold' }}>Occupation Details</Text>
+                            <Text style={{ color: '#000', fontSize: 18, fontFamily: 'Lora-BoldItalic' }}>Occupation Details</Text>
                             <Image source={require('../../assets/images/element1.png')} style={{ width: 160, height: 15 }} />
                         </View>
                         <ScrollView style={{ flex: 1 }}>
@@ -1919,7 +1919,7 @@ const Index = () => {
                 {activeTab === 'seba' && (
                     <View style={{ flex: 1 }}>
                         <View style={{ alignItems: 'center', marginBottom: 8 }}>
-                            <Text style={{ color: '#000', fontSize: 18, fontWeight: 'bold' }}>Seba Details</Text>
+                            <Text style={{ color: '#000', fontSize: 18, fontFamily: 'Lora-BoldItalic' }}>Seba Details</Text>
                             <Image source={require('../../assets/images/element1.png')} style={{ width: 110, height: 10 }} />
                         </View>
                         <ScrollView style={{ flex: 1 }}>
@@ -1979,7 +1979,7 @@ const Index = () => {
                 {activeTab === 'social' && (
                     <View style={{ flex: 1 }}>
                         <View style={{ alignItems: 'center', marginBottom: 8 }}>
-                            <Text style={{ color: '#000', fontSize: 18, fontWeight: 'bold' }}>Social Media</Text>
+                            <Text style={{ color: '#000', fontSize: 18, fontFamily: 'Lora-BoldItalic' }}>Social Media</Text>
                             <Image source={require('../../assets/images/element1.png')} style={{ width: 110, height: 10 }} />
                         </View>
                         <ScrollView style={{ flex: 1 }}>
