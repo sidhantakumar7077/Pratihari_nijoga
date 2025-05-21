@@ -41,6 +41,55 @@ const Index = () => {
     const [isFocused, setIsFocused] = useState(null);
     const navigation = useNavigation();
 
+    const getPratihariStatus = async () => {
+        const token = await AsyncStorage.getItem('storeAccesstoken');
+        try {
+            const response = await fetch(`${base_url}api/pratihari/status`, {
+                method: "GET",
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    Accept: "application/json",
+                    "Content-Type": "application/json",
+                },
+            });
+
+            if (!response.ok) {
+                // throw new Error("Failed to fetch Pratihari status");
+                console.log("Failed to fetch Pratihari status");
+            }
+
+            const result = await response.json();
+
+            if (result?.empty_tables && result.empty_tables.length > 0) {
+                // setActiveTab(result.empty_tables[0]);
+                if (result.empty_tables[0] === 'profile') {
+                    setActiveTab('personal');
+                } else if (result.empty_tables[0] === 'family') {
+                    setActiveTab('family');
+                } else if (result.empty_tables[0] === 'id_card') {
+                    setActiveTab('id_card');
+                } else if (result.empty_tables[0] === 'address') {
+                    setActiveTab('address');
+                } else if (result.empty_tables[0] === 'occupation') {
+                    setActiveTab('occupation');
+                } else if (result.empty_tables[0] === 'seba') {
+                    setActiveTab('seba');
+                } else if (result.empty_tables[0] === 'social_media') {
+                    setActiveTab('social');
+                }
+            } else {
+                console.warn("No empty tables found");
+            }
+
+        } catch (error) {
+            console.error("Error fetching Pratihari status:", error);
+        }
+    };
+
+    useEffect(() => {
+        getPratihariStatus();
+    }, []);
+
     // ID Card Information
     const [fields, setFields] = useState([
         { idProof: null, idProofNumber: '', idProofImage: 'Select Image', uri: null, type: null },
@@ -767,7 +816,6 @@ const Index = () => {
             console.error("Network request failed: ", error);
         }
     };
-
 
     // Social Media
     const [facebook_url, setFacebook_url] = useState('');
