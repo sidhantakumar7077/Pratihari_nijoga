@@ -56,12 +56,12 @@ const App = () => {
 
     setTimeout(() => {
       setShowSplash(false);
-    }, 5000);
+    }, 3000);
   }, []);
 
   return (
     <NavigationContainer>
-      <StatusBar backgroundColor="#e96a01" barStyle="light-content" />
+      <StatusBar backgroundColor="#051b65" barStyle="light-content" />
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         {showSplash ? (<Stack.Screen name="SplashScreen" component={SplashScreen} options={{ presentation: 'modal', animationTypeForReplace: 'push', animation: 'slide_from_right' }} />) : null}
         {!isConnected ? (

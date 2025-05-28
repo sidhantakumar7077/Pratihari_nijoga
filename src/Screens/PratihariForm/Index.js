@@ -54,31 +54,42 @@ const Index = () => {
             });
 
             if (!response.ok) {
-                // throw new Error("Failed to fetch Pratihari status");
                 console.log("Failed to fetch Pratihari status");
+                return;
             }
 
             const result = await response.json();
 
             if (result?.empty_tables && result.empty_tables.length > 0) {
-                // setActiveTab(result.empty_tables[0]);
-                if (result.empty_tables[0] === 'profile') {
-                    setActiveTab('personal');
-                } else if (result.empty_tables[0] === 'family') {
-                    setActiveTab('family');
-                } else if (result.empty_tables[0] === 'id_card') {
-                    setActiveTab('id_card');
-                } else if (result.empty_tables[0] === 'address') {
-                    setActiveTab('address');
-                } else if (result.empty_tables[0] === 'occupation') {
-                    setActiveTab('occupation');
-                } else if (result.empty_tables[0] === 'seba') {
-                    setActiveTab('seba');
-                } else if (result.empty_tables[0] === 'social_media') {
-                    setActiveTab('social');
+                switch (result.empty_tables[0]) {
+                    case 'profile':
+                        setActiveTab('personal');
+                        break;
+                    case 'family':
+                        setActiveTab('family');
+                        break;
+                    case 'id_card':
+                        setActiveTab('id_card');
+                        break;
+                    case 'address':
+                        setActiveTab('address');
+                        break;
+                    case 'occupation':
+                        setActiveTab('occupation');
+                        break;
+                    case 'seba':
+                        setActiveTab('seba');
+                        break;
+                    case 'social_media':
+                        setActiveTab('social');
+                        break;
+                    default:
+                        navigation.navigate('Home');
+                        break;
                 }
             } else {
-                console.warn("No empty tables found");
+                // ✅ empty_tables is empty → go to Home
+                navigation.navigate('Home');
             }
 
         } catch (error) {
@@ -250,7 +261,7 @@ const Index = () => {
         const newErrors = {};
 
         if (!firstName) newErrors.firstName = 'First Name is required';
-        if (!middleName) newErrors.middleName = 'Middle Name is required';
+        // if (!middleName) newErrors.middleName = 'Middle Name is required';
         if (!lastName) newErrors.lastName = 'Last Name is required';
         // if (!alias) newErrors.alias = 'Alias is required';
 
@@ -290,15 +301,15 @@ const Index = () => {
         formData.append('last_name', lastName);
         formData.append('alias_name', alias);
         formData.append('email', emailId);
+        formData.append('whatsapp_no', whatsappNumber);
         formData.append('phone_no', mobileNumber);
         formData.append('alt_phone_no', alterNumber);
-        formData.append('whatsapp_no', whatsappNumber);
         formData.append('date_of_birth', moment(dob).format('YYYY-MM-DD'));
         formData.append('blood_group', bloodGroup);
         formData.append('healthcard_no', helthCardNumber);
         formData.append('joining_date', moment(dateOfJoinTempleSeba).format('YYYY-MM-DD'));
         if (userPhoto_source) {
-            formData.append('user_photo', {
+            formData.append('profile_photo', {
                 uri: userPhoto_source.uri,
                 type: userPhoto_source.type,
                 name: userPhoto_source.fileName,
@@ -482,11 +493,11 @@ const Index = () => {
             }
             if (childrenFields?.length > 0 && childrenFields[0]?.name) {
                 childrenFields.forEach((child, index) => {
-                    formData.append(`child_name[${index}]`, child.name);
-                    formData.append(`child_dob[${index}]`, child.dob ? moment(child.dob).format('YYYY-MM-DD') : '');
-                    formData.append(`child_gender[${index}]`, child.gender);
+                    formData.append(`children_name[${index}]`, child.name);
+                    formData.append(`children_dob[${index}]`, child.dob ? moment(child.dob).format('YYYY-MM-DD') : '');
+                    formData.append(`children_gender[${index}]`, child.gender);
                     if (child.uri) {
-                        formData.append(`child_photo[${index}]`, {
+                        formData.append(`children_photo[${index}]`, {
                             uri: child.uri,
                             type: child.type,
                             name: child.image,
@@ -729,24 +740,22 @@ const Index = () => {
 
     // Fetch Seba and Bedha details when nijogaType changes
     useEffect(() => {
-        if (nijogaType) {
-            const fetchSebaAndBedhas = async () => {
-                try {
-                    const response = await fetch(`${base_url}api/beddhas`);
-                    const data = await response.json();
-                    if (response.ok) {
-                        setSebaDetails(data.data);
-                    } else {
-                        console.error('Failed to fetch Seba and Bedhas:', data.message);
-                    }
-                } catch (error) {
-                    console.error('Network request failed:', error);
+        const fetchSebaAndBedhas = async () => {
+            try {
+                const response = await fetch(`${base_url}api/beddhas`);
+                const data = await response.json();
+                if (response.ok) {
+                    setSebaDetails(data.data);
+                } else {
+                    console.error('Failed to fetch Seba and Bedhas:', data.message);
                 }
-            };
+            } catch (error) {
+                console.error('Network request failed:', error);
+            }
+        };
 
-            fetchSebaAndBedhas();
-        }
-    }, [nijogaType]);
+        fetchSebaAndBedhas();
+    }, []);
 
     const toggleSection = (sebaId) => {
         setActiveSections((prevSections) =>
@@ -771,7 +780,10 @@ const Index = () => {
         sebaDetails.forEach((seba) => {
             const selectedBedhaIds = seba.bedha
                 .filter((bedha) => selectedBedhas[bedha.id])
-                .map((bedha) => bedha.id);
+                .map((bedha) => {
+                    const parts = bedha.id.split('_');
+                    return parts[parts.length - 1];
+                });
 
             if (selectedBedhaIds.length > 0) {
                 sebaBedhaMap[seba.id] = selectedBedhaIds;
@@ -787,7 +799,7 @@ const Index = () => {
 
         // Construct the payload
         const sebaData = {
-            nijoga_type: nijogaType,
+            nijoga_type: "4",
             seba_id: sebaIds,
             beddha_id: bedhaIdMapping,
         };
@@ -849,6 +861,7 @@ const Index = () => {
                 console.log('Social Media Details saved successfully', data);
                 // Handle success (e.g., navigate to the next tab or show a success message)
                 navigation.navigate('ThankYouPage');
+                // navigation.navigate('Home');
             } else {
                 console.log("Error: ", data.message || 'Failed to save Social Media Details. Please try again.');
             }
@@ -879,27 +892,10 @@ const Index = () => {
     return (
         <SafeAreaView style={{ flex: 1, backgroundColor: '#f5f5f5' }}>
             <View style={styles.swiperContainer}>
-                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                    <Image source={require('../../assets/images/priest.png')} style={{ width: 35, height: 35, marginRight: 10 }} />
-                    <Text style={{ color: '#fff', fontSize: 18, fontFamily: 'Lora-BoldItalic', textTransform: 'capitalize' }}>Pratihari Nijoga</Text>
+                <View style={{ alignItems: 'center', justifyContent: 'center' }}>
+                    <Image source={require('../../assets/images/icon876.png')} style={{ width: 230, height: 230, marginRight: 10 }} />
+                    {/* <Text style={{ color: '#fff', fontSize: 18, fontFamily: 'Lora-BoldItalic', textTransform: 'capitalize' }}>Account Creation</Text> */}
                 </View>
-                {/* <Swiper
-                    showsButtons={false}
-                    autoplay={false}
-                    autoplayTimeout={3}
-                    dotStyle={styles.dotStyle}
-                    activeDotStyle={styles.activeDotStyle}
-                    paginationStyle={{ bottom: 10 }}
-                >
-                    {images.map((image, index) => (
-                        <Image
-                            key={index}
-                            source={image}  // Use local image source
-                            style={styles.sliderImage}
-                            resizeMode="cover"
-                        />
-                    ))}
-                </Swiper> */}
             </View>
             <View style={{ height: 50, marginBottom: 15, marginHorizontal: 10 }}>
                 <FlatList
@@ -911,7 +907,7 @@ const Index = () => {
                     renderItem={({ item }) => (
                         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                             {tabs.findIndex(tab => tab.key === item.key) !== 0 && (
-                                <View style={{ width: 55, height: 3, backgroundColor: activeTab === item.key || tabs.findIndex(tab => tab.key === item.key) < tabs.findIndex(tab => tab.key === activeTab) ? '#e96a01' : '#919090' }} />
+                                <View style={{ width: 55, height: 3, backgroundColor: activeTab === item.key || tabs.findIndex(tab => tab.key === item.key) < tabs.findIndex(tab => tab.key === activeTab) ? '#051b65' : '#919090' }} />
                             )}
                             <View
                                 style={activeTab === item.key ? styles.activeTab : (tabs.findIndex(tab => tab.key === item.key) < tabs.findIndex(tab => tab.key === activeTab) ? styles.activeTab : styles.tab)}
@@ -945,7 +941,7 @@ const Index = () => {
                                 {personalDetailsErrors.firstName && <Text style={styles.errorText}>{personalDetailsErrors.firstName}</Text>}
                                 {/* Middle Name Input */}
                                 <FloatingLabelInput
-                                    label="Middle Name*"
+                                    label="Middle Name (Optional)"
                                     value={middleName}
                                     customLabelStyles={{ colorFocused: '#e96a01', fontSizeFocused: 14 }}
                                     labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
@@ -1035,7 +1031,7 @@ const Index = () => {
                                 />
                                 {/* Whatsapp Number Input */}
                                 <FloatingLabelInput
-                                    label="Whatsapp Number"
+                                    label="Whatsapp Number (Optional)"
                                     value={whatsappNumber}
                                     customLabelStyles={{ colorFocused: '#e96a01', fontSizeFocused: 14 }}
                                     labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
@@ -1103,7 +1099,7 @@ const Index = () => {
                                 {personalDetailsErrors.bloodGroup && <Text style={styles.errorText}>{personalDetailsErrors.bloodGroup}</Text>}
                                 {/* Helth Card Number Input */}
                                 <FloatingLabelInput
-                                    label="Helth Card Number*"
+                                    label="Health Card Number*"
                                     value={helthCardNumber}
                                     customLabelStyles={{ colorFocused: '#e96a01', fontSizeFocused: 14 }}
                                     labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
@@ -1275,7 +1271,7 @@ const Index = () => {
                                                 style={{
                                                     marginTop: 15,
                                                     padding: 12,
-                                                    backgroundColor: '#e96a01',
+                                                    backgroundColor: '#051b65',
                                                     borderRadius: 10,
                                                     alignItems: 'center',
                                                     shadowColor: '#000',
@@ -1300,17 +1296,17 @@ const Index = () => {
                                         }}
                                         tintColors={{ true: '#e96a01', false: '#757473' }}
                                     />
-                                    <Text style={{ fontSize: 16, marginRight: 10, color: '#757473' }}>Date Not Remembered</Text>
+                                    <Text style={{ fontSize: 16, marginRight: 10, color: '#757473' }}>Do not remember the date</Text>
                                 </View>
                             </View>
                             {/* Submit Button */}
                             <View style={{ width: '95%', alignSelf: 'center', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around' }}>
                                 <TouchableOpacity
                                     onPress={SavePersonalDetails}
-                                    style={{ width: '45%', backgroundColor: '#e96a01', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', alignSelf: 'center', borderRadius: 50, paddingVertical: 10, marginVertical: 15 }}
+                                    style={{ width: '45%', backgroundColor: '#051b65', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', alignSelf: 'center', borderRadius: 50, paddingVertical: 10, marginVertical: 15 }}
                                 >
                                     <Text style={styles.submitText}>Next</Text>
-                                    <MaterialCommunityIcons name="hand-pointing-right" size={23} color="#fff" />
+                                    {/* <MaterialCommunityIcons name="hand-pointing-right" size={23} color="#fff" /> */}
                                 </TouchableOpacity>
                             </View>
                         </ScrollView>
@@ -1533,12 +1529,12 @@ const Index = () => {
                                                 <View style={{ width: '100%', flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-start' }}>
                                                     {index === childrenFields.length - 1 &&
                                                         <TouchableOpacity style={{ marginRight: 20 }} onPress={() => setChildrenFields([...childrenFields, { name: '', dob: null, gender: null, image: 'Select Image' }])}>
-                                                            <AntDesign name="plussquare" color="#016a59" size={40} />
+                                                            <AntDesign name="plussquare" color="#e96a01" size={40} />
                                                         </TouchableOpacity>
                                                     }
                                                     {index > 0 &&
                                                         <TouchableOpacity onPress={() => setChildrenFields(childrenFields.filter((_, i) => i !== index))}>
-                                                            <AntDesign name="minussquare" color="#e96a01" size={40} />
+                                                            <AntDesign name="minussquare" color="#051b65" size={40} />
                                                         </TouchableOpacity>
                                                     }
                                                 </View>
@@ -1549,13 +1545,13 @@ const Index = () => {
                             }
                             {/* Submit Button */}
                             <View style={{ width: '95%', alignSelf: 'center', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around' }}>
-                                <TouchableOpacity onPress={() => handleNextTab('personal')} style={{ width: '45%', backgroundColor: '#016a59', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', alignSelf: 'center', borderRadius: 50, paddingVertical: 10, marginVertical: 15 }}>
-                                    <MaterialCommunityIcons name="hand-pointing-left" size={23} color="#fff" />
+                                <TouchableOpacity onPress={() => handleNextTab('personal')} style={{ width: '45%', backgroundColor: '#e96a01', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', alignSelf: 'center', borderRadius: 50, paddingVertical: 10, marginVertical: 15 }}>
+                                    {/* <MaterialCommunityIcons name="hand-pointing-left" size={23} color="#fff" /> */}
                                     <Text style={styles.submitText}>Previous</Text>
                                 </TouchableOpacity>
-                                <TouchableOpacity onPress={saveFamilyDetails} style={{ width: '45%', backgroundColor: '#e96a01', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', alignSelf: 'center', borderRadius: 50, paddingVertical: 10, marginVertical: 15 }}>
+                                <TouchableOpacity onPress={saveFamilyDetails} style={{ width: '45%', backgroundColor: '#051b65', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', alignSelf: 'center', borderRadius: 50, paddingVertical: 10, marginVertical: 15 }}>
                                     <Text style={styles.submitText}>Next</Text>
-                                    <MaterialCommunityIcons name="hand-pointing-right" size={23} color="#fff" />
+                                    {/* <MaterialCommunityIcons name="hand-pointing-right" size={23} color="#fff" /> */}
                                 </TouchableOpacity>
                             </View>
                         </ScrollView>
@@ -1604,7 +1600,7 @@ const Index = () => {
                                             {/* Add More Button */}
                                             {index === fields.length - 1 &&
                                                 <TouchableOpacity style={[styles.addButton, { marginLeft: 5 }]} onPress={addMoreFields}>
-                                                    <AntDesign name="plussquare" color="#016a59" size={37} />
+                                                    <AntDesign name="plussquare" color="#051b65" size={37} />
                                                 </TouchableOpacity>
                                             }
                                         </View>
@@ -1645,13 +1641,13 @@ const Index = () => {
                             ))}
                             {/* Submit Button */}
                             <View style={{ width: '95%', alignSelf: 'center', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around' }}>
-                                <TouchableOpacity onPress={() => handleNextTab('family')} style={{ width: '45%', backgroundColor: '#016a59', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', alignSelf: 'center', borderRadius: 50, paddingVertical: 10, marginVertical: 15 }}>
-                                    <MaterialCommunityIcons name="hand-pointing-left" size={23} color="#fff" />
+                                <TouchableOpacity onPress={() => handleNextTab('family')} style={{ width: '45%', backgroundColor: '#e96a01', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', alignSelf: 'center', borderRadius: 50, paddingVertical: 10, marginVertical: 15 }}>
+                                    {/* <MaterialCommunityIcons name="hand-pointing-left" size={23} color="#fff" /> */}
                                     <Text style={styles.submitText}>Previous</Text>
                                 </TouchableOpacity>
-                                <TouchableOpacity onPress={saveIdCardDetails} style={{ width: '45%', backgroundColor: '#e96a01', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', alignSelf: 'center', borderRadius: 50, paddingVertical: 10, marginVertical: 15 }}>
+                                <TouchableOpacity onPress={saveIdCardDetails} style={{ width: '45%', backgroundColor: '#051b65', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', alignSelf: 'center', borderRadius: 50, paddingVertical: 10, marginVertical: 15 }}>
                                     <Text style={styles.submitText}>Next</Text>
-                                    <MaterialCommunityIcons name="hand-pointing-right" size={23} color="#fff" />
+                                    {/* <MaterialCommunityIcons name="hand-pointing-right" size={23} color="#fff" /> */}
                                 </TouchableOpacity>
                             </View>
                         </ScrollView>
@@ -1873,13 +1869,13 @@ const Index = () => {
                             }
                             {/* Submit Button */}
                             <View style={{ width: '95%', alignSelf: 'center', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around' }}>
-                                <TouchableOpacity onPress={() => handleNextTab('id_card')} style={{ width: '45%', backgroundColor: '#016a59', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', alignSelf: 'center', borderRadius: 50, paddingVertical: 10, marginVertical: 15 }}>
-                                    <MaterialCommunityIcons name="hand-pointing-left" size={23} color="#fff" />
+                                <TouchableOpacity onPress={() => handleNextTab('id_card')} style={{ width: '45%', backgroundColor: '#e96a01', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', alignSelf: 'center', borderRadius: 50, paddingVertical: 10, marginVertical: 15 }}>
+                                    {/* <MaterialCommunityIcons name="hand-pointing-left" size={23} color="#fff" /> */}
                                     <Text style={styles.submitText}>Previous</Text>
                                 </TouchableOpacity>
-                                <TouchableOpacity onPress={saveAddressDetails} style={{ width: '45%', backgroundColor: '#e96a01', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', alignSelf: 'center', borderRadius: 50, paddingVertical: 10, marginVertical: 15 }}>
+                                <TouchableOpacity onPress={saveAddressDetails} style={{ width: '45%', backgroundColor: '#051b65', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', alignSelf: 'center', borderRadius: 50, paddingVertical: 10, marginVertical: 15 }}>
                                     <Text style={styles.submitText}>Next</Text>
-                                    <MaterialCommunityIcons name="hand-pointing-right" size={23} color="#fff" />
+                                    {/* <MaterialCommunityIcons name="hand-pointing-right" size={23} color="#fff" /> */}
                                 </TouchableOpacity>
                             </View>
                         </ScrollView>
@@ -1895,7 +1891,7 @@ const Index = () => {
                             <View style={styles.cardBox}>
                                 {/* Occupatio Type */}
                                 <FloatingLabelInput
-                                    label="Occupatio Type"
+                                    label="Occupation Type"
                                     value={occupationType}
                                     customLabelStyles={{ colorFocused: '#e96a01', fontSizeFocused: 14 }}
                                     labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
@@ -1943,7 +1939,7 @@ const Index = () => {
                                             {/* Add More Button (Only on the last item) */}
                                             {index === extraCuricularActivity.length - 1 && (
                                                 <TouchableOpacity style={{ marginLeft: 5 }} onPress={addMoreExtraCuricularFields}>
-                                                    <AntDesign name="plussquare" color="#016a59" size={37} />
+                                                    <AntDesign name="plussquare" color="#051b65" size={37} />
                                                 </TouchableOpacity>
                                             )}
                                         </View>
@@ -1952,13 +1948,13 @@ const Index = () => {
                             </View>
                             {/* Submit Button */}
                             <View style={{ width: '95%', alignSelf: 'center', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around' }}>
-                                <TouchableOpacity onPress={() => handleNextTab('address')} style={{ width: '45%', backgroundColor: '#016a59', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', alignSelf: 'center', borderRadius: 50, paddingVertical: 10, marginVertical: 15 }}>
-                                    <MaterialCommunityIcons name="hand-pointing-left" size={23} color="#fff" />
+                                <TouchableOpacity onPress={() => handleNextTab('address')} style={{ width: '45%', backgroundColor: '#e96a01', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', alignSelf: 'center', borderRadius: 50, paddingVertical: 10, marginVertical: 15 }}>
+                                    {/* <MaterialCommunityIcons name="hand-pointing-left" size={23} color="#fff" /> */}
                                     <Text style={styles.submitText}>Previous</Text>
                                 </TouchableOpacity>
-                                <TouchableOpacity onPress={saveOccupationDetails} style={{ width: '45%', backgroundColor: '#e96a01', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', alignSelf: 'center', borderRadius: 50, paddingVertical: 10, marginVertical: 15 }}>
+                                <TouchableOpacity onPress={saveOccupationDetails} style={{ width: '45%', backgroundColor: '#051b65', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', alignSelf: 'center', borderRadius: 50, paddingVertical: 10, marginVertical: 15 }}>
                                     <Text style={styles.submitText}>Next</Text>
-                                    <MaterialCommunityIcons name="hand-pointing-right" size={23} color="#fff" />
+                                    {/* <MaterialCommunityIcons name="hand-pointing-right" size={23} color="#fff" /> */}
                                 </TouchableOpacity>
                             </View>
                         </ScrollView>
@@ -1973,7 +1969,7 @@ const Index = () => {
                         <ScrollView style={{ flex: 1 }}>
                             <View style={styles.cardBox}>
                                 {/* Nijoga Type Dropdown */}
-                                {nijogaType !== null && <Text style={[styles.label, (focusedField === 'nijogaType' || nijogaType !== null) ? styles.focusedLabel : { marginBottom: 10 }]}>Select Nijoga</Text>}
+                                {/* {nijogaType !== null && <Text style={[styles.label, (focusedField === 'nijogaType' || nijogaType !== null) ? styles.focusedLabel : { marginBottom: 10 }]}>Select Nijoga</Text>}
                                 <View style={{ width: '100%', flexDirection: 'row', alignItems: 'center' }}>
                                     <DropDownPicker
                                         open={focusedField === 'nijogaType'}
@@ -1988,8 +1984,9 @@ const Index = () => {
                                         style={[styles.input, (focusedField === 'nijogaType' || nijogaType !== null) && styles.focusedInput]}
                                         dropDownContainerStyle={{ backgroundColor: '#fafafa', zIndex: 999 }}
                                     />
-                                </View>
+                                </View> */}
                                 {/* Seba Details */}
+                                <Text style={[styles.label, styles.focusedLabel, { marginBottom: 10 }]}>Select Your Seba</Text>
                                 {sebaDetails.map((seba) => (
                                     <View key={seba.id} style={styles.sebaContainer}>
                                         <TouchableOpacity onPress={() => toggleSection(seba.id)} style={styles.sebaHeader}>
@@ -2012,13 +2009,13 @@ const Index = () => {
                             </View>
                             {/* Submit Button */}
                             <View style={{ width: '95%', alignSelf: 'center', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around' }}>
-                                <TouchableOpacity onPress={() => handleNextTab('occupation')} style={{ width: '45%', backgroundColor: '#016a59', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', alignSelf: 'center', borderRadius: 50, paddingVertical: 10, marginVertical: 15 }}>
-                                    <MaterialCommunityIcons name="hand-pointing-left" size={23} color="#fff" />
+                                <TouchableOpacity onPress={() => handleNextTab('occupation')} style={{ width: '45%', backgroundColor: '#e96a01', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', alignSelf: 'center', borderRadius: 50, paddingVertical: 10, marginVertical: 15 }}>
+                                    {/* <MaterialCommunityIcons name="hand-pointing-left" size={23} color="#fff" /> */}
                                     <Text style={styles.submitText}>Previous</Text>
                                 </TouchableOpacity>
-                                <TouchableOpacity onPress={saveSebaDetails} style={{ width: '45%', backgroundColor: '#e96a01', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', alignSelf: 'center', borderRadius: 50, paddingVertical: 10, marginVertical: 15 }}>
+                                <TouchableOpacity onPress={saveSebaDetails} style={{ width: '45%', backgroundColor: '#051b65', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', alignSelf: 'center', borderRadius: 50, paddingVertical: 10, marginVertical: 15 }}>
                                     <Text style={styles.submitText}>Next</Text>
-                                    <MaterialCommunityIcons name="hand-pointing-right" size={23} color="#fff" />
+                                    {/* <MaterialCommunityIcons name="hand-pointing-right" size={23} color="#fff" /> */}
                                 </TouchableOpacity>
                             </View>
                         </ScrollView>
@@ -2052,7 +2049,7 @@ const Index = () => {
                                 />
                                 {/* Twitter URL Input */}
                                 <FloatingLabelInput
-                                    label="Twitter URL"
+                                    label="X URL"
                                     value={twitter_url}
                                     customLabelStyles={{ colorFocused: '#e96a01', fontSizeFocused: 14 }}
                                     labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
@@ -2080,13 +2077,13 @@ const Index = () => {
                             </View>
                             {/* Submit Button */}
                             <View style={{ width: '95%', alignSelf: 'center', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around' }}>
-                                <TouchableOpacity onPress={() => handleNextTab('seba')} style={{ width: '45%', backgroundColor: '#016a59', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', alignSelf: 'center', borderRadius: 50, paddingVertical: 10, marginVertical: 15 }}>
-                                    <MaterialCommunityIcons name="hand-pointing-left" size={23} color="#fff" />
+                                <TouchableOpacity onPress={() => handleNextTab('seba')} style={{ width: '45%', backgroundColor: '#e96a01', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', alignSelf: 'center', borderRadius: 50, paddingVertical: 10, marginVertical: 15 }}>
+                                    {/* <MaterialCommunityIcons name="hand-pointing-left" size={23} color="#fff" /> */}
                                     <Text style={styles.submitText}>Previous</Text>
                                 </TouchableOpacity>
-                                <TouchableOpacity onPress={saveSocialMediaDetails} style={{ width: '45%', backgroundColor: '#e96a01', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', alignSelf: 'center', borderRadius: 50, paddingVertical: 10, marginVertical: 15 }}>
+                                <TouchableOpacity onPress={saveSocialMediaDetails} style={{ width: '45%', backgroundColor: '#051b65', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', alignSelf: 'center', borderRadius: 50, paddingVertical: 10, marginVertical: 15 }}>
                                     <Text style={styles.submitText}>Next</Text>
-                                    <MaterialCommunityIcons name="hand-pointing-right" size={23} color="#fff" />
+                                    {/* <MaterialCommunityIcons name="hand-pointing-right" size={23} color="#fff" /> */}
                                 </TouchableOpacity>
                             </View>
                         </ScrollView>
@@ -2114,7 +2111,7 @@ const styles = StyleSheet.create({
         // padding: 15,
         paddingHorizontal: 20,
         paddingVertical: 12,
-        backgroundColor: '#e96a01',
+        backgroundColor: '#051b65',
         flexDirection: 'row',
         justifyContent: 'center',
         alignItems: 'center',
@@ -2227,14 +2224,14 @@ const styles = StyleSheet.create({
         justifyContent: 'space-around'
     },
     swiperContainer: {
-        backgroundColor: '#e96a01',
+        backgroundColor: '#051b65',
         width: '100%',
         justifyContent: 'center',
         marginBottom: 10,
         overflow: 'hidden', // Ensures child elements respect border radius
-        height: 60,
-        borderBottomRightRadius: 12,
-        borderBottomLeftRadius: 12,
+        height: 180,
+        borderBottomRightRadius: 25,
+        borderBottomLeftRadius: 25,
         paddingHorizontal: 18
     },
     dotStyle: {

@@ -1,25 +1,22 @@
 import { View, Text, StyleSheet, Image, ImageBackground, StatusBar } from 'react-native';
 import React from 'react'
+import Video from 'react-native-video';
 
 const Index = () => {
     return (
         <View style={styles.container}>
-            <StatusBar hidden={true} />
-            <ImageBackground
-                source={require('../../assets/images/Background.png')}
-                style={{
-                    flex: 1,
-                    height: '100%',
-                    width: '100%',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                }}>
-                <Image
-                    source={require('../../assets/images/whitelogo.png')}
-                    style={{ resizeMode: 'contain', height: 180, width: 180 }}
-                />
-            </ImageBackground>
-        </View>
+            <StatusBar hidden />
+            <Video
+                source={require('../../assets/video/splash_video.mp4')}
+                style={styles.video}
+                resizeMode="cover"
+                // muted={false}
+                // repeat={false}
+                // controls={false}
+                // fullscreen={true}
+                // paused={false}
+            />
+        </View >
     )
 }
 
@@ -28,8 +25,11 @@ export default Index
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#c80100',
-        justifyContent: 'center',
-        alignItems: 'center',
+        backgroundColor: 'black',
+    },
+    video: {
+        flex: 1,
+        width: '100%',
+        height: '100%',
     },
 })

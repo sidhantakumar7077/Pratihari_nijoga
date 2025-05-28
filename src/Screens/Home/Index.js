@@ -1,8 +1,13 @@
-import { SafeAreaView, StyleSheet, Text, View, TouchableOpacity, Image, FlatList, ImageBackground, ScrollView } from 'react-native'
-import React from 'react'
+import { SafeAreaView, StyleSheet, Text, View, TouchableOpacity, Image, FlatList, ImageBackground, ScrollView, BackHandler, ToastAndroid } from 'react-native'
+import React, { useEffect, useRef, useState } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useNavigation, useIsFocused } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import FontAwesome from 'react-native-vector-icons/FontAwesome';
+import Feather from 'react-native-vector-icons/Feather';
+// import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import Swiper from 'react-native-swiper';
+import { base_url } from '../../../App';
+import DrawerModal from "../../Component/DrawerModal";
 
 // images
 // const image1 = require('../../assets/images/slideImg5.jpg');
@@ -22,52 +27,108 @@ const Index = () => {
 
     const images = [image3, image3, image3];
 
+    const backPressCount = useRef(0);
+    const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+    const closeDrawer = () => { setIsDrawerOpen(false); };
+    const navigation = useNavigation();
+    const isFocused = useIsFocused();
+
+    useEffect(() => {
+        const backAction = () => {
+            if (backPressCount.current === 0) {
+                backPressCount.current += 1;
+                ToastAndroid.show('Press back again to exit', ToastAndroid.SHORT);
+                setTimeout(() => {
+                    backPressCount.current = 0;
+                }, 2000); // Reset after 2 seconds
+                return true;
+            } else if (backPressCount.current === 1) {
+                BackHandler.exitApp(); // Exit app
+                return true;
+            }
+            return false;
+        };
+
+        const backHandler = BackHandler.addEventListener(
+            'hardwareBackPress',
+            backAction
+        );
+
+        return () => backHandler.remove();
+    }, []);
+
+    const [profileDetails, setProfileDetails] = useState(null);
+
+    const getProfileDetails = async () => {
+        try {
+            const response = await fetch(base_url + 'api/pratihari-profile', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${await AsyncStorage.getItem('storeAccesstoken')}`,
+                },
+            });
+
+            const data = await response.json();
+            if (response.ok) {
+                // console.log('Profile details fetched successfully', data);
+                setProfileDetails(data);
+            } else {
+                console.log('Failed to fetch profile details', data);
+            }
+        } catch (error) {
+            console.log('Error fetching profile details', error);
+        }
+    }
+
+    useEffect(() => {
+        if (isFocused) {
+            getProfileDetails();
+        }
+    }, [isFocused]);
+
     return (
         <SafeAreaView style={styles.container}>
+            <DrawerModal visible={isDrawerOpen} onClose={closeDrawer} />
             <View style={styles.headerPart}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 15, paddingVertical: 5 }}>
                     <TouchableOpacity style={styles.searchBox}>
-                        <Text style={{ color: '#fff', fontWeight: 'bold' }}>Search</Text>
+                        <Ionicons name="search" size={20} color="#fff" />
+                        <Text style={{ color: '#fff', fontWeight: 'bold', marginLeft: 7 }}>Search</Text>
                     </TouchableOpacity>
                     <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                        <TouchableOpacity style={{ marginRight: 20, backgroundColor: '#fff', borderRadius: 50, height: 36, width: 36, alignItems: 'center', justifyContent: 'center' }}>
-                            <Ionicons name="notifications" size={24} color="#c9170a" />
+                        <TouchableOpacity style={{ marginRight: 20, backgroundColor: '#fff', borderRadius: 50, height: 30, width: 30, alignItems: 'center', justifyContent: 'center' }}>
+                            <Ionicons name="notifications" size={20} color="#051b65" />
                         </TouchableOpacity>
-                        <TouchableOpacity style={{ marginRight: 10, backgroundColor: '#fff', borderRadius: 50, height: 36, width: 36, alignItems: 'center', justifyContent: 'center' }}>
-                            <FontAwesome name="user" size={24} color="#c9170a" />
+                        <TouchableOpacity onPress={() => setIsDrawerOpen(true)} style={{ marginRight: 10, borderRadius: 50, height: 36, width: 36, alignItems: 'center', justifyContent: 'center' }}>
+                            <Feather name="menu" size={30} color="#fff" />
                         </TouchableOpacity>
                     </View>
                 </View>
                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                     <View style={{ width: '50%', alignItems: 'center', justifyContent: 'center' }}>
-                        <Text style={{ color: '#fff', fontSize: 18, fontWeight: 'bold', textAlign: 'center' }}>Madhab Chandra Mohapatra, </Text>
-                        <Text style={{ color: '#fff', fontSize: 18, fontWeight: 'bold', textAlign: 'center' }}>Pratihari Nijog</Text>
+                        <Text style={{ color: '#fff', fontSize: 18, fontWeight: 'bold', textAlign: 'center' }}>{profileDetails?.profile?.first_name} {profileDetails?.profile?.middle_name} {profileDetails?.profile?.last_name}, </Text>
+                        <Text style={{ color: '#fff', fontSize: 18, fontWeight: 'bold', textAlign: 'center' }}>{profileDetails?.profile?.alias_name ? profileDetails?.profile?.alias_name : profileDetails?.profile?.phone_no}</Text>
                     </View>
                     <View style={{ width: '50%', alignItems: 'center', justifyContent: 'center' }}>
-                        <ImageBackground source={require('../../assets/images/fame2.png')} style={{ height: 140, width: 150, resizeMode: 'contain', padding: 25 }}>
+                        {/* <ImageBackground source={require('../../assets/images/fame2.png')} style={{ height: 140, width: 150, resizeMode: 'contain', padding: 25 }}> */}
+                        <View style={{ height: 165, width: 165, resizeMode: 'contain', padding: 25 }}>
                             <View style={{ height: '100%', width: '100%', borderRadius: 10 }}>
-                                <Image source={require('../../assets/images/panda1.jpg')} style={{ height: '100%', width: '100%', resizeMode: 'cover', borderRadius: 10 }} />
+                                {profileDetails?.profile?.profile_photo_url &&
+                                    <Image
+                                        source={{ uri: profileDetails?.profile?.profile_photo_url }}
+                                        style={{ height: '100%', width: '100%', borderRadius: 10 }}
+                                        resizeMode="cover"
+                                    />
+                                }
                             </View>
-                        </ImageBackground>
+                        </View>
+                        {/* </ImageBackground> */}
                     </View>
                 </View>
             </View>
             <View style={styles.bodyPart}>
                 <ScrollView showsVerticalScrollIndicator={false} style={{ flex: 1 }}>
-                    <View style={styles.menuSection}>
-                        <FlatList
-                            data={menuData}
-                            numColumns={2}
-                            scrollEnabled={false}
-                            keyExtractor={item => item.id}
-                            renderItem={({ item }) => (
-                                <TouchableOpacity style={{ width: '48%', marginRight: 10, marginVertical: 8, backgroundColor: item.backgroundColor, padding: 10, borderRadius: 10, flexDirection: 'row', alignItems: 'center' }}>
-                                    <Image source={item.image} style={{ height: 40, width: 40, resizeMode: 'contain' }} />
-                                    <Text style={{ fontSize: 16, fontWeight: 'bold', marginLeft: 10, color: '#c9170a' }}>{item.lable}</Text>
-                                </TouchableOpacity>
-                            )}
-                        />
-                    </View>
                     <View style={styles.swiperContainer}>
                         <Swiper
                             showsButtons={false}
@@ -87,10 +148,55 @@ const Index = () => {
                             ))}
                         </Swiper>
                     </View>
+                    {/* Approved Information Text */}
+                    <View style={{
+                        backgroundColor: '#fff5f5',
+                        padding: 12,
+                        borderRadius: 10,
+                        borderLeftWidth: 4,
+                        borderLeftColor: '#F06292',
+                        marginTop: 20,
+                        marginHorizontal: 20,
+                        shadowColor: '#000',
+                        shadowOffset: { width: 0, height: 2 },
+                        shadowOpacity: 0.3,
+                        shadowRadius: 5,
+                        elevation: 4,
+                    }}>
+                        <Text style={{
+                            fontSize: 16,
+                            color: '#444',
+                            lineHeight: 24,
+                            textAlign: 'justify',
+                        }}>
+                            <Text style={{ fontWeight: 'bold', color: '#E91E63' }}>⚠️ Note:</Text> You can access all the features of this app after your account is approved by the Pratihari Nijog Office.
+                        </Text>
+                    </View>
+                    <View style={styles.menuSection}>
+                        <FlatList
+                            data={menuData}
+                            numColumns={2}
+                            scrollEnabled={false}
+                            keyExtractor={item => item.id}
+                            renderItem={({ item }) => (
+                                <TouchableOpacity style={{ width: '48%', marginRight: 10, marginVertical: 8, backgroundColor: item.backgroundColor, padding: 10, borderRadius: 10, flexDirection: 'row', alignItems: 'center' }}>
+                                    <Image source={item.image} style={{ height: 40, width: 40, resizeMode: 'contain' }} />
+                                    <Text style={{ fontSize: 16, fontWeight: 'bold', marginLeft: 10, color: '#c9170a' }}>{item.lable}</Text>
+                                </TouchableOpacity>
+                            )}
+                        />
+                    </View>
                     <View style={{ width: '90%', alignSelf: 'center', marginTop: 20 }}>
-                        <View style={{ width: '100%', height: 100, marginRight: 10, marginVertical: 8, backgroundColor: '#f3daf7', padding: 10, borderRadius: 10, justifyContent: 'center' }}>
-                            <Text style={{ fontSize: 28, fontWeight: 'bold', marginLeft: 10, color: '#000', textAlign: 'center' }}>Pratihari Nijog</Text>
+                        <View style={{ width: '100%', height: 100, marginRight: 10, marginVertical: 8, backgroundColor: '#051b65', padding: 10, borderRadius: 10, justifyContent: 'center' }}>
+                            <Text style={{ fontSize: 28, fontWeight: 'bold', marginLeft: 10, color: '#fff', textAlign: 'center' }}>Pratihari Nijog</Text>
                         </View>
+                    </View>
+                    <View style={styles.footerWave}>
+                        <Image
+                            source={require('../../assets/images/bg987.png')}
+                            style={{ width: '100%', height: '100%', marginTop: 10 }}
+                            resizeMode="contain"
+                        />
                     </View>
                 </ScrollView>
             </View>
@@ -103,12 +209,12 @@ export default Index
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#c9170a',
+        backgroundColor: '#051b65',
     },
     headerPart: {
         width: '100%',
-        height: 200,
-        backgroundColor: '#c9170a',
+        height: 230,
+        backgroundColor: '#051b65',
     },
     bodyPart: {
         flex: 1,
@@ -119,10 +225,12 @@ const styles = StyleSheet.create({
     searchBox: {
         width: '50%',
         height: 40,
-        backgroundColor: '#ab6663',
+        backgroundColor: '#aabbf2',
         borderRadius: 20,
         alignItems: 'flex-start',
-        justifyContent: 'center',
+        flexDirection: 'row',
+        alignItems: 'center',
+        // justifyContent: 'center',
         paddingHorizontal: 19,
     },
     menuSection: {
@@ -158,5 +266,10 @@ const styles = StyleSheet.create({
         width: '100%', // Fill the entire Swiper container
         height: '100%', // Fill the entire Swiper container
         borderRadius: 10, // Rounded corners
+    },
+    footerWave: {
+        width: '100%',
+        height: 78,
+        zIndex: -1,
     },
 })

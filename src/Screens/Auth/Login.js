@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Image, ImageBackground, StyleSheet, TouchableOpacity, ActivityIndicator, PermissionsAndroid, Platform } from 'react-native';
+import { View, Text, Image, ImageBackground, StyleSheet, TouchableOpacity, ActivityIndicator, PermissionsAndroid, Platform, KeyboardAvoidingView, Keyboard, ScrollView } from 'react-native';
 import { FloatingLabelInput } from 'react-native-floating-label-input';
 import { useNavigation } from '@react-navigation/native';
 import { base_url } from '../../../App';
@@ -11,6 +11,18 @@ const Login = () => {
     const [errorMessage, setErrorMessage] = useState('');
     const [showError, setShowError] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+
+    const [keyboardVisible, setKeyboardVisible] = useState(false);
+
+    useEffect(() => {
+        const keyboardDidShowListener = Keyboard.addListener('keyboardDidShow', () => setKeyboardVisible(true));
+        const keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', () => setKeyboardVisible(false));
+
+        return () => {
+            keyboardDidShowListener.remove();
+            keyboardDidHideListener.remove();
+        };
+    }, []);
 
     const pressHandler = async () => {
         setIsLoading(true);
@@ -64,10 +76,15 @@ const Login = () => {
     };
 
     return (
-        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: 'transparent' }}>
-            <ImageBackground source={require('../../assets/images/Login_BG.png')} style={{ flex: 1, resizeMode: 'cover', justifyContent: 'center', alignItems: 'center', height: '100%', width: '100%' }}>
-                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'transparent' }}>
-                    <Image source={require('../../assets/images/whitelogo.png')} style={{ height: 130, width: 130, resizeMode: 'contain' }} />
+        <KeyboardAvoidingView style={{ flex: 1, backgroundColor: '#fff' }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+            <ScrollView
+                style={{ flex: 1 }}
+                contentContainerStyle={{ flexGrow: 1 }}
+                scrollEnabled={keyboardVisible}
+                keyboardShouldPersistTaps="handled"
+            >
+                <View style={{ justifyContent: 'center', alignItems: 'center', backgroundColor: 'transparent' }}>
+                    <Image source={require('../../assets/images/icon876.png')} style={{ height: 350, width: 350, resizeMode: 'contain' }} />
                 </View>
                 <View style={styles.footer}>
                     <Text style={{ fontSize: 18, fontFamily: 'okra', fontWeight: '600', color: '#353535', fontWeight: 'bold' }}>Welcome</Text>
@@ -75,7 +92,7 @@ const Login = () => {
                     <FloatingLabelInput
                         label="Phone Number"
                         value={phone}
-                        customLabelStyles={{ colorFocused: '#c80100', fontSizeFocused: 14 }}
+                        customLabelStyles={{ colorFocused: '#051b65', fontSizeFocused: 14 }}
                         labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
                         maxLength={13}
                         keyboardType="phone-pad"
@@ -92,21 +109,26 @@ const Login = () => {
                 </View>
                 <View style={styles.bottom}>
                     {isLoading ? (
-                        <ActivityIndicator size="large" color="#c80100" />
+                        <View style={{}}>
+                            <ActivityIndicator size="large" color="#051b65" />
+                        </View>
                     ) : (
-                        <TouchableOpacity onPress={pressHandler} style={styles.button}>
-                            <Text style={styles.buttonText}>SUBMIT</Text>
-                        </TouchableOpacity>
+                        <>
+                            <TouchableOpacity onPress={pressHandler} style={styles.button}>
+                                <Text style={styles.buttonText}>SUBMIT</Text>
+                            </TouchableOpacity>
+                        </>
                     )}
-                    {/* <View style={styles.ifNotRegistered}>
-                        <Text style={{ color: '#000', fontSize: 16, fontFamily: 'Titillium Web' }}>Not Registered?</Text>
-                        <TouchableOpacity onPress={() => navigation.navigate('Register')}>
-                            <Text style={{ color: '#c9170a', fontSize: 16, fontFamily: 'Titillium Web', fontWeight: 'bold', marginLeft: 5 }}>Register</Text>
-                        </TouchableOpacity>
-                    </View> */}
                 </View>
-            </ImageBackground>
-        </View>
+                <View style={styles.footerWave}>
+                    <Image
+                        source={require('../../assets/images/bg987.png')}
+                        style={{ width: '100%', height: '100%', marginTop: 10 }}
+                        resizeMode="contain"
+                    />
+                </View>
+            </ScrollView>
+        </KeyboardAvoidingView>
     );
 };
 
@@ -135,7 +157,7 @@ const styles = StyleSheet.create({
         fontFamily: 'Titillium Web',
     },
     bottom: {
-        flex: 0.5,
+        flex: 1,
         backgroundColor: 'transparent',
         height: '100%',
         width: '100%',
@@ -146,8 +168,8 @@ const styles = StyleSheet.create({
         padding: 10,
         height: 45,
         width: 150,
-        marginBottom: 12,
-        backgroundColor: '#c80100',
+        // marginBottom: 230,
+        backgroundColor: '#051b65',
         borderRadius: 100,
         alignItems: 'center',
         shadowOffset: { height: 10, width: 10 },
@@ -163,8 +185,13 @@ const styles = StyleSheet.create({
         fontFamily: 'Titillium Web',
     },
     errorText: {
-        color: 'red',
-        marginTop: 10,
+        color: '#051b65',
+        marginBottom: 15,
         fontSize: 14,
+    },
+    footerWave: {
+        width: '100%',
+        height: 78,
+        zIndex: -1,
     },
 });
