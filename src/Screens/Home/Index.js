@@ -4,58 +4,58 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation, useIsFocused } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Feather from 'react-native-vector-icons/Feather';
-// import FontAwesome from 'react-native-vector-icons/FontAwesome';
+import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import Swiper from 'react-native-swiper';
 import { base_url } from '../../../App';
 import DrawerModal from "../../Component/DrawerModal";
 
 // images
-// const image1 = require('../../assets/images/slideImg5.jpg');
-// const image2 = require('../../assets/images/slideImg6.jpg');
+const image1 = require('../../assets/images/slideImg5.jpg');
+const image2 = require('../../assets/images/slideImg6.jpg');
 const image3 = require('../../assets/images/slideImg7.webp');
 
 const Index = () => {
 
     const menuData = [
-        { id: 1, lable: 'Daily Niti', image: require('../../assets/images/timeicon.png'), backgroundColor: '#f3daf7' },
-        { id: 2, lable: 'Special Niti', image: require('../../assets/images/specialneeti.png'), backgroundColor: '#fcdee9' },
-        { id: 3, lable: 'Panji', image: require('../../assets/images/panji.png'), backgroundColor: '#d7f7f4' },
-        { id: 4, lable: 'Nijog', image: require('../../assets/images/nijog.png'), backgroundColor: '#e7f7d7' },
-        { id: 5, lable: 'News', image: require('../../assets/images/news.png'), backgroundColor: '#f7f4da' },
-        { id: 6, lable: 'Task', image: require('../../assets/images/task.png'), backgroundColor: '#f5e1e1' },
+        { id: 1, lable: 'Upcoming Pali', image: require('../../assets/images/timeicon.png'), backgroundColor: '#f3daf7', page: 'UpcomingPali' },
+        { id: 2, lable: 'Pali History', image: require('../../assets/images/panji.png'), backgroundColor: '#fcdee9', page: 'PaliHistory' },
+        { id: 3, lable: 'Notice', image: require('../../assets/images/news.png'), backgroundColor: '#d7f7f4', page: 'Notice' },
+        { id: 4, lable: 'Social Media', image: require('../../assets/images/socialMedia.png'), backgroundColor: '#f7f4da', page: 'SocialMedia' },
+        { id: 5, lable: 'Committee', image: require('../../assets/images/nijog.png'), backgroundColor: '#e7f7d7', page: 'Committee' },
+        { id: 6, lable: 'Application', image: require('../../assets/images/task.png'), backgroundColor: '#f5e1e1', page: 'Application' },
     ];
 
-    const images = [image3, image3, image3];
+    const images = [image3, image2, image1];
 
-    const backPressCount = useRef(0);
+    const [backPressCount, setBackPressCount] = useState(0);
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-    const closeDrawer = () => { setIsDrawerOpen(false); };
+    const closeDrawer = () => setIsDrawerOpen(false);
     const navigation = useNavigation();
     const isFocused = useIsFocused();
 
     useEffect(() => {
-        const backAction = () => {
-            if (backPressCount.current === 0) {
-                backPressCount.current += 1;
-                ToastAndroid.show('Press back again to exit', ToastAndroid.SHORT);
-                setTimeout(() => {
-                    backPressCount.current = 0;
-                }, 2000); // Reset after 2 seconds
-                return true;
-            } else if (backPressCount.current === 1) {
-                BackHandler.exitApp(); // Exit app
+        const handleBackPress = () => {
+            if (backPressCount === 1) {
+                BackHandler.exitApp(); // Exit the app if back button is pressed twice within 2 seconds
                 return true;
             }
-            return false;
+
+            ToastAndroid.show('Press back again to exit', ToastAndroid.SHORT);
+            setBackPressCount(1);
+
+            const timeout = setTimeout(() => {
+                setBackPressCount(0);
+            }, 2000); // Reset back press count after 2 seconds
+
+            return true; // Prevent default behavior
         };
 
-        const backHandler = BackHandler.addEventListener(
-            'hardwareBackPress',
-            backAction
-        );
+        if (isFocused) {
+            const backHandler = BackHandler.addEventListener('hardwareBackPress', handleBackPress);
 
-        return () => backHandler.remove();
-    }, []);
+            return () => backHandler.remove(); // Cleanup the event listener when the component unmounts or navigates away
+        }
+    }, [backPressCount, isFocused]);
 
     const [profileDetails, setProfileDetails] = useState(null);
 
@@ -92,13 +92,16 @@ const Index = () => {
             <DrawerModal visible={isDrawerOpen} onClose={closeDrawer} />
             <View style={styles.headerPart}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 15, paddingVertical: 5 }}>
-                    <TouchableOpacity style={styles.searchBox}>
+                    <TouchableOpacity style={styles.searchBox} onPress={() => navigation.navigate('Search')}>
                         <Ionicons name="search" size={20} color="#fff" />
                         <Text style={{ color: '#fff', fontWeight: 'bold', marginLeft: 7 }}>Search</Text>
                     </TouchableOpacity>
                     <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                        <TouchableOpacity style={{ marginRight: 20, backgroundColor: '#fff', borderRadius: 50, height: 30, width: 30, alignItems: 'center', justifyContent: 'center' }}>
-                            <Ionicons name="notifications" size={20} color="#051b65" />
+                        <TouchableOpacity
+                            onPress={() => navigation.navigate('Profile')}
+                            style={{ marginRight: 20, backgroundColor: '#fff', borderRadius: 50, height: 30, width: 30, alignItems: 'center', justifyContent: 'center' }}
+                        >
+                            <FontAwesome name="user" size={20} color="#051b65" />
                         </TouchableOpacity>
                         <TouchableOpacity onPress={() => setIsDrawerOpen(true)} style={{ marginRight: 10, borderRadius: 50, height: 36, width: 36, alignItems: 'center', justifyContent: 'center' }}>
                             <Feather name="menu" size={30} color="#fff" />
@@ -108,7 +111,7 @@ const Index = () => {
                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                     <View style={{ width: '50%', alignItems: 'center', justifyContent: 'center' }}>
                         <Text style={{ color: '#fff', fontSize: 18, fontWeight: 'bold', textAlign: 'center' }}>{profileDetails?.profile?.first_name} {profileDetails?.profile?.middle_name} {profileDetails?.profile?.last_name}, </Text>
-                        <Text style={{ color: '#fff', fontSize: 18, fontWeight: 'bold', textAlign: 'center' }}>{profileDetails?.profile?.alias_name ? profileDetails?.profile?.alias_name : profileDetails?.profile?.phone_no}</Text>
+                        <Text style={{ color: '#fff', fontSize: 18, fontWeight: 'bold', textAlign: 'center' }}>({profileDetails?.profile?.alias_name ? profileDetails?.profile?.alias_name : profileDetails?.profile?.phone_no})</Text>
                     </View>
                     <View style={{ width: '50%', alignItems: 'center', justifyContent: 'center' }}>
                         {/* <ImageBackground source={require('../../assets/images/fame2.png')} style={{ height: 140, width: 150, resizeMode: 'contain', padding: 25 }}> */}
@@ -148,6 +151,32 @@ const Index = () => {
                             ))}
                         </Swiper>
                     </View>
+                    <View style={{ backgroundColor: '#fff', paddingHorizontal: 20, paddingVertical: 25, borderRadius: 20, justifyContent: 'center', marginTop: 15, width: '90%', alignSelf: 'center', shadowColor: '#000', shadowOpacity: 0.1, shadowOffset: { width: 0, height: 5 }, elevation: 1 }}>
+                        <View style={{ width: '100%', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <View style={{ width: '90%' }}>
+                                <Text style={{ fontSize: 20, fontFamily: 'FiraSans-Light', color: '#341551' }}>Pratihari Seba</Text>
+                                <View style={{ backgroundColor: '#fa0000', width: 80, height: 1.5, marginVertical: 8 }}></View>
+                                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
+                                        <Ionicons name="calendar-outline" size={16} color="#fa0000" />
+                                        <Text style={{ color: '#979998', fontFamily: 'FiraSans-Medium', marginLeft: 5 }}>Start Time: </Text>
+                                    </View>
+                                    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: 5, marginLeft: 20 }}>
+                                        <Ionicons name="time-outline" size={16} color="#fa0000" />
+                                        <Text style={{ color: '#979998', fontFamily: 'FiraSans-Medium', marginLeft: 5 }}>
+                                            duration
+                                        </Text>
+                                    </View>
+                                </View>
+                            </View>
+                            <View style={{ width: '10%' }}>
+                                <Ionicons name="chevron-forward" size={24} color="#fa0000" />
+                            </View>
+                        </View>
+                        <View style={{ backgroundColor: 'green', width: 80, height: 20, alignItems: 'center', justifyContent: 'center', borderRadius: 10, position: 'absolute', top: 10, right: 20 }}>
+                            <Text style={{ color: '#fff', fontFamily: 'FiraSans-Medium', fontSize: 12 }}>Running</Text>
+                        </View>
+                    </View>
                     {/* Approved Information Text */}
                     <View style={{
                         backgroundColor: '#fff5f5',
@@ -177,11 +206,16 @@ const Index = () => {
                             data={menuData}
                             numColumns={2}
                             scrollEnabled={false}
-                            keyExtractor={item => item.id}
+                            keyExtractor={(item) => item.id.toString()}
+                            columnWrapperStyle={styles.row}
                             renderItem={({ item }) => (
-                                <TouchableOpacity style={{ width: '48%', marginRight: 10, marginVertical: 8, backgroundColor: item.backgroundColor, padding: 10, borderRadius: 10, flexDirection: 'row', alignItems: 'center' }}>
-                                    <Image source={item.image} style={{ height: 40, width: 40, resizeMode: 'contain' }} />
-                                    <Text style={{ fontSize: 16, fontWeight: 'bold', marginLeft: 10, color: '#c9170a' }}>{item.lable}</Text>
+                                <TouchableOpacity
+                                    style={[styles.menuItem, { backgroundColor: item.backgroundColor }]}
+                                    activeOpacity={0.85}
+                                    onPress={() => navigation.navigate(item.page)}
+                                >
+                                    <Image source={item.image} style={styles.menuImage} />
+                                    <Text style={styles.menuLabel}>{item.lable}</Text>
                                 </TouchableOpacity>
                             )}
                         />
@@ -235,9 +269,37 @@ const styles = StyleSheet.create({
     },
     menuSection: {
         width: '90%',
-        // backgroundColor: 'red',
         alignSelf: 'center',
-        marginTop: 10,
+        marginTop: 15,
+    },
+    row: {
+        justifyContent: 'space-between',
+    },
+    menuItem: {
+        width: '48%',
+        aspectRatio: 1, // makes it square and consistent
+        borderRadius: 16,
+        marginBottom: 12,
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: 15,
+        elevation: 3,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 3,
+    },
+    menuImage: {
+        height: 50,
+        width: 50,
+        resizeMode: 'contain',
+        marginBottom: 10,
+    },
+    menuLabel: {
+        fontSize: 14,
+        fontWeight: '600',
+        textAlign: 'center',
+        color: '#c9170a',
     },
     swiperContainer: {
         // backgroundColor: 'red',

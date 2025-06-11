@@ -21,6 +21,14 @@ import Home from './src/Screens/Home/Index'
 import PratihariForm from './src/Screens/PratihariForm/Index.js'
 import ThankYouPage from './src/Screens/ThankYouPage/Index.js'
 import MessageScreen from './src/Screens/MessageScreen/Index.js'
+import Profile from './src/Screens/Profile/Index.js'
+import Search from './src/Screens/Search/Index.js'
+import UpcomingPali from './src/Screens/UpcomingPali/Index.js'
+import PaliHistory from './src/Screens/PaliHistory/Index.js'
+import Notice from './src/Screens/Notice/Index.js'
+import SocialMedia from './src/Screens/SocialMedia/Index.js'
+import Committee from './src/Screens/Committee/Index.js'
+import Application from './src/Screens/Application/Index.js'
 
 const Stack = createNativeStackNavigator();
 
@@ -75,6 +83,14 @@ const App = () => {
             <Stack.Screen name="ThankYouPage" component={ThankYouPage} />
             <Stack.Screen name="MessageScreen" component={MessageScreen} />
             <Stack.Screen name="Home" component={Home} />
+            <Stack.Screen name="Profile" component={Profile} />
+            <Stack.Screen name="Search" component={Search} />
+            <Stack.Screen name="UpcomingPali" component={UpcomingPali} />
+            <Stack.Screen name="PaliHistory" component={PaliHistory} />
+            <Stack.Screen name="Notice" component={Notice} />
+            <Stack.Screen name="SocialMedia" component={SocialMedia} />
+            <Stack.Screen name="Committee" component={Committee} />
+            <Stack.Screen name="Application" component={Application} />
           </>
         )}
       </Stack.Navigator>

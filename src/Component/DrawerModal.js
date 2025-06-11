@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react'
 import { useNavigation, useIsFocused } from '@react-navigation/native'
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import Feather from 'react-native-vector-icons/Feather';
+import FontAwesome from 'react-native-vector-icons/FontAwesome';
 
 const DrawerModal = ({ visible, onClose }) => {
 
@@ -23,21 +24,39 @@ const DrawerModal = ({ visible, onClose }) => {
                             <View style={{ width: '100%', height: 60, backgroundColor: '#051b65' }}>
                                 <Text style={{ color: '#fff', fontSize: 20, fontWeight: '500', paddingLeft: 20, paddingTop: 15 }}>Pratihari Nijog</Text>
                             </View>
-                            <TouchableOpacity onPress={() => { onClose() }} style={styles.drawerCell}>
-                                <Feather name="user" color={'#fff'} size={22} />
+                            <TouchableOpacity onPress={() => { onClose(); navigation.navigate('Profile') }} style={styles.drawerCell}>
+                                <FontAwesome name="user-circle-o" color={'#fff'} size={22} />
                                 <Text style={styles.drawerLable}>Profile</Text>
                             </TouchableOpacity>
-                            <TouchableOpacity onPress={() => { onClose() }} style={styles.drawerCell}>
-                                <AntDesign name="infocirlceo" color={'#fff'} size={22} />
-                                <Text style={styles.drawerLable}>Terms Of Use</Text>
+                            <TouchableOpacity onPress={() => { onClose(); navigation.navigate('UpcomingPali') }} style={styles.drawerCell}>
+                                {/* <AntDesign name="infocirlceo" color={'#fff'} size={22} /> */}
+                                <Image source={require('../assets/images/timeicon.png')} style={{ width: 24, height: 24 }} />
+                                <Text style={styles.drawerLable}>Upcoming Pali</Text>
                             </TouchableOpacity>
-                            <TouchableOpacity onPress={() => { onClose() }} style={styles.drawerCell}>
-                                <Feather name="lock" color={'#fff'} size={22} />
-                                <Text style={styles.drawerLable}>Privacy Policy</Text>
+                            <TouchableOpacity onPress={() => { onClose(); navigation.navigate('PaliHistory') }} style={styles.drawerCell}>
+                                {/* <Feather name="lock" color={'#fff'} size={22} /> */}
+                                <Image source={require('../assets/images/panji.png')} style={{ width: 22, height: 22 }} />
+                                <Text style={styles.drawerLable}>Pali History</Text>
                             </TouchableOpacity>
-                            <TouchableOpacity onPress={() => { onClose() }} style={styles.drawerCell}>
-                                <AntDesign name="contacts" color={'#fff'} size={22} />
-                                <Text style={styles.drawerLable}>Contact Us</Text>
+                            <TouchableOpacity onPress={() => { onClose(); navigation.navigate('Notice') }} style={styles.drawerCell}>
+                                {/* <AntDesign name="contacts" color={'#fff'} size={22} /> */}
+                                <Image source={require('../assets/images/news.png')} style={{ width: 22, height: 22 }} />
+                                <Text style={styles.drawerLable}>Notice</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity onPress={() => { onClose(); navigation.navigate('SocialMedia') }} style={styles.drawerCell}>
+                                {/* <AntDesign name="contacts" color={'#fff'} size={22} /> */}
+                                <Image source={require('../assets/images/socialMedia.png')} style={{ width: 25, height: 25 }} />
+                                <Text style={styles.drawerLable}>Social Media</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity onPress={() => { onClose(); navigation.navigate('Committee') }} style={styles.drawerCell}>
+                                {/* <AntDesign name="contacts" color={'#fff'} size={22} /> */}
+                                <Image source={require('../assets/images/nijog.png')} style={{ width: 25, height: 25 }} />
+                                <Text style={styles.drawerLable}>Committee</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity onPress={() => { onClose(); navigation.navigate('Application') }} style={styles.drawerCell}>
+                                {/* <AntDesign name="contacts" color={'#fff'} size={22} /> */}
+                                <Image source={require('../assets/images/task.png')} style={{ width: 24, height: 24 }} />
+                                <Text style={styles.drawerLable}>Application</Text>
                             </TouchableOpacity>
                             <TouchableOpacity style={styles.drawerCell}>
                             </TouchableOpacity>
