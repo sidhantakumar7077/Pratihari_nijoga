@@ -1,18 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import {
-    View,
-    FlatList,
-    Text,
-    StyleSheet,
-    TouchableOpacity,
-    SafeAreaView,
-    StatusBar,
-} from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { View, FlatList, Text, StyleSheet, TouchableOpacity, SafeAreaView } from 'react-native';
+import { useNavigation, useIsFocused } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import { base_url } from '../../../App';
 
 const Index = () => {
+
     const navigation = useNavigation();
+    const isFocused = useIsFocused();
+    const [loading, setLoading] = useState(false);
     const [notices, setNotices] = useState([]);
 
     const noticeData = [
@@ -42,9 +39,39 @@ const Index = () => {
         },
     ];
 
+    const getNotices = async () => {
+        const token = await AsyncStorage.getItem('storeAccesstoken');
+        try {
+            setLoading(true);
+            const response = await fetch(`${base_url}api/pratihari-notice`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+            const res = await response.json();
+            if (response.ok) {
+                setLoading(false);
+                setNotices(res.data);
+                console.log("Notices fetched successfully:", res.data);
+            } else {
+                setLoading(false);
+                console.error('Failed to fetch notices:', res.data);
+                setNotices([]);
+            }
+        } catch (error) {
+            setLoading(false);
+            setNotices([]);
+            console.error('Error fetching notices:', error);
+        }
+    }
+
     useEffect(() => {
-        setNotices(noticeData);
-    }, []);
+        if (isFocused) {
+            getNotices();
+        }
+    }, [isFocused]);
 
     const renderItem = ({ item }) => (
         <View style={styles.noticeCard}>
@@ -65,7 +92,20 @@ const Index = () => {
                 </TouchableOpacity>
                 <Text style={styles.headerTitle}>Notices</Text>
             </View>
-
+            {loading && (
+                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                    <Text style={{ fontSize: 16, color: '#999' }}>
+                        Loading notices...
+                    </Text>
+                </View>
+            )}
+            {!loading && notices.length === 0 && (
+                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                    <Text style={{ fontSize: 16, color: '#999' }}>
+                        No notices available at the moment.
+                    </Text>
+                </View>
+            )}
             <FlatList
                 data={notices}
                 keyExtractor={(item) => item.id.toString()}

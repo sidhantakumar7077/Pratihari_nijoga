@@ -1,94 +1,102 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
   StyleSheet,
-  FlatList,
   TouchableOpacity,
   Linking,
+  ScrollView,
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useNavigation, useIsFocused } from '@react-navigation/native';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import Entypo from 'react-native-vector-icons/Entypo';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import { useNavigation } from '@react-navigation/native';
-import Ionicons from 'react-native-vector-icons/Ionicons';
+import { base_url } from '../../../App';
 
 const Index = () => {
-
   const navigation = useNavigation();
+  const isFocused = useIsFocused();
+  const [socialProfiles, setSocialProfiles] = useState(null);
 
-  const socialProfiles = [
-    {
-      id: '1',
-      platform: 'Facebook',
-      icon: <FontAwesome name="facebook" size={28} color="#3b5998" />,
-      handle: 'facebook.com/yourusername',
-      url: 'https://facebook.com/yourusername',
-    },
-    {
-      id: '2',
-      platform: 'Instagram',
-      icon: <Entypo name="instagram" size={28} color="#E1306C" />,
-      handle: '@yourinsta',
-      url: 'https://instagram.com/yourinsta',
-    },
-    {
-      id: '3',
-      platform: 'Twitter',
-      icon: <FontAwesome name="twitter" size={28} color="#1DA1F2" />,
-      handle: '@yourtwitter',
-      url: 'https://twitter.com/yourtwitter',
-    },
-    {
-      id: '4',
-      platform: 'LinkedIn',
-      icon: <Entypo name="linkedin" size={28} color="#0077b5" />,
-      handle: 'linkedin.com/in/yourprofile',
-      url: 'https://linkedin.com/in/yourprofile',
-    },
-    {
-      id: '5',
-      platform: 'YouTube',
-      icon: <MaterialCommunityIcons name="youtube" size={28} color="#FF0000" />,
-      handle: 'youtube.com/yourchannel',
-      url: 'https://youtube.com/yourchannel',
-    },
-  ];
+  const getSocialProfiles = async () => {
+    try {
+      const token = await AsyncStorage.getItem('storeAccesstoken');
+      const response = await fetch(`${base_url}api/get-socialmedia`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
-  const openLink = (url) => {
-    Linking.openURL(url).catch((err) => console.error('Error opening URL:', err));
-  };
+      const result = await response.json();
 
-  const getPlatformColor = (platform) => {
-    switch (platform) {
-      case 'Facebook':
-        return '#3b5998';
-      case 'Instagram':
-        return '#E1306C';
-      case 'Twitter':
-        return '#1DA1F2';
-      case 'LinkedIn':
-        return '#0077b5';
-      case 'YouTube':
-        return '#FF0000';
-      default:
-        return '#ccc';
+      if (response.ok && result.status && result.data) {
+        setSocialProfiles(result.data);
+      } else {
+        console.error('Failed to fetch social profiles:', result.message);
+        setSocialProfiles(null);
+      }
+    } catch (error) {
+      console.error('Error fetching social profiles:', error);
+      setSocialProfiles(null);
     }
   };
 
-  const renderItem = ({ item }) => (
-    <TouchableOpacity
-      style={[styles.card, { borderLeftColor: getPlatformColor(item.platform) }]}
-      activeOpacity={0.9}
-      onPress={() => openLink(item.url)}
-    >
-      <View style={styles.iconContainer}>{item.icon}</View>
-      <View style={styles.textContainer}>
-        <Text style={styles.platform}>{item.platform}</Text>
-        <Text style={styles.handle}>{item.handle}</Text>
-      </View>
-    </TouchableOpacity>
-  );
+  const openLink = (url) => {
+    if (url) {
+      Linking.openURL(url).catch((err) =>
+        console.error('Error opening URL:', err)
+      );
+    }
+  };
+
+  const profiles = [
+    {
+      platform: 'Facebook',
+      icon: <FontAwesome name="facebook" size={28} color="#3b5998" />,
+      color: '#3b5998',
+      urlKey: 'facebook_url',
+    },
+    {
+      platform: 'Instagram',
+      icon: <Entypo name="instagram" size={28} color="#E1306C" />,
+      color: '#E1306C',
+      urlKey: 'instagram_url',
+    },
+    {
+      platform: 'X',
+      icon: <FontAwesome name="twitter" size={28} color="#1DA1F2" />,
+      color: '#1DA1F2',
+      urlKey: 'twitter_url',
+    },
+    {
+      platform: 'LinkedIn',
+      icon: <Entypo name="linkedin" size={28} color="#0077b5" />,
+      color: '#0077b5',
+      urlKey: 'linkedin_url',
+    },
+    {
+      platform: 'YouTube',
+      icon: (
+        <MaterialCommunityIcons
+          name="youtube"
+          size={28}
+          color="#FF0000"
+        />
+      ),
+      color: '#FF0000',
+      urlKey: 'youtube_url',
+    },
+  ];
+
+  useEffect(() => {
+    if (isFocused) {
+      getSocialProfiles();
+    }
+  }, [isFocused]);
 
   return (
     <View style={styles.container}>
@@ -98,13 +106,28 @@ const Index = () => {
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Social Media</Text>
       </View>
-      <FlatList
-        data={socialProfiles}
-        keyExtractor={(item) => item.id}
-        renderItem={renderItem}
-        contentContainerStyle={{ paddingVertical: 10, width: '90%', alignSelf: 'center' }}
-        showsVerticalScrollIndicator={false}
-      />
+
+      <ScrollView contentContainerStyle={styles.content}>
+        {profiles.map((item, index) => {
+          const url = socialProfiles?.[item.urlKey];
+          if (!url) return null;
+
+          return (
+            <TouchableOpacity
+              key={index}
+              style={[styles.card, { borderLeftColor: item.color }]}
+              activeOpacity={0.9}
+              onPress={() => openLink(url)}
+            >
+              <View style={styles.iconContainer}>{item.icon}</View>
+              <View style={styles.textContainer}>
+                <Text style={styles.platform}>{item.platform}</Text>
+                <Text style={styles.handle}>{url}</Text>
+              </View>
+            </TouchableOpacity>
+          );
+        })}
+      </ScrollView>
     </View>
   );
 };
@@ -115,8 +138,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f0f4f8',
-    // paddingHorizontal: 16,
-    // paddingTop: 20,
   },
   header: {
     flexDirection: 'row',
@@ -124,8 +145,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#051b65',
     paddingHorizontal: 16,
     paddingVertical: 14,
-    borderBottomWidth: 1,
-    borderColor: '#eee',
     elevation: 2,
   },
   headerTitle: {
@@ -133,6 +152,12 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#fff',
     marginLeft: 10,
+  },
+  content: {
+    paddingVertical: 10,
+    width: '90%',
+    alignSelf: 'center',
+    paddingBottom: 20,
   },
   card: {
     flexDirection: 'row',
