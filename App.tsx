@@ -76,13 +76,13 @@ const App = () => {
           <Stack.Screen name="NoInternet" component={NoInternet} />
         ) : (
           <>
-            {access_token ? <Stack.Screen name="PratihariForm" component={PratihariForm} /> : <Stack.Screen name="Login" component={Login} />}
-            {!access_token ? <Stack.Screen name="PratihariForm" component={PratihariForm} /> : <Stack.Screen name="Login" component={Login} />}
+            {access_token ? <Stack.Screen name="Home" component={Home} /> : <Stack.Screen name="Login" component={Login} />}
+            {!access_token ? <Stack.Screen name="Home" component={Home} /> : <Stack.Screen name="Login" component={Login} />}
             <Stack.Screen name="Otp" component={Otp} />
             <Stack.Screen name="Register" component={Register} />
             <Stack.Screen name="ThankYouPage" component={ThankYouPage} />
             <Stack.Screen name="MessageScreen" component={MessageScreen} />
-            <Stack.Screen name="Home" component={Home} />
+            {/* <Stack.Screen name="PratihariForm" component={PratihariForm} /> */}
             <Stack.Screen name="Profile" component={Profile} />
             <Stack.Screen name="Search" component={Search} />
             <Stack.Screen name="UpcomingPali" component={UpcomingPali} />

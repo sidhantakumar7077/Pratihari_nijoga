@@ -4,6 +4,7 @@ import { useNavigation, useIsFocused } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { base_url } from '../../../App';
+import moment from 'moment';
 
 const Index = () => {
 
@@ -75,10 +76,14 @@ const Index = () => {
 
     const renderItem = ({ item }) => (
         <View style={styles.noticeCard}>
-            <View style={styles.stripe} />
-            <View style={styles.cardContent}>
-                <Text style={styles.noticeDate}>{item.date}</Text>
-                <Text style={styles.noticeTitle}>{item.title}</Text>
+            <View style={styles.leftAccent} />
+            <View style={styles.noticeContent}>
+                <View style={styles.headerRow}>
+                    <Text style={styles.noticeTitle}>{item.notice_name}</Text>
+                    <Text style={styles.noticeDate}>
+                        {moment(item.created_at).format('DD MMM YYYY')}
+                    </Text>
+                </View>
                 <Text style={styles.noticeDesc}>{item.description}</Text>
             </View>
         </View>
@@ -92,20 +97,15 @@ const Index = () => {
                 </TouchableOpacity>
                 <Text style={styles.headerTitle}>Notices</Text>
             </View>
-            {loading && (
-                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-                    <Text style={{ fontSize: 16, color: '#999' }}>
-                        Loading notices...
-                    </Text>
+            {loading ? (
+                <View style={styles.centerMessage}>
+                    <Text style={styles.messageText}>Loading notices...</Text>
                 </View>
-            )}
-            {!loading && notices.length === 0 && (
-                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-                    <Text style={{ fontSize: 16, color: '#999' }}>
-                        No notices available at the moment.
-                    </Text>
+            ) : notices.length === 0 ? (
+                <View style={styles.centerMessage}>
+                    <Text style={styles.messageText}>No notices available at the moment.</Text>
                 </View>
-            )}
+            ) : null}
             <FlatList
                 data={notices}
                 keyExtractor={(item) => item.id.toString()}
@@ -142,39 +142,54 @@ const styles = StyleSheet.create({
     },
     noticeCard: {
         flexDirection: 'row',
-        backgroundColor: '#fff',
-        borderRadius: 12,
+        backgroundColor: '#ffffff',
+        borderRadius: 14,
         marginVertical: 8,
+        overflow: 'hidden',
+        elevation: 3,
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.1,
-        shadowRadius: 2,
-        elevation: 2,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.08,
+        shadowRadius: 4,
     },
-    stripe: {
+    leftAccent: {
         width: 6,
-        backgroundColor: '#341551',
-        borderTopLeftRadius: 12,
-        borderBottomLeftRadius: 12,
+        backgroundColor: '#4b0082', // Indigo stripe
     },
-    cardContent: {
+    noticeContent: {
         flex: 1,
-        padding: 14,
+        padding: 16,
     },
-    noticeDate: {
-        fontSize: 12,
-        color: '#999',
-        marginBottom: 4,
+    headerRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginBottom: 6,
     },
     noticeTitle: {
         fontSize: 16,
-        fontWeight: '600',
-        color: '#333',
-        marginBottom: 4,
+        fontWeight: '700',
+        color: '#222',
+        flex: 1,
+        marginRight: 10,
+    },
+    noticeDate: {
+        fontSize: 12,
+        color: '#888',
+        fontStyle: 'italic',
     },
     noticeDesc: {
         fontSize: 14,
-        color: '#555',
+        color: '#444',
         lineHeight: 20,
+    },
+    centerMessage: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        paddingTop: 30,
+    },
+    messageText: {
+        fontSize: 16,
+        color: '#999',
     },
 });

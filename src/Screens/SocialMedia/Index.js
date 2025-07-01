@@ -35,6 +35,7 @@ const Index = () => {
 
       if (response.ok && result.status && result.data) {
         setSocialProfiles(result.data);
+        console.log("Social profiles fetched successfully:", result.data);
       } else {
         console.error('Failed to fetch social profiles:', result.message);
         setSocialProfiles(null);

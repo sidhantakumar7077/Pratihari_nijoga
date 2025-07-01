@@ -58,10 +58,12 @@ const Index = () => {
     }, [backPressCount, isFocused]);
 
     const [profileDetails, setProfileDetails] = useState(null);
+    const [rejetedReason, setRejetedReason] = useState(null);
+    // const [todayBedhhaData, setTodayBedhhaData] = useState(null);
 
     const getProfileDetails = async () => {
         try {
-            const response = await fetch(base_url + 'api/pratihari-profile', {
+            const response = await fetch(base_url + 'api/get-home-page', {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
@@ -71,8 +73,10 @@ const Index = () => {
 
             const data = await response.json();
             if (response.ok) {
-                // console.log('Profile details fetched successfully', data);
-                setProfileDetails(data);
+                // console.log('Profile details fetched successfully', data.data.profile);
+                setProfileDetails(data.data.profile);
+                setRejetedReason(data.data.reject_reason.reason);
+                // setTodayBedhhaData();
             } else {
                 console.log('Failed to fetch profile details', data);
             }
@@ -110,16 +114,16 @@ const Index = () => {
                 </View>
                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                     <View style={{ width: '50%', alignItems: 'center', justifyContent: 'center' }}>
-                        <Text style={{ color: '#fff', fontSize: 18, fontWeight: 'bold', textAlign: 'center' }}>{profileDetails?.profile?.first_name} {profileDetails?.profile?.middle_name} {profileDetails?.profile?.last_name}, </Text>
-                        <Text style={{ color: '#fff', fontSize: 18, fontWeight: 'bold', textAlign: 'center' }}>({profileDetails?.profile?.alias_name ? profileDetails?.profile?.alias_name : profileDetails?.profile?.phone_no})</Text>
+                        <Text style={{ color: '#fff', fontSize: 18, fontWeight: 'bold', textAlign: 'center' }}>{profileDetails?.first_name} {profileDetails?.middle_name} {profileDetails?.last_name}, </Text>
+                        <Text style={{ color: '#fff', fontSize: 18, fontWeight: 'bold', textAlign: 'center' }}>({profileDetails?.alias_name ? profileDetails?.alias_name : profileDetails?.phone_no})</Text>
                     </View>
                     <View style={{ width: '50%', alignItems: 'center', justifyContent: 'center' }}>
                         {/* <ImageBackground source={require('../../assets/images/fame2.png')} style={{ height: 140, width: 150, resizeMode: 'contain', padding: 25 }}> */}
                         <View style={{ height: 165, width: 165, resizeMode: 'contain', padding: 25 }}>
                             <View style={{ height: '100%', width: '100%', borderRadius: 10 }}>
-                                {profileDetails?.profile?.profile_photo_url &&
+                                {profileDetails?.profile_photo_url &&
                                     <Image
-                                        source={{ uri: profileDetails?.profile?.profile_photo_url }}
+                                        source={{ uri: profileDetails?.profile_photo_url }}
                                         style={{ height: '100%', width: '100%', borderRadius: 10 }}
                                         resizeMode="cover"
                                     />
@@ -198,7 +202,9 @@ const Index = () => {
                             lineHeight: 24,
                             textAlign: 'justify',
                         }}>
-                            <Text style={{ fontWeight: 'bold', color: '#E91E63' }}>⚠️ Note:</Text> You can access all the features of this app after your account is approved by the Pratihari Nijog Office.
+                            <Text style={{ fontWeight: 'bold', color: '#E91E63' }}>⚠️ Note:</Text>
+                            {" " + rejetedReason}
+                            {/* You can access all the features of this app after your account is approved by the Pratihari Nijog Office. */}
                         </Text>
                     </View>
                     <View style={styles.menuSection}>
