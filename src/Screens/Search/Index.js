@@ -11,35 +11,55 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import { base_url } from '../../../App';
 
 const Index = () => {
-
   const navigation = useNavigation();
   const [query, setQuery] = useState('');
   const [members, setMembers] = useState([]);
   const [filteredMembers, setFilteredMembers] = useState([]);
   const [searchStarted, setSearchStarted] = useState(false);
 
-  const memberData = [
-    { id: 1, name: 'Suresh Behera', role: 'President' },
-    { id: 2, name: 'Pramod Sahu', role: 'Secretary' },
-    { id: 3, name: 'Manoj Nayak', role: 'Treasurer' },
-    { id: 4, name: 'Bikash Das', role: 'Member' },
-    { id: 5, name: 'Subrat Mishra', role: 'Member' },
-    { id: 6, name: 'Rajeev Ranjan', role: 'Member' },
-    { id: 7, name: 'Amit Kumar', role: 'Advisor' },
-  ];
+  const getAllMembers = async () => {
+    try {
+      const response = await fetch(base_url + 'api/approved-pratihari-profiles', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        setMembers(data.data); // Access correct data level
+        setFilteredMembers(data.data);
+      }
+    } catch (error) {
+      console.error('Error fetching members:', error);
+    }
+  };
 
   useEffect(() => {
-    setMembers(memberData);
-    setFilteredMembers(memberData);
+    getAllMembers();
   }, []);
 
   useEffect(() => {
+    const loweredQuery = query.toLowerCase();
+
     if (query.length >= 3) {
-      const results = members.filter((member) =>
-        member.name.toLowerCase().includes(query.toLowerCase())
-      );
+      const results = members.filter((member) => {
+        return (
+          (member.first_name && member.first_name.toLowerCase().includes(loweredQuery)) ||
+          (member.middle_name && member.middle_name.toLowerCase().includes(loweredQuery)) ||
+          (member.last_name && member.last_name.toLowerCase().includes(loweredQuery)) ||
+          (member.alias_name && member.alias_name.toLowerCase().includes(loweredQuery)) ||
+          (member.email && member.email.toLowerCase().includes(loweredQuery)) ||
+          (member.phone_no && member.phone_no.includes(loweredQuery)) ||
+          (member.whatsapp_no && member.whatsapp_no.includes(loweredQuery)) ||
+          (member.full_name && member.full_name.toLowerCase().includes(loweredQuery))
+        );
+      });
+
       setFilteredMembers(results);
     } else {
       setFilteredMembers(members);
@@ -49,11 +69,18 @@ const Index = () => {
   }, [query]);
 
   const renderItem = ({ item }) => (
-    <TouchableOpacity style={styles.card}>
-      <Ionicons name="person-circle" size={40} color="#341551" />
+    <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('PratihariProfileById', item.pratihari_id)}>
+      {item.profile_photo_url ? (
+        <Image
+          source={{ uri: item.profile_photo_url }}
+          style={{ width: 40, height: 40, borderRadius: 20 }}
+        />
+      ) : (
+        <Ionicons name="person-circle" size={40} color="#341551" />
+      )}
       <View style={{ marginLeft: 10 }}>
-        <Text style={styles.name}>{item.name}</Text>
-        <Text style={styles.role}>{item.role}</Text>
+        <Text style={styles.name}>{item.full_name}</Text>
+        <Text style={styles.role}>{item.alias_name || 'No alias'}</Text>
       </View>
     </TouchableOpacity>
   );
@@ -89,7 +116,7 @@ const Index = () => {
       {searchStarted && (
         <FlatList
           data={filteredMembers}
-          keyExtractor={(item) => item.id.toString()}
+          keyExtractor={(item) => item.pratihari_id.toString()}
           renderItem={renderItem}
           showsVerticalScrollIndicator={false}
           ListEmptyComponent={() => (
@@ -110,7 +137,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f5f7fa',
-    // padding: 16,
   },
   header: {
     flexDirection: 'row',

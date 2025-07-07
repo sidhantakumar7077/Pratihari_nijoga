@@ -32,65 +32,112 @@ const OTP = (props) => {
         }
     }, [otp]);
 
+    // const pressHandler = async () => {
+    //     let platformName = DeviceInfo.getSystemName();
+    //     let deviceModel = DeviceInfo.getModel();
+    //     setIsLoading(true);
+    //     try {
+    //         if (otp === "" || otp.length != 6) {
+    //             setErrorMessage('Please enter a valid OTP');
+    //             setShowError(true);
+    //             setTimeout(() => {
+    //                 setShowError(false);
+    //             }, 5000);
+    //             setIsLoading(false);
+    //             return;
+    //         }
+
+    //         const formData = new FormData();
+    //         formData.append('orderId', props.route.params.order_id);
+    //         formData.append('otp', otp);
+    //         formData.append('phoneNumber', props.route.params.phone);
+    //         formData.append('device_id', '1234567890');
+    //         formData.append('platform', platformName);
+    //         formData.append('device_model', deviceModel);
+
+    //         // console.log("formData", formData);
+    //         // return;
+
+    //         const response = await fetch(base_url + "api/verify-otp", {
+    //             method: 'POST',
+    //             headers: {
+    //                 'Accept': 'application/json',
+    //                 'Content-Type': 'multipart/form-data'
+    //             },
+    //             body: formData,
+    //         });
+    //         const data = await response.json();
+    //         if (response.ok) {
+    //             console.log('Login successfully', data);
+    //             await AsyncStorage.setItem('storeAccesstoken', data.token);
+    //             navigation.replace('PratihariForm');
+    //         } else {
+    //             // Handle error response
+    //             console.log("Error-=-=1 ", data.message || 'Failed to Login. Please try again.');
+    //             setErrorMessage(data.message || 'Failed to Login. Please try again.');
+    //             setShowError(true);
+    //             setTimeout(() => {
+    //                 setShowError(false);
+    //             }, 5000);
+    //         }
+    //     } catch (error) {
+    //         setErrorMessage('Failed to Login. Please try again.--');
+    //         setShowError(true);
+    //         console.log("Error-=-=", error);
+    //         setTimeout(() => {
+    //             setShowError(false);
+    //         }, 5000);
+    //     } finally {
+    //         setIsLoading(false);
+    //     }
+    // }
+
     const pressHandler = async () => {
-        let platformName = DeviceInfo.getSystemName();
-        let deviceModel = DeviceInfo.getModel();
         setIsLoading(true);
         try {
-            if (otp === "" || otp.length != 6) {
+            if (otp === "" || otp.length !== 6) {
                 setErrorMessage('Please enter a valid OTP');
                 setShowError(true);
-                setTimeout(() => {
-                    setShowError(false);
-                }, 5000);
+                setTimeout(() => setShowError(false), 5000);
                 setIsLoading(false);
                 return;
             }
 
-            const formData = new FormData();
-            formData.append('orderId', props.route.params.order_id);
-            formData.append('otp', otp);
-            formData.append('phoneNumber', props.route.params.phone);
-            formData.append('device_id', '1234567890');
-            formData.append('platform', platformName);
-            formData.append('device_model', deviceModel);
+            const formData = {
+                otp: otp,
+                phone: props.route.params.phone,
+            };
 
-            // console.log("formData", formData);
-            // return;
-
-            const response = await fetch(base_url + "api/verify-otp", {
+            const response = await fetch(`${base_url}api/verify-otp`, {
                 method: 'POST',
                 headers: {
                     'Accept': 'application/json',
-                    'Content-Type': 'multipart/form-data'
+                    'Content-Type': 'application/json', // ✅ Corrected for JSON body
                 },
-                body: formData,
+                body: JSON.stringify(formData),
             });
+
             const data = await response.json();
+
             if (response.ok) {
-                console.log('Login successfully', data);
+                console.log('Login successful', data);
                 await AsyncStorage.setItem('storeAccesstoken', data.token);
                 navigation.replace('PratihariForm');
             } else {
-                // Handle error response
-                console.log("Error-=-=1 ", data.message || 'Failed to Login. Please try again.');
+                console.log("Error: ", data.message || 'Failed to Login. Please try again.');
                 setErrorMessage(data.message || 'Failed to Login. Please try again.');
                 setShowError(true);
-                setTimeout(() => {
-                    setShowError(false);
-                }, 5000);
+                setTimeout(() => setShowError(false), 5000);
             }
         } catch (error) {
-            setErrorMessage('Failed to Login. Please try again.--');
+            console.log("API Error: ", error);
+            setErrorMessage('Failed to Login. Please try again.');
             setShowError(true);
-            console.log("Error-=-=", error);
-            setTimeout(() => {
-                setShowError(false);
-            }, 5000);
+            setTimeout(() => setShowError(false), 5000);
         } finally {
             setIsLoading(false);
         }
-    }
+    };
 
     return (
         <KeyboardAvoidingView style={{ flex: 1, backgroundColor: '#fff' }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>

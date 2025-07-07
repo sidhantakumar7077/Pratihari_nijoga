@@ -59,6 +59,7 @@ const Index = () => {
             }
 
             const result = await response.json();
+            console.log("Pratihari Status Result:", result);
 
             if (result?.empty_tables && result.empty_tables.length > 0) {
                 switch (result.empty_tables[0]) {
@@ -201,9 +202,11 @@ const Index = () => {
     const [alias, setAlias] = useState('');
     const [emailId, setEmailId] = useState('');
     const [mobileNumber, setMobileNumber] = useState('');
-    const [alterNumber, setAlterNumber] = useState('');
+    const [isSameAsMobile, setIsSameAsMobile] = useState(false);
     const [whatsappNumber, setWhatsappNumber] = useState('');
     const [helthCardNumber, setHelthCardNumber] = useState('');
+    const [helthCardPhoto_source, setHelthCardPhoto_source] = useState(null);
+    const [helthCardPhoto, setHelthCardPhoto] = useState('Select Image');
     const [dob, setDob] = useState(null);
     const [isDateOpen, setDateOpen] = useState(false);
     const [educational_qualification, setEducational_qualification] = useState('');
@@ -253,9 +256,50 @@ const Index = () => {
         });
     };
 
+    const selectHealthCardPhoto = async () => {
+        const options = {
+            title: 'Select Image',
+            storageOptions: {
+                skipBackup: true,
+                path: 'images',
+            },
+        };
+
+        launchImageLibrary(options, (response) => {
+            if (response.didCancel) {
+                console.log('User cancelled image picker');
+            } else if (response.error) {
+                console.log('ImagePicker Error: ', response.error);
+            } else {
+                const source = response.assets[0]
+                setHelthCardPhoto_source(source);
+                setHelthCardPhoto(response.assets[0].fileName);
+                // console.log("selected Health Card Photo-=-=", response.assets[0])
+            }
+        });
+    };
+
     const [languages, setLanguages] = useState([
         { lang: '', read: null, write: null, speak: null },
     ])
+
+    const handleMobileChange = (value) => {
+        setMobileNumber(value);
+        if (isSameAsMobile) {
+            setWhatsappNumber(value);
+        }
+    };
+
+    const handleCheckboxToggle = (newValue) => {
+        setIsSameAsMobile(newValue);
+        if (newValue) {
+            // If checked, sync mobile number to WhatsApp
+            setWhatsappNumber(mobileNumber);
+        } else {
+            // If unchecked, clear WhatsApp field
+            setWhatsappNumber('');
+        }
+    };
 
     const validateProfileFields = () => {
         const newErrors = {};
@@ -281,6 +325,7 @@ const Index = () => {
         // if (!dob) newErrors.dob = 'Date of Birth is required';
         // if (!bloodGroup) newErrors.bloodGroup = 'Blood Group is required';
         if (!helthCardNumber) newErrors.helthCardNumber = 'Health Card Number is required';
+        if (!helthCardPhoto_source) newErrors.helthCardPhoto_source = 'Health Card Photo is required';
         if (!userPhoto_source) newErrors.userPhoto_source = 'User Photo is required';
         // if (!dateOfJoinTempleSeba) newErrors.dateOfJoinTempleSeba = 'Date of Joining Temple Seba is required';
 
@@ -303,10 +348,16 @@ const Index = () => {
         formData.append('email', emailId);
         formData.append('whatsapp_no', whatsappNumber);
         formData.append('phone_no', mobileNumber);
-        formData.append('alt_phone_no', alterNumber);
         formData.append('date_of_birth', moment(dob).format('YYYY-MM-DD'));
         formData.append('blood_group', bloodGroup);
         formData.append('healthcard_no', helthCardNumber);
+        if (helthCardPhoto_source) {
+            formData.append('healthcard_photo', {
+                uri: helthCardPhoto_source.uri,
+                type: helthCardPhoto_source.type,
+                name: helthCardPhoto_source.fileName,
+            });
+        }
         formData.append('joining_date', moment(dateOfJoinTempleSeba).format('YYYY-MM-DD'));
         if (userPhoto_source) {
             formData.append('profile_photo', {
@@ -599,7 +650,7 @@ const Index = () => {
         formData.append('landmark', present_landmark);
         formData.append('address', present_address);
 
-        formData.append('differentAsPermanent', isPermanentSameAsPresent);
+        formData.append('same_as_permanent_address', isPermanentSameAsPresent);
 
         formData.append('per_address', permanent_address);
         formData.append('per_sahi', permanent_sahi);
@@ -1012,27 +1063,28 @@ const Index = () => {
                                     value={mobileNumber}
                                     customLabelStyles={{ colorFocused: '#e96a01', fontSizeFocused: 14 }}
                                     labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
-                                    onChangeText={value => setMobileNumber(value)}
+                                    onChangeText={handleMobileChange}
                                     keyboardType="phone-pad"
                                     maxLength={10}
                                     containerStyles={{ borderWidth: 0.5, borderColor: '#353535', backgroundColor: '#ffffff', padding: 10, borderRadius: 8, marginVertical: 12, borderRadius: 10 }}
                                 />
                                 {personalDetailsErrors.mobileNumber && <Text style={styles.errorText}>{personalDetailsErrors.mobileNumber}</Text>}
-                                {/* Alternate Number */}
-                                <FloatingLabelInput
-                                    label="Alternate Number (Optional)"
-                                    value={alterNumber}
-                                    customLabelStyles={{ colorFocused: '#e96a01', fontSizeFocused: 14 }}
-                                    labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
-                                    onChangeText={value => setAlterNumber(value)}
-                                    keyboardType="phone-pad"
-                                    maxLength={10}
-                                    containerStyles={{ borderWidth: 0.5, borderColor: '#353535', backgroundColor: '#ffffff', padding: 10, borderRadius: 8, marginVertical: 12, borderRadius: 10 }}
-                                />
+                                {/* Checkbox */}
+                                <View style={{ flexDirection: 'row', alignItems: 'center', marginVertical: 8 }}>
+                                    <CheckBox
+                                        value={isSameAsMobile}
+                                        onValueChange={handleCheckboxToggle}
+                                        tintColors={{ true: '#e96a01', false: '#888' }}
+                                    />
+                                    <Text style={styles.checkboxLabel}>
+                                        WhatsApp number is same as mobile number
+                                    </Text>
+                                </View>
                                 {/* Whatsapp Number Input */}
                                 <FloatingLabelInput
                                     label="Whatsapp Number (Optional)"
                                     value={whatsappNumber}
+                                    editable={!isSameAsMobile}
                                     customLabelStyles={{ colorFocused: '#e96a01', fontSizeFocused: 14 }}
                                     labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
                                     onChangeText={value => setWhatsappNumber(value)}
@@ -1040,7 +1092,7 @@ const Index = () => {
                                     maxLength={10}
                                     containerStyles={{ borderWidth: 0.5, borderColor: '#353535', backgroundColor: '#ffffff', padding: 10, borderRadius: 8, marginVertical: 12, borderRadius: 10 }}
                                 />
-                                {personalDetailsErrors.whatsappNumber && <Text style={styles.errorText}>{personalDetailsErrors.whatsappNumber}</Text>}
+                                {/* {personalDetailsErrors.whatsappNumber && <Text style={styles.errorText}>{personalDetailsErrors.whatsappNumber}</Text>} */}
                                 {/* Date Of Birth Input */}
                                 {/* <TouchableOpacity onPress={openDobPicker}>
                                     <TextInput
@@ -1108,6 +1160,20 @@ const Index = () => {
                                     containerStyles={{ borderWidth: 0.5, borderColor: '#353535', backgroundColor: '#ffffff', padding: 10, borderRadius: 8, marginVertical: 12, borderRadius: 10 }}
                                 />
                                 {personalDetailsErrors.helthCardNumber && <Text style={styles.errorText}>{personalDetailsErrors.helthCardNumber}</Text>}
+                                {/* Helth Card Image */}
+                                <Text style={[styles.label, helthCardPhoto !== 'Select Image' && styles.focusedLabel]}>Health Card Image*</Text>
+                                <TouchableOpacity style={[styles.filePicker, { marginTop: 10 }]} onPress={selectHealthCardPhoto}>
+                                    <TextInput
+                                        style={styles.filePickerText}
+                                        editable={false}
+                                        placeholder={helthCardPhoto}
+                                        placeholderTextColor={'#4d6285'}
+                                    />
+                                    <View style={styles.chooseBtn}>
+                                        <Text style={styles.chooseBtnText}>Choose File</Text>
+                                    </View>
+                                </TouchableOpacity>
+                                {personalDetailsErrors.helthCardPhoto_source && <Text style={styles.errorText}>{personalDetailsErrors.helthCardPhoto_source}</Text>}
                                 {/* User Photo Input */}
                                 <Text style={[styles.label, user_photo !== 'Select Image' && styles.focusedLabel]}>User Photo*</Text>
                                 <TouchableOpacity style={[styles.filePicker, { marginTop: 10 }]} onPress={selectUserPhoto}>
@@ -1204,7 +1270,7 @@ const Index = () => {
                                     <TextInput style={{ color: '#000', borderWidth: 0.5, borderColor: '#353535', backgroundColor: '#ffffff', padding: 10, paddingLeft: 18, borderRadius: 10, marginVertical: 12 }}
                                         value={dateOfJoinTempleSeba ? moment(dateOfJoinTempleSeba).format(dateRemember ? 'YYYY' : 'DD-MM-YYYY') : ''}
                                         editable={false}
-                                        placeholder="Year of sadhi bandha / joining seba"
+                                        placeholder="Year of seba / joining seba"
                                         placeholderTextColor={'#4d6285'}
                                     />
                                     <AntDesign name="calendar" size={25} color="#4d6285" style={{ position: 'absolute', right: 20, top: 22 }} />

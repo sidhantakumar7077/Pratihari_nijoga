@@ -36,7 +36,11 @@ const ProfileTab = ({ data }) => (
   <ScrollView contentContainerStyle={styles.tabContainer}>
     <SectionCard title="Personal Info">
       <View style={{ alignItems: 'center', marginBottom: 10 }}>
-        <Image source={{ uri: data.profile_photo_url }} style={{ width: 100, height: 100, borderRadius: 50 }} />
+        {data.profile_photo_url ?
+          <Image source={{ uri: data.profile_photo_url }} style={{ width: 100, height: 100, borderRadius: 50 }} />
+          :
+          <Ionicons name="person-circle-outline" size={100} color="#777" />
+        }
       </View>
       <InfoRow label="Name" value={`${data.first_name} ${data.middle_name} ${data.last_name}`} />
       <InfoRow label="Alias" value={data.alias_name} />

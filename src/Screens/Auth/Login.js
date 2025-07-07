@@ -44,14 +44,15 @@ const Login = () => {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ phone: phone }),
+                body: JSON.stringify({ phone: phone.replace(/^\+91/, '') }), // Remove +91 prefix before sending
             });
 
             const data = await response.json();
             if (response.ok) {
                 console.log('OTP sent successfully', data);
                 let phone_orderId = {
-                    phone: phone,
+                    // phone: phone,
+                    phone: phone.replace(/^\+91/, ''), // Remove +91 prefix before sending
                     order_id: data.order_id
                 }
                 navigation.navigate('Otp', phone_orderId);

@@ -23,6 +23,7 @@ import ThankYouPage from './src/Screens/ThankYouPage/Index.js'
 import MessageScreen from './src/Screens/MessageScreen/Index.js'
 import Profile from './src/Screens/Profile/Index.js'
 import Search from './src/Screens/Search/Index.js'
+import PratihariProfileById from './src/Screens/PratihariProfileById/Index.js'
 import UpcomingPali from './src/Screens/UpcomingPali/Index.js'
 import PaliHistory from './src/Screens/PaliHistory/Index.js'
 import Notice from './src/Screens/Notice/Index.js'
@@ -76,15 +77,16 @@ const App = () => {
           <Stack.Screen name="NoInternet" component={NoInternet} />
         ) : (
           <>
-            {access_token ? <Stack.Screen name="Home" component={Home} /> : <Stack.Screen name="Login" component={Login} />}
-            {!access_token ? <Stack.Screen name="Home" component={Home} /> : <Stack.Screen name="Login" component={Login} />}
+            {access_token ? <Stack.Screen name="PratihariForm" component={PratihariForm} /> : <Stack.Screen name="Login" component={Login} />}
+            {!access_token ? <Stack.Screen name="PratihariForm" component={PratihariForm} /> : <Stack.Screen name="Login" component={Login} />}
             <Stack.Screen name="Otp" component={Otp} />
             <Stack.Screen name="Register" component={Register} />
             <Stack.Screen name="ThankYouPage" component={ThankYouPage} />
             <Stack.Screen name="MessageScreen" component={MessageScreen} />
-            {/* <Stack.Screen name="PratihariForm" component={PratihariForm} /> */}
+            <Stack.Screen name="Home" component={Home} />
             <Stack.Screen name="Profile" component={Profile} />
             <Stack.Screen name="Search" component={Search} />
+            <Stack.Screen name="PratihariProfileById" component={PratihariProfileById} />
             <Stack.Screen name="UpcomingPali" component={UpcomingPali} />
             <Stack.Screen name="PaliHistory" component={PaliHistory} />
             <Stack.Screen name="Notice" component={Notice} />
