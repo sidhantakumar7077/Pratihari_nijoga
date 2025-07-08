@@ -10,6 +10,7 @@ import {
   Image,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import LinearGradient from 'react-native-linear-gradient';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { base_url } from '../../../App';
 
@@ -87,46 +88,59 @@ const Index = () => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={24} color="#fff" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Search</Text>
-      </View>
-
-      <View style={styles.searchBox}>
-        <Ionicons name="search" size={22} color="#888" style={{ marginRight: 10 }} />
-        <TextInput
-          placeholder="Search Nijoga Member..."
-          style={styles.input}
-          value={query}
-          onChangeText={setQuery}
-          returnKeyType="search"
-          onSubmitEditing={Keyboard.dismiss}
-        />
-      </View>
-
-      {!searchStarted && (
-        <View style={styles.placeholderContainer}>
-          <Ionicons name="search-circle" size={80} color="#ddd" />
-          <Text style={styles.placeholderText}>Start typing to search members</Text>
+      <LinearGradient
+        colors={['#4c1d95', '#6366f1']}
+        style={styles.header}
+      >
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <TouchableOpacity onPress={() => navigation.goBack()}>
+            <Ionicons name="arrow-back" size={24} color="#fff" marginRight={10} />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Search</Text>
         </View>
-      )}
+        <Text style={styles.headerSubtitle}>Find Pratihari Members</Text>
+      </LinearGradient>
 
-      {searchStarted && (
-        <FlatList
-          data={filteredMembers}
-          keyExtractor={(item) => item.pratihari_id.toString()}
-          renderItem={renderItem}
-          showsVerticalScrollIndicator={false}
-          ListEmptyComponent={() => (
-            <View style={styles.placeholderContainer}>
-              <Text style={styles.placeholderText}>No members found</Text>
-            </View>
+      <View style={styles.scrollContainer}>
+        <View style={styles.searchBox}>
+          <Ionicons name="search" size={22} color="#888" style={{ marginRight: 10 }} />
+          <TextInput
+            placeholder="Search Nijoga Member..."
+            style={styles.input}
+            value={query}
+            onChangeText={setQuery}
+            returnKeyType="search"
+            onSubmitEditing={Keyboard.dismiss}
+          />
+          {query.length > 0 && (
+            <TouchableOpacity onPress={() => setQuery('')}>
+              <Ionicons name="close-circle" size={22} color="#888" />
+            </TouchableOpacity>
           )}
-          contentContainerStyle={{ paddingBottom: 30, width: '90%', alignSelf: 'center' }}
-        />
-      )}
+        </View>
+
+        {!searchStarted && (
+          <View style={styles.placeholderContainer}>
+            <Ionicons name="search-circle" size={80} color="#ddd" />
+            <Text style={styles.placeholderText}>Start typing to search members</Text>
+          </View>
+        )}
+
+        {searchStarted && (
+          <FlatList
+            data={filteredMembers}
+            keyExtractor={(item) => item.pratihari_id.toString()}
+            renderItem={renderItem}
+            showsVerticalScrollIndicator={false}
+            ListEmptyComponent={() => (
+              <View style={styles.placeholderContainer}>
+                <Text style={styles.placeholderText}>No members found</Text>
+              </View>
+            )}
+            contentContainerStyle={{ paddingBottom: 30, width: '90%', alignSelf: 'center' }}
+          />
+        )}
+      </View>
     </View>
   );
 };
@@ -136,23 +150,30 @@ export default Index;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f7fa',
+    backgroundColor: '#f8fafc',
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#051b65',
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    borderBottomWidth: 1,
-    borderColor: '#eee',
-    elevation: 2,
+    paddingTop: 10,
+    paddingBottom: 40,
+    paddingHorizontal: 20,
   },
   headerTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#fff',
-    marginLeft: 10,
+    fontSize: 28,
+    fontFamily: 'Poppins-Bold',
+    color: '#ffffff',
+  },
+  headerSubtitle: {
+    fontSize: 16,
+    fontFamily: 'Inter-Regular',
+    color: '#e2e8f0',
+    marginTop: 8,
+  },
+  scrollContainer: {
+    flex: 1,
+    marginTop: -20,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    backgroundColor: '#f8fafc',
   },
   searchBox: {
     width: '90%',

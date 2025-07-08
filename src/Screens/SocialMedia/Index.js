@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation, useIsFocused } from '@react-navigation/native';
+import LinearGradient from 'react-native-linear-gradient';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import Entypo from 'react-native-vector-icons/Entypo';
@@ -101,33 +102,41 @@ const Index = () => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={24} color="#fff" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Social Media</Text>
-      </View>
+      <LinearGradient
+        colors={['#4c1d95', '#6366f1']}
+        style={styles.header}
+      >
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <TouchableOpacity onPress={() => navigation.goBack()}>
+            <Ionicons name="arrow-back" size={24} color="#fff" marginRight={10} />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Social Media</Text>
+        </View>
+        <Text style={styles.headerSubtitle}>Check out your social media Profiles</Text>
+      </LinearGradient>
 
-      <ScrollView contentContainerStyle={styles.content}>
-        {profiles.map((item, index) => {
-          const url = socialProfiles?.[item.urlKey];
-          if (!url) return null;
+      <ScrollView style={styles.scrollContainer}>
+        <View style={styles.content}>
+          {profiles.map((item, index) => {
+            const url = socialProfiles?.[item.urlKey];
+            if (!url) return null;
 
-          return (
-            <TouchableOpacity
-              key={index}
-              style={[styles.card, { borderLeftColor: item.color }]}
-              activeOpacity={0.9}
-              onPress={() => openLink(url)}
-            >
-              <View style={styles.iconContainer}>{item.icon}</View>
-              <View style={styles.textContainer}>
-                <Text style={styles.platform}>{item.platform}</Text>
-                <Text style={styles.handle}>{url}</Text>
-              </View>
-            </TouchableOpacity>
-          );
-        })}
+            return (
+              <TouchableOpacity
+                key={index}
+                style={[styles.card, { borderLeftColor: item.color }]}
+                activeOpacity={0.9}
+                onPress={() => openLink(url)}
+              >
+                <View style={styles.iconContainer}>{item.icon}</View>
+                <View style={styles.textContainer}>
+                  <Text style={styles.platform}>{item.platform}</Text>
+                  <Text style={styles.handle}>{url}</Text>
+                </View>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
       </ScrollView>
     </View>
   );
@@ -138,21 +147,30 @@ export default Index;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f0f4f8',
+    backgroundColor: '#f8fafc',
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#051b65',
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    elevation: 2,
+    paddingTop: 10,
+    paddingBottom: 40,
+    paddingHorizontal: 20,
   },
   headerTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#fff',
-    marginLeft: 10,
+    fontSize: 28,
+    fontFamily: 'Poppins-Bold',
+    color: '#ffffff',
+  },
+  headerSubtitle: {
+    fontSize: 16,
+    fontFamily: 'Inter-Regular',
+    color: '#e2e8f0',
+    marginTop: 8,
+  },
+  scrollContainer: {
+    flex: 1,
+    marginTop: -20,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    backgroundColor: '#f8fafc',
   },
   content: {
     paddingVertical: 10,

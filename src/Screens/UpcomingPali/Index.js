@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { View, FlatList, Text, StyleSheet, TouchableOpacity, SafeAreaView } from 'react-native';
+import { View, FlatList, Text, StyleSheet, TouchableOpacity, SafeAreaView, ScrollView } from 'react-native';
 import { useNavigation, useIsFocused } from '@react-navigation/native';
+import LinearGradient from 'react-native-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { base_url } from '../../../App';
@@ -13,12 +14,21 @@ const Index = () => {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={24} color="#fff" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Upcoming Pali</Text>
-      </View>
+      <LinearGradient
+        colors={['#4c1d95', '#6366f1']}
+        style={styles.header}
+      >
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <TouchableOpacity onPress={() => navigation.goBack()}>
+            <Ionicons name="arrow-back" size={24} color="#fff" marginRight={10} />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Upcoming Pali</Text>
+        </View>
+        <Text style={styles.headerSubtitle}>View upcoming Pali events and schedules</Text>
+      </LinearGradient>
+
+      <ScrollView style={styles.scrollContainer}>
+      </ScrollView>
     </SafeAreaView>
   )
 }
@@ -28,22 +38,29 @@ export default Index
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#f5f7fa',
+    backgroundColor: '#f8fafc',
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#051b65',
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    borderBottomWidth: 1,
-    borderColor: '#eee',
-    elevation: 2,
+    paddingTop: 10,
+    paddingBottom: 40,
+    paddingHorizontal: 20,
   },
   headerTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#fff',
-    marginLeft: 10,
+    fontSize: 28,
+    fontFamily: 'Poppins-Bold',
+    color: '#ffffff',
+  },
+  headerSubtitle: {
+    fontSize: 16,
+    fontFamily: 'Inter-Regular',
+    color: '#e2e8f0',
+    marginTop: 8,
+  },
+  scrollContainer: {
+    flex: 1,
+    marginTop: -20,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    backgroundColor: '#f8fafc',
   },
 })

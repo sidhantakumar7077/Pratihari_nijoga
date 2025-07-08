@@ -11,6 +11,7 @@ import {
   ToastAndroid,
 } from 'react-native';
 import { useNavigation, useIsFocused } from '@react-navigation/native';
+import LinearGradient from 'react-native-linear-gradient';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import axios from 'axios';
 import { base_url } from '../../../App';
@@ -71,24 +72,32 @@ const Index = () => {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={24} color="#fff" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Committee</Text>
-      </View>
+      <LinearGradient
+        colors={['#4c1d95', '#6366f1']}
+        style={styles.header}
+      >
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <TouchableOpacity onPress={() => navigation.goBack()}>
+            <Ionicons name="arrow-back" size={24} color="#fff" marginRight={10} />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Committee</Text>
+        </View>
+        <Text style={styles.headerSubtitle}>View the committee members and their roles</Text>
+      </LinearGradient>
 
-      {loading ? (
-        <ActivityIndicator style={{ marginTop: 30 }} size="large" color="#051b65" />
-      ) : (
-        <FlatList
-          data={committeeList}
-          keyExtractor={(item, index) => item.id?.toString() || index.toString()}
-          renderItem={renderItem}
-          contentContainerStyle={styles.listContent}
-          ListEmptyComponent={<Text style={styles.emptyText}>No committee data found.</Text>}
-        />
-      )}
+      <View style={styles.scrollContainer}>
+        {loading ? (
+          <ActivityIndicator style={{ marginTop: 30 }} size="large" color="#051b65" />
+        ) : (
+          <FlatList
+            data={committeeList}
+            keyExtractor={(item, index) => item.id?.toString() || index.toString()}
+            renderItem={renderItem}
+            contentContainerStyle={styles.listContent}
+            ListEmptyComponent={<Text style={styles.emptyText}>No committee data found.</Text>}
+          />
+        )}
+      </View>
     </SafeAreaView>
   );
 };
@@ -98,23 +107,30 @@ export default Index;
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#f4f6fb',
+    backgroundColor: '#f8fafc',
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#051b65',
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    borderBottomWidth: 1,
-    borderColor: '#eee',
-    elevation: 3,
+    paddingTop: 10,
+    paddingBottom: 40,
+    paddingHorizontal: 20,
   },
   headerTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#fff',
-    marginLeft: 10,
+    fontSize: 28,
+    fontFamily: 'Poppins-Bold',
+    color: '#ffffff',
+  },
+  headerSubtitle: {
+    fontSize: 16,
+    fontFamily: 'Inter-Regular',
+    color: '#e2e8f0',
+    marginTop: 8,
+  },
+  scrollContainer: {
+    flex: 1,
+    marginTop: -20,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    backgroundColor: '#f8fafc',
   },
   listContent: {
     padding: 16,

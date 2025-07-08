@@ -14,6 +14,7 @@ import {
   ScrollView,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import LinearGradient from 'react-native-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import * as ImagePicker from 'react-native-image-picker';
@@ -129,114 +130,140 @@ const Index = () => {
   return (
     <SafeAreaView style={styles.container}>
       {/* Header */}
-      <View style={styles.header}>
+      <LinearGradient
+        colors={['#4c1d95', '#6366f1']}
+        style={styles.header}
+      >
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
           <TouchableOpacity onPress={() => navigation.goBack()}>
-            <Ionicons name="arrow-back" size={26} color="#fff" />
+            <Ionicons name="arrow-back" size={24} color="#fff" marginRight={10} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Applications</Text>
+          <TouchableOpacity style={{ position: 'absolute', right: 15 }}>
+            <Ionicons name="add-circle-outline" size={30} color="#fff" onPress={() => setModalVisible(true)} />
+          </TouchableOpacity>
         </View>
-        <TouchableOpacity onPress={() => setModalVisible(true)}>
-          <Ionicons name="add-circle" size={28} color="#fff" />
-        </TouchableOpacity>
-      </View>
+        <Text style={styles.headerSubtitle}>Apply for various services and events</Text>
+      </LinearGradient>
 
-      {/* Content */}
-      {loading ? (
-        <ActivityIndicator size="large" color="#051b65" style={{ marginTop: 40 }} />
-      ) : (
-        <FlatList
-          data={applications}
-          keyExtractor={(item) => item.id.toString()}
-          renderItem={renderItem}
-          contentContainerStyle={{ padding: 16 }}
-        />
-      )}
+      <View style={styles.scrollContainer}>
+        {/* Content */}
+        {loading ? (
+          <ActivityIndicator size="large" color="#051b65" style={{ marginTop: 40 }} />
+        ) : (
+          <FlatList
+            data={applications}
+            keyExtractor={(item) => item.id.toString()}
+            renderItem={renderItem}
+            contentContainerStyle={{ padding: 16 }}
+          />
+        )}
+      </View>
 
       {/* Modal for New Application */}
       <Modal visible={modalVisible} animationType="slide">
         <SafeAreaView style={styles.modalContainer}>
-          <View style={styles.modalHeader}>
-            <TouchableOpacity onPress={() => setModalVisible(false)}>
-              <Ionicons name="close" size={26} color="#fff" />
-            </TouchableOpacity>
-            <Text style={styles.modalTitle}>New Application</Text>
+          <LinearGradient
+            colors={['#4c1d95', '#6366f1']}
+            style={styles.header}
+          >
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <TouchableOpacity onPress={() => navigation.goBack()}>
+                <Ionicons name="arrow-back" size={24} color="#fff" marginRight={10} />
+              </TouchableOpacity>
+              <Text style={styles.headerTitle}>New Application</Text>
+            </View>
+            <Text style={styles.headerSubtitle}>Fill out the form to submit a new application</Text>
+          </LinearGradient>
+          <View style={styles.scrollContainer}>
+            <ScrollView contentContainerStyle={styles.form}>
+              <TouchableOpacity onPress={() => setOpenDatePicker(true)} style={styles.input}>
+                <Text style={date ? styles.inputText : styles.placeholderText}>
+                  {date || 'Select Date'}
+                </Text>
+              </TouchableOpacity>
+
+              <DatePicker
+                modal
+                mode="date"
+                open={openDatePicker}
+                date={selectedDate}
+                onConfirm={(pickedDate) => {
+                  setOpenDatePicker(false);
+                  setSelectedDate(pickedDate);
+                  const formatted = pickedDate.toLocaleDateString('en-GB').split('/').join('-');
+                  setDate(formatted);
+                }}
+                onCancel={() => setOpenDatePicker(false)}
+              />
+
+              <TextInput
+                style={styles.input}
+                placeholder="Header"
+                value={header}
+                onChangeText={setHeader}
+                placeholderTextColor="#aaa"
+              />
+
+              <TextInput
+                style={[styles.input, styles.textArea]}
+                placeholder="Application Body"
+                value={body}
+                onChangeText={setBody}
+                multiline
+                numberOfLines={6}
+                placeholderTextColor="#aaa"
+              />
+
+              <TouchableOpacity style={styles.imageButton} onPress={pickImage}>
+                <Ionicons name="image-outline" size={20} color="#555" />
+                <Text style={styles.imageButtonText}>Select Photo</Text>
+              </TouchableOpacity>
+
+              {photo && (
+                <Image source={{ uri: photo.uri }} style={styles.previewImage} resizeMode="contain" />
+              )}
+
+              <TouchableOpacity style={styles.submitButton} onPress={handleSubmit} disabled={loading}>
+                {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.submitText}>Submit</Text>}
+              </TouchableOpacity>
+            </ScrollView>
           </View>
-          <ScrollView contentContainerStyle={styles.form}>
-            <TouchableOpacity onPress={() => setOpenDatePicker(true)} style={styles.input}>
-              <Text style={date ? styles.inputText : styles.placeholderText}>
-                {date || 'Select Date'}
-              </Text>
-            </TouchableOpacity>
-
-            <DatePicker
-              modal
-              mode="date"
-              open={openDatePicker}
-              date={selectedDate}
-              onConfirm={(pickedDate) => {
-                setOpenDatePicker(false);
-                setSelectedDate(pickedDate);
-                const formatted = pickedDate.toLocaleDateString('en-GB').split('/').join('-');
-                setDate(formatted);
-              }}
-              onCancel={() => setOpenDatePicker(false)}
-            />
-
-            <TextInput
-              style={styles.input}
-              placeholder="Header"
-              value={header}
-              onChangeText={setHeader}
-              placeholderTextColor="#aaa"
-            />
-
-            <TextInput
-              style={[styles.input, styles.textArea]}
-              placeholder="Application Body"
-              value={body}
-              onChangeText={setBody}
-              multiline
-              numberOfLines={6}
-              placeholderTextColor="#aaa"
-            />
-
-            <TouchableOpacity style={styles.imageButton} onPress={pickImage}>
-              <Ionicons name="image-outline" size={20} color="#555" />
-              <Text style={styles.imageButtonText}>Select Photo</Text>
-            </TouchableOpacity>
-
-            {photo && (
-              <Image source={{ uri: photo.uri }} style={styles.previewImage} resizeMode="contain" />
-            )}
-
-            <TouchableOpacity style={styles.submitButton} onPress={handleSubmit} disabled={loading}>
-              {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.submitText}>Submit</Text>}
-            </TouchableOpacity>
-          </ScrollView>
         </SafeAreaView>
-      </Modal>
-    </SafeAreaView>
+      </Modal >
+    </SafeAreaView >
   );
 };
 
 export default Index;
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f2f4f7' },
+  container: {
+    flex: 1,
+    backgroundColor: '#f8fafc'
+  },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: '#051b65',
-    paddingHorizontal: 16,
-    paddingVertical: 14,
+    paddingTop: 10,
+    paddingBottom: 40,
+    paddingHorizontal: 20,
   },
   headerTitle: {
-    color: '#fff',
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginLeft: 10,
+    fontSize: 28,
+    fontFamily: 'Poppins-Bold',
+    color: '#ffffff',
+  },
+  headerSubtitle: {
+    fontSize: 16,
+    fontFamily: 'Inter-Regular',
+    color: '#e2e8f0',
+    marginTop: 8,
+  },
+  scrollContainer: {
+    flex: 1,
+    marginTop: -20,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    backgroundColor: '#f8fafc',
   },
   card: {
     flexDirection: 'row',
