@@ -203,6 +203,7 @@ const Index = () => {
             <DrawerModal visible={isDrawerOpen} onClose={closeDrawer} profileDetails={profileDetails} />
             <LinearGradient
                 colors={['#4c1d95', '#6366f1', '#8b5cf6']}
+                // colors={['#ff6b6b', '#feca57']}
                 style={styles.headerContainer}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
@@ -217,12 +218,12 @@ const Index = () => {
                         <Text style={styles.searchText}>Search...</Text>
                     </TouchableOpacity>
                     <View style={styles.headerActions}>
-                        <TouchableOpacity
+                        {/* <TouchableOpacity
                             onPress={() => navigation.navigate('Profile')}
                             style={styles.headerActionButton}
                         >
                             <FontAwesome name="user" size={20} color="#ffffff" />
-                        </TouchableOpacity>
+                        </TouchableOpacity> */}
                         <TouchableOpacity
                             onPress={() => setIsDrawerOpen(true)}
                             style={styles.headerActionButton}
@@ -243,7 +244,7 @@ const Index = () => {
                             ({profileDetails?.alias_name ? profileDetails?.alias_name : profileDetails?.phone_no})
                         </Text>
                     </View>
-                    <View style={styles.profileImageContainer}>
+                    <TouchableOpacity style={styles.profileImageContainer} onPress={() => navigation.navigate('Profile')}>
                         {profileDetails?.profile_photo_url ? (
                             <Image
                                 source={{ uri: profileDetails?.profile_photo_url }}
@@ -255,7 +256,7 @@ const Index = () => {
                             </View>
                         )}
                         <View style={styles.onlineIndicator} />
-                    </View>
+                    </TouchableOpacity>
                 </View>
             </LinearGradient>
 
@@ -265,36 +266,6 @@ const Index = () => {
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={styles.scrollContent}
             >
-                <View style={styles.heroSection}>
-                    <View style={styles.swiperContainer}>
-                        <Swiper
-                            showsButtons={false}
-                            autoplay={false}
-                            autoplayTimeout={4}
-                            dotStyle={styles.dotStyle}
-                            activeDotStyle={styles.activeDotStyle}
-                            paginationStyle={styles.paginationStyle}
-                        >
-                            {images.map((image, index) => (
-                                <ImageBackground
-                                    key={index}
-                                    source={image}
-                                    style={styles.sliderImage}
-                                    imageStyle={styles.sliderImageStyle}
-                                >
-                                    <LinearGradient
-                                        colors={['rgba(0,0,0,0.3)', 'rgba(0,0,0,0.6)']}
-                                        style={styles.sliderOverlay}
-                                    >
-                                        <Text style={styles.sliderTitle}>Pratihari Seba</Text>
-                                        <Text style={styles.sliderSubtitle}>Spiritual Service & Community</Text>
-                                    </LinearGradient>
-                                </ImageBackground>
-                            ))}
-                        </Swiper>
-                    </View>
-                </View>
-
                 {/* <View style={styles.statsSection}>
                     <Text style={styles.sectionTitle}>Overview</Text>
                     <FlatList
@@ -311,6 +282,7 @@ const Index = () => {
                     <View style={styles.currentEventCard}>
                         <LinearGradient
                             colors={['#ff6b6b', '#feca57']}
+                            // colors={['#4c1d95', '#6366f1']}
                             style={styles.currentEventGradient}
                             start={{ x: 0, y: 0 }}
                             end={{ x: 1, y: 0 }}
@@ -340,7 +312,7 @@ const Index = () => {
                     </View>
                 </View>
 
-                {rejetedReason && (
+                {/* {rejetedReason && (
                     <View style={styles.noticeSection}>
                         <View style={styles.noticeCard}>
                             <LinearGradient
@@ -361,7 +333,7 @@ const Index = () => {
                             </LinearGradient>
                         </View>
                     </View>
-                )}
+                )} */}
 
                 {/* <View style={styles.quickActionsSection}>
                     <Text style={styles.sectionTitle}>Quick Actions</Text>
@@ -376,7 +348,7 @@ const Index = () => {
                 </View> */}
 
                 <View style={styles.servicesSection}>
-                    <Text style={styles.sectionTitle}>Featured Services</Text>
+                    {/* <Text style={styles.sectionTitle}>Featured Services</Text> */}
                     <FlatList
                         data={menuData}
                         renderItem={renderMenuItem}
@@ -386,6 +358,36 @@ const Index = () => {
                         columnWrapperStyle={styles.servicesRow}
                         contentContainerStyle={styles.servicesContainer}
                     />
+                </View>
+
+                <View style={styles.heroSection}>
+                    <View style={styles.swiperContainer}>
+                        <Swiper
+                            showsButtons={false}
+                            autoplay={false}
+                            autoplayTimeout={4}
+                            dotStyle={styles.dotStyle}
+                            activeDotStyle={styles.activeDotStyle}
+                            paginationStyle={styles.paginationStyle}
+                        >
+                            {images.map((image, index) => (
+                                <ImageBackground
+                                    key={index}
+                                    source={image}
+                                    style={styles.sliderImage}
+                                    imageStyle={styles.sliderImageStyle}
+                                >
+                                    <LinearGradient
+                                        colors={['rgba(0,0,0,0.3)', 'rgba(0,0,0,0.6)']}
+                                        style={styles.sliderOverlay}
+                                    >
+                                        <Text style={styles.sliderTitle}>Pratihari Seba</Text>
+                                        <Text style={styles.sliderSubtitle}>Spiritual Service & Community</Text>
+                                    </LinearGradient>
+                                </ImageBackground>
+                            ))}
+                        </Swiper>
+                    </View>
                 </View>
 
                 <View style={styles.footerSection}>
@@ -514,7 +516,11 @@ const styles = StyleSheet.create({
     },
     scrollContainer: {
         flex: 1,
-        marginTop: 10,
+        backgroundColor: '#f8fafc',
+        paddingTop: 20,
+        marginTop: -20,
+        borderTopLeftRadius: 20,
+        borderTopRightRadius: 20,
     },
     scrollContent: {
         paddingBottom: 30,

@@ -7,6 +7,7 @@ import {
     TouchableOpacity,
     Dimensions,
     ScrollView,
+    Image,
 } from 'react-native';
 import React from 'react';
 import { useNavigation } from '@react-navigation/native';
@@ -55,11 +56,19 @@ const DrawerModal = ({ visible, onClose, profileDetails }) => {
 
                                 <View style={styles.profileSection}>
                                     <View style={styles.avatarPlaceholder}>
-                                        <FontAwesome name="user" size={20} color="#fff" />
+                                        {profileDetails?.profile_photo_url ? (
+                                            <Image
+                                                source={{ uri: profileDetails?.profile_photo_url }}
+                                                style={styles.avatarImage}
+                                                resizeMode="cover"
+                                            />
+                                        ) : (
+                                            <FontAwesome name="user" size={20} color="#fff" />
+                                        )}
                                     </View>
                                     <View style={{ flex: 1, marginLeft: 10 }}>
                                         <Text style={styles.userName}>{profileDetails?.first_name}</Text>
-                                        <Text style={styles.userEmail}>{profileDetails?.email ? profileDetails?.email : profileDetails?.phone_no}</Text>
+                                        <Text style={styles.userEmail}>{profileDetails?.phone_no}</Text>
                                     </View>
                                 </View>
                             </LinearGradient>
@@ -83,7 +92,7 @@ const DrawerModal = ({ visible, onClose, profileDetails }) => {
                             {/* Footer */}
                             <View style={styles.footer}>
                                 <Text style={styles.footerText}>Version 1.0.0</Text>
-                                <Text style={styles.footerSubtext}>Made with ❤️ for Pratihari</Text>
+                                <Text style={styles.footerSubtext}>Made with ❤️ for Pratihari Nijog by {'\n'}Unitor Technology Pvt Ltd</Text>
                             </View>
                         </View>
                     </TouchableWithoutFeedback>
@@ -135,6 +144,11 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
     },
+    avatarImage: {
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+    },
     userName: {
         color: '#fff',
         fontSize: 20,
@@ -183,12 +197,13 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     footerText: {
-        fontSize: 12,
+        fontSize: 13,
         color: '#9CA3AF',
     },
     footerSubtext: {
-        fontSize: 11,
+        fontSize: 13,
         color: '#D1D5DB',
         marginTop: 4,
+        textAlign: 'center',
     },
 });

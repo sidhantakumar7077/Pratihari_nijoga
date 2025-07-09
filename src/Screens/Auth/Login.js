@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Image, ImageBackground, StyleSheet, TouchableOpacity, ActivityIndicator, PermissionsAndroid, Platform, KeyboardAvoidingView, Keyboard, ScrollView } from 'react-native';
+import { View, Text, Image, ImageBackground, StyleSheet, TouchableOpacity, ActivityIndicator, BackHandler, Platform, KeyboardAvoidingView, Keyboard, ScrollView } from 'react-native';
 import { FloatingLabelInput } from 'react-native-floating-label-input';
 import { useNavigation } from '@react-navigation/native';
 import { base_url } from '../../../App';
@@ -22,6 +22,15 @@ const Login = () => {
             keyboardDidShowListener.remove();
             keyboardDidHideListener.remove();
         };
+    }, []);
+
+    useEffect(() => {
+        const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
+            BackHandler.exitApp();
+            return true;
+        });
+
+        return () => backHandler.remove();
     }, []);
 
     const pressHandler = async () => {

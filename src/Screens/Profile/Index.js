@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
   Platform,
   StatusBar,
+  Modal,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -19,7 +20,7 @@ import Feather from 'react-native-vector-icons/Feather';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
-const InfoRow = ({ icon: Icon, label, value, iconName, iconColor = '#6366f1' }) => (
+const InfoRow = ({ icon: Icon, label, value, iconName, iconColor = '#6366f1', rightContent = null }) => (
   <View style={styles.infoRow}>
     <View style={[styles.infoIcon, { backgroundColor: iconColor + '15' }]}>
       <Icon name={iconName} size={18} color={iconColor} />
@@ -28,6 +29,7 @@ const InfoRow = ({ icon: Icon, label, value, iconName, iconColor = '#6366f1' }) 
       <Text style={styles.infoLabel}>{label}</Text>
       <Text style={styles.infoValue}>{value || 'N/A'}</Text>
     </View>
+    {rightContent}
   </View>
 );
 
@@ -43,8 +45,8 @@ const SectionCard = ({ title, icon: Icon, iconName, children, gradient = ['#6366
   </View>
 );
 
-const FamilyMember = ({ name, relation, imageUrl }) => (
-  <View style={styles.familyMember}>
+const FamilyMember = ({ name, relation, imageUrl, onImagePress }) => (
+  <TouchableOpacity style={styles.familyMember} onPress={() => imageUrl && onImagePress(imageUrl)}>
     <View style={styles.familyImageContainer}>
       {imageUrl ? (
         <Image source={{ uri: imageUrl }} style={styles.familyImage} />
@@ -56,7 +58,7 @@ const FamilyMember = ({ name, relation, imageUrl }) => (
     </View>
     <Text style={styles.familyName}>{name}</Text>
     <Text style={styles.familyRelation}>{relation}</Text>
-  </View>
+  </TouchableOpacity>
 );
 
 const ActionCard = ({ title, subtitle, icon: Icon, iconName, color, onPress }) => (
@@ -72,12 +74,23 @@ const ActionCard = ({ title, subtitle, icon: Icon, iconName, color, onPress }) =
   </TouchableOpacity>
 );
 
-export default function ProfileScreen() {
+export default function Index() {
+
   const navigation = useNavigation();
   const mounted = useRef(true);
   const [profileData, setProfileData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');
+  const [logoutModalVisible, setLogoutModalVisible] = useState(false);
+
+  const [healthCardImageModal, setHealthCardImageModal] = useState(false);
+  const [healthCardImageUrl, setHealthCardImageUrl] = useState('');
+
+  const [familyImageModal, setFamilyImageModal] = useState(false);
+  const [selectedFamilyImageUrl, setSelectedFamilyImageUrl] = useState('');
+
+  const [idCardImageModal, setIdCardImageModal] = useState(false);
+  const [selectedIdCardImageUrl, setSelectedIdCardImageUrl] = useState('');
 
   useEffect(() => {
     mounted.current = true;
@@ -140,30 +153,225 @@ export default function ProfileScreen() {
   };
 
   const tabs = [
-    { id: 'overview', title: 'Overview', icon: Feather, iconName: 'user' },
+    { id: 'overview', title: 'Personal', icon: Feather, iconName: 'user' },
     { id: 'family', title: 'Family', icon: Feather, iconName: 'heart' },
-    { id: 'details', title: 'Details', icon: Feather, iconName: 'info' },
+    { id: 'details', title: 'Profession', icon: Feather, iconName: 'briefcase' },
   ];
 
   const renderOverview = () => (
-    <ScrollView style={styles.tabContent}>
+    <ScrollView style={styles.tabContent} showsVerticalScrollIndicator={false}>
       <SectionCard title="Personal Info" icon={Feather} iconName="user">
         <InfoRow icon={Feather} iconName="mail" label="Email" value={profile.email} />
         <InfoRow icon={Feather} iconName="phone" label="Phone" value={profile.phone_no} iconColor="#10b981" />
         <InfoRow icon={Feather} iconName="message-circle" label="WhatsApp" value={profile.whatsapp_no} iconColor="#25d366" />
         <InfoRow icon={Feather} iconName="calendar" label="Date of Birth" value={profile.date_of_birth} iconColor="#f59e0b" />
+        <InfoRow icon={Feather} iconName="droplet" label="Blood Group" value={profile.blood_group} iconColor="#ef4444" />
         <InfoRow icon={Feather} iconName="clock" label="Joining Date" value={profile.joining_date} iconColor="#8b5cf6" />
-        <InfoRow icon={Feather} iconName="credit-card" label="Health Card" value={profile.healthcard_no} iconColor="#ef4444" />
+        <InfoRow
+          icon={Feather}
+          iconName="credit-card"
+          label="Health Card"
+          value={profile.healthcard_no}
+          iconColor="#ef4444"
+          rightContent={
+            profile.healthcard_photo ? (
+              <TouchableOpacity
+                style={styles.viewButton}
+                onPress={() => {
+                  setHealthCardImageUrl(profile.healthcard_photo);
+                  setHealthCardImageModal(true);
+                }}
+              >
+                <Text style={styles.viewButtonText}>View</Text>
+              </TouchableOpacity>
+            ) : null
+          }
+        />
       </SectionCard>
+
+      <Modal
+        visible={healthCardImageModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setHealthCardImageModal(false)}
+      >
+        <View style={styles.modalBackdrop}>
+          <View style={styles.modalContent}>
+            <Image
+              source={{ uri: healthCardImageUrl }}
+              style={styles.modalImage}
+              resizeMode="contain"
+            />
+            <TouchableOpacity onPress={() => setHealthCardImageModal(false)} style={styles.modalCloseButton}>
+              <Feather name="x" size={24} color="#fff" />
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
 
       <SectionCard title="Address" icon={Feather} iconName="map-pin" gradient={['#10b981', '#059669']}>
+        <Text style={styles.addressSubHeading}>Current Address :</Text>
         <InfoRow icon={Feather} iconName="map-pin" label="Address" value={address.address} />
+        <InfoRow icon={Feather} iconName="map" label="Sahi" value={address.sahi} />
         <InfoRow icon={Feather} iconName="map" label="Landmark" value={address.landmark} />
+        <InfoRow icon={Feather} iconName="map" label="Post" value={address.post} />
         <InfoRow icon={Feather} iconName="map" label="District" value={address.district} />
-        <InfoRow icon={Feather} iconName="map" label="State" value={address.state} />
+        <InfoRow icon={Feather} iconName="map" label="Police Station" value={address.police_station} />
         <InfoRow icon={Feather} iconName="map" label="Pincode" value={address.pincode} />
+        <InfoRow icon={Feather} iconName="map" label="State" value={address.state} />
+        <InfoRow icon={Feather} iconName="map" label="Country" value={address.country} />
+
+        <Text style={styles.addressSubHeading}>Permanent Address :</Text>
+        {address.same_as_permanent_address === 0 ? (
+          <>
+            <InfoRow icon={Feather} iconName="map-pin" label="Address" value={address.per_address} />
+            <InfoRow icon={Feather} iconName="map" label="Sahi" value={address.per_sahi} />
+            <InfoRow icon={Feather} iconName="map" label="Landmark" value={address.per_landmark} />
+            <InfoRow icon={Feather} iconName="map" label="Post" value={address.per_post} />
+            <InfoRow icon={Feather} iconName="map" label="District" value={address.per_district} />
+            <InfoRow icon={Feather} iconName="map" label="Police Station" value={address.per_police_station} />
+            <InfoRow icon={Feather} iconName="map" label="Pincode" value={address.per_pincode} />
+            <InfoRow icon={Feather} iconName="map" label="State" value={address.per_state} />
+            <InfoRow icon={Feather} iconName="map" label="Country" value={address.per_country} />
+          </>
+        ) : (
+          <Text style={styles.sameAddressNote}>Same as current address</Text>
+        )}
       </SectionCard>
 
+      <View style={styles.actionsSection}>
+        <Text style={styles.actionsSectionTitle}>Quick Actions</Text>
+        <ActionCard title="Edit Profile" subtitle="Update info" icon={Feather} iconName="edit" color="#6366f1" />
+        {/* <ActionCard title="Settings" subtitle="Preferences" icon={Feather} iconName="settings" color="#10b981" /> */}
+        <ActionCard title="Sign Out" subtitle="Logout" icon={Feather} iconName="log-out" color="#ef4444" onPress={() => setLogoutModalVisible(true)} />
+      </View>
+
+      <Modal
+        visible={logoutModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setLogoutModalVisible(false)}
+      >
+        <View style={styles.modalBackdrop}>
+          <View style={styles.confirmModal}>
+            <Feather name="log-out" size={36} color="#ef4444" style={{ marginBottom: 16 }} />
+            <Text style={styles.confirmTitle}>Log out</Text>
+            <Text style={styles.confirmMessage}>Are you sure you want to log out of your account?</Text>
+
+            <View style={styles.confirmButtonGroup}>
+              <TouchableOpacity
+                style={[styles.confirmButton, styles.cancelButton]}
+                onPress={() => setLogoutModalVisible(false)}
+              >
+                <Text style={[styles.confirmButtonText, { color: '#374151' }]}>Cancel</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity
+                style={[styles.confirmButton, styles.logoutButton]}
+                onPress={async () => {
+                  setLogoutModalVisible(false);
+                  await AsyncStorage.clear();
+                  navigation.replace('Login');
+                }}
+              >
+                <Text style={styles.confirmButtonText}>Yes, Logout</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+    </ScrollView>
+  );
+
+  const renderFamily = () => (
+    <ScrollView style={styles.tabContent} showsVerticalScrollIndicator={false}>
+      <SectionCard title="Family Members" icon={Feather} iconName="users">
+        <View style={styles.familyGrid}>
+          <FamilyMember name={family.father_name} relation="Father" imageUrl={family.father_photo_url} onImagePress={(url) => { setSelectedFamilyImageUrl(url); setFamilyImageModal(true); }} />
+          <FamilyMember name={family.mother_name} relation="Mother" imageUrl={family.mother_photo_url} onImagePress={(url) => { setSelectedFamilyImageUrl(url); setFamilyImageModal(true); }} />
+          {family.maritial_status === 'married' && (
+            <FamilyMember name={family.spouse_name} relation="Spouse" imageUrl={family.spouse_photo_url} onImagePress={(url) => { setSelectedFamilyImageUrl(url); setFamilyImageModal(true); }} />
+          )}
+        </View>
+        <InfoRow icon={Feather} iconName="heart" label="Marital Status" value={family.maritial_status} iconColor="#ec4899" />
+        {Array.isArray(family.children) && family.children.length > 0 && (
+          <>
+            <Text style={styles.childrenTitle}>Children</Text>
+            <View style={styles.familyGrid}>
+              {family.children.map((child, index) => (
+                <FamilyMember
+                  key={child.id}
+                  name={child.children_name}
+                  relation={`${child.gender === 'male' ? 'Son' : 'Daughter'} (DOB: ${child.date_of_birth})`}
+                  imageUrl={child.photo}
+                  onImagePress={(url) => {
+                    if (url) {
+                      setSelectedFamilyImageUrl(url);
+                      setFamilyImageModal(true);
+                    }
+                  }}
+                />
+              ))}
+            </View>
+          </>
+        )}
+      </SectionCard>
+
+      <Modal
+        visible={familyImageModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setFamilyImageModal(false)}
+      >
+        <View style={styles.modalBackdrop}>
+          <View style={styles.modalContent}>
+            <Image
+              source={{ uri: selectedFamilyImageUrl }}
+              style={styles.modalImage}
+              resizeMode="contain"
+            />
+            <TouchableOpacity onPress={() => setFamilyImageModal(false)} style={styles.modalCloseButton}>
+              <Feather name="x" size={24} color="#fff" />
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+    </ScrollView>
+  );
+
+  const renderDetails = () => (
+    <ScrollView style={styles.tabContent} showsVerticalScrollIndicator={false}>
+      <SectionCard title="ID Cards" icon={Feather} iconName="credit-card" gradient={['#8b5cf6', '#7c3aed']}>
+        {idcard.map((item, i) => (
+          <InfoRow
+            key={i}
+            icon={Feather}
+            iconName="credit-card"
+            label={item.id_type}
+            value={item.id_number}
+            rightContent={
+              item.id_photo ? (
+                <TouchableOpacity
+                  style={styles.viewButton}
+                  onPress={() => {
+                    setSelectedIdCardImageUrl(item.id_photo);
+                    setIdCardImageModal(true);
+                  }}
+                >
+                  <Text style={styles.viewButtonText}>View</Text>
+                </TouchableOpacity>
+              ) : null
+            }
+          />
+        ))}
+      </SectionCard>
+      <SectionCard title="Seba" icon={Feather} iconName="award" gradient={['#f59e0b', '#d97706']}>
+        {sebaDetails.map((seba, i) => (
+          <View key={i}>
+            <InfoRow icon={Feather} iconName="award" label={seba.seba_name} value={seba.beddha_id.join(', ')} />
+          </View>
+        ))}
+      </SectionCard>
       <SectionCard title="Occupation" icon={Feather} iconName="briefcase" gradient={['#f59e0b', '#d97706']}>
         {occupation.map((occ, i) => (
           <View key={i}>
@@ -173,51 +381,25 @@ export default function ProfileScreen() {
         ))}
       </SectionCard>
 
-      <View style={styles.actionsSection}>
-        <Text style={styles.actionsSectionTitle}>Quick Actions</Text>
-        <ActionCard title="Edit Profile" subtitle="Update info" icon={Feather} iconName="edit" color="#6366f1" />
-        <ActionCard title="Settings" subtitle="Preferences" icon={Feather} iconName="settings" color="#10b981" />
-        <ActionCard title="Sign Out" subtitle="Logout" icon={Feather} iconName="log-out" color="#ef4444" />
-      </View>
-    </ScrollView>
-  );
-
-  const renderFamily = () => (
-    <ScrollView style={styles.tabContent}>
-      <SectionCard title="Family Members" icon={Feather} iconName="users">
-        <View style={styles.familyGrid}>
-          <FamilyMember name={family.father_name} relation="Father" imageUrl={family.father_photo_url} />
-          <FamilyMember name={family.mother_name} relation="Mother" imageUrl={family.mother_photo_url} />
-          {family.maritial_status === 'married' && (
-            <FamilyMember name={family.spouse_name} relation="Spouse" imageUrl={family.spouse_photo_url} />
-          )}
-        </View>
-        <InfoRow icon={Feather} iconName="heart" label="Marital Status" value={family.maritial_status} iconColor="#ec4899" />
-      </SectionCard>
-    </ScrollView>
-  );
-
-  const renderDetails = () => (
-    <ScrollView style={styles.tabContent}>
-      <SectionCard title="ID Cards" icon={Feather} iconName="credit-card" gradient={['#8b5cf6', '#7c3aed']}>
-        {idcard.map((item, i) => (
-          <InfoRow
-            key={i}
-            icon={Feather}
-            iconName="credit-card"
-            label={item.id_type}
-            value={item.id_number}
-          />
-        ))}
-      </SectionCard>
-      <SectionCard title="Services" icon={Feather} iconName="award" gradient={['#f59e0b', '#d97706']}>
-        {sebaDetails.map((seba, i) => (
-          <View key={i}>
-            <InfoRow icon={Feather} iconName="award" label="Service" value={seba.seba_name} />
-            <InfoRow icon={Feather} iconName="hash" label="Beddha IDs" value={seba.beddha_id.join(', ')} />
+      <Modal
+        visible={idCardImageModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setIdCardImageModal(false)}
+      >
+        <View style={styles.modalBackdrop}>
+          <View style={styles.modalContent}>
+            <Image
+              source={{ uri: selectedIdCardImageUrl }}
+              style={styles.modalImage}
+              resizeMode="contain"
+            />
+            <TouchableOpacity onPress={() => setIdCardImageModal(false)} style={styles.modalCloseButton}>
+              <Feather name="x" size={24} color="#fff" />
+            </TouchableOpacity>
           </View>
-        ))}
-      </SectionCard>
+        </View>
+      </Modal>
     </ScrollView>
   );
 
@@ -231,12 +413,12 @@ export default function ProfileScreen() {
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#4c1d95" />
       <LinearGradient colors={['#4c1d95', '#6366f1']} style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={{ position: 'absolute', left: 20, top: 50 }}>
-          <Feather name="arrow-left" size={24} color="#fff" />
+        <TouchableOpacity onPress={() => navigation.goBack()} style={{ position: 'absolute', left: 20, top: 25 }}>
+          <Feather name="arrow-left" size={28} color="#fff" />
         </TouchableOpacity>
         <View style={styles.profileHeader}>
-          {profile.profile_photo_url ? (
-            <Image source={{ uri: profile.profile_photo_url }} style={styles.profileImage} />
+          {profile.profile_photo ? (
+            <Image source={{ uri: profile.profile_photo }} style={styles.profileImage} />
           ) : (
             <View style={styles.profileImagePlaceholder}>
               <Feather name="user" size={40} color="#fff" />
@@ -375,7 +557,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     backgroundColor: '#ffffff',
     marginTop: -20,
-    marginHorizontal: 20,
+    marginHorizontal: 12,
     borderRadius: 16,
     padding: 4,
     shadowColor: '#000',
@@ -412,7 +594,66 @@ const styles = StyleSheet.create({
   },
   tabContent: {
     flex: 1,
-    paddingHorizontal: 20,
+    paddingHorizontal: 15,
+  },
+  healthCardRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  viewButton: {
+    backgroundColor: '#6366f1',
+    paddingVertical: 4,
+    paddingHorizontal: 10,
+    borderRadius: 6,
+    alignSelf: 'center',
+    marginLeft: 8,
+  },
+  viewButtonText: {
+    color: '#fff',
+    fontWeight: '600',
+    fontSize: 12,
+  },
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    width: '90%',
+    height: '80%',
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    overflow: 'hidden',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 10,
+  },
+  modalImage: {
+    width: '100%',
+    height: '100%',
+  },
+  modalCloseButton: {
+    position: 'absolute',
+    top: 20,
+    right: 20,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    padding: 6,
+    borderRadius: 20,
+  },
+  addressSubHeading: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#1e293b',
+    marginBottom: 15,
+    textTransform: 'uppercase',
+  },
+  sameAddressNote: {
+    fontSize: 14,
+    fontStyle: 'italic',
+    color: '#6b7280',
+    marginTop: 6,
   },
   statsContainer: {
     flexDirection: 'row',
@@ -512,6 +753,14 @@ const styles = StyleSheet.create({
     color: '#1e293b',
     fontWeight: '600',
   },
+  childrenTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#1e293b',
+    marginBottom: 12,
+    marginTop: 8,
+    marginLeft: 8,
+  },
   familyGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -605,5 +854,52 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#64748b',
     marginTop: 2,
+  },
+  confirmModal: {
+    width: '85%',
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    padding: 24,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 10,
+    elevation: 10,
+  },
+  confirmTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#1e293b',
+    marginBottom: 6,
+  },
+  confirmMessage: {
+    fontSize: 14,
+    color: '#64748b',
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  confirmButtonGroup: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+  },
+  confirmButton: {
+    flex: 1,
+    paddingVertical: 10,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginHorizontal: 5,
+  },
+  logoutButton: {
+    backgroundColor: '#ef4444',
+  },
+  cancelButton: {
+    backgroundColor: '#f1f5f9',
+  },
+  confirmButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#fff',
   },
 });

@@ -168,7 +168,7 @@ const Index = () => {
             style={styles.header}
           >
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <TouchableOpacity onPress={() => navigation.goBack()}>
+              <TouchableOpacity onPress={() => setModalVisible(false)}>
                 <Ionicons name="arrow-back" size={24} color="#fff" marginRight={10} />
               </TouchableOpacity>
               <Text style={styles.headerTitle}>New Application</Text>

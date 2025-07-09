@@ -70,7 +70,7 @@ const Index = () => {
   }, [query]);
 
   const renderItem = ({ item }) => (
-    <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('PratihariProfileById', item.pratihari_id)}>
+    <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('PratihariProfileById', item)}>
       {item.profile_photo_url ? (
         <Image
           source={{ uri: item.profile_photo_url }}
