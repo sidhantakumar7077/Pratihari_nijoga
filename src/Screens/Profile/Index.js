@@ -265,7 +265,7 @@ export default function Index() {
               >
                 <Text style={[styles.confirmButtonText, { color: '#374151' }]}>Cancel</Text>
               </TouchableOpacity>
-              
+
               <TouchableOpacity
                 style={[styles.confirmButton, styles.logoutButton]}
                 onPress={async () => {
@@ -341,6 +341,13 @@ export default function Index() {
 
   const renderDetails = () => (
     <ScrollView style={styles.tabContent} showsVerticalScrollIndicator={false}>
+      <SectionCard title="Seba" icon={Feather} iconName="award" gradient={['#f59e0b', '#d97706']}>
+        {sebaDetails.map((seba, i) => (
+          <View key={i}>
+            <InfoRow icon={Feather} iconName="award" label={seba.seba_name} value={seba.beddha_id.join(', ')} />
+          </View>
+        ))}
+      </SectionCard>
       <SectionCard title="ID Cards" icon={Feather} iconName="credit-card" gradient={['#8b5cf6', '#7c3aed']}>
         {idcard.map((item, i) => (
           <InfoRow
@@ -363,13 +370,6 @@ export default function Index() {
               ) : null
             }
           />
-        ))}
-      </SectionCard>
-      <SectionCard title="Seba" icon={Feather} iconName="award" gradient={['#f59e0b', '#d97706']}>
-        {sebaDetails.map((seba, i) => (
-          <View key={i}>
-            <InfoRow icon={Feather} iconName="award" label={seba.seba_name} value={seba.beddha_id.join(', ')} />
-          </View>
         ))}
       </SectionCard>
       <SectionCard title="Occupation" icon={Feather} iconName="briefcase" gradient={['#f59e0b', '#d97706']}>
