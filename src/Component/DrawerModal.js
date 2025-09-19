@@ -21,6 +21,7 @@ const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
 const menuItems = [
     { icon: <FontAwesome name="user" size={20} color="#fff" />, label: 'Profile', route: 'Profile', bgColor: '#3B82F6' },
+    { icon: <FontAwesome name="users" size={20} color="#fff" />, label: 'Seba', route: 'SebaDetails', bgColor: '#EF4444' },
     { icon: <AntDesign name="clockcircleo" size={20} color="#fff" />, label: 'Upcoming Pali', route: 'UpcomingPali', bgColor: '#10B981' },
     { icon: <FontAwesome name="history" size={20} color="#fff" />, label: 'Pali History', route: 'PaliHistory', bgColor: '#F59E0B' },
     { icon: <AntDesign name="notification" size={20} color="#fff" />, label: 'Notice', route: 'Notice', bgColor: '#EF4444' },

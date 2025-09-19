@@ -13,12 +13,27 @@ import NoInternet from './src/Screens/NoInternet/Index'
 
 // Auth
 import Register from './src/Screens/Auth/Register.js';
+import NewLogin from './src/Screens/Auth/NewLogin.js'
 import Login from './src/Screens/Auth/Login.js'
 import Otp from './src/Screens/Auth/OTP.js'
 
 // Pages
 import Home from './src/Screens/Home/Index'
 import PratihariForm from './src/Screens/PratihariForm/Index.js'
+
+// Pratihari form
+import PratihariProfileForm from './src/Screens/PratihariProfileForm/Index.js';
+
+// Edit Form
+import ProfileEdit from './src/Screens/PratihariFormEdit/ProfileEdit.js';
+import Familly from './src/Screens/PratihariFormEdit/Familly.js';
+import Address from './src/Screens/PratihariFormEdit/Address.js';
+import IDCard from './src/Screens/PratihariFormEdit/IDCard.js';
+import SebaEdit from './src/Screens/PratihariFormEdit/SebaEdit.js';
+import Occupation from './src/Screens/PratihariFormEdit/Occupation.js';
+import Social from './src/Screens/PratihariFormEdit/Social.js';
+
+import SebaDetails from './src/Screens/SebaDetails/Index.js';
 import ThankYouPage from './src/Screens/ThankYouPage/Index.js'
 import MessageScreen from './src/Screens/MessageScreen/Index.js'
 import Profile from './src/Screens/Profile/Index.js'
@@ -34,13 +49,48 @@ import Application from './src/Screens/Application/Index.js'
 const Stack = createNativeStackNavigator();
 
 // export const base_url = "http://pratiharinijog.mandirparikrama.com/";
-export const base_url = "http://pratiharinijog.mandirparikrama.com/";
+export const base_url = "https://pratiharinijog.mandirparikrama.com/";
 
 const App = () => {
+
 
   const [showSplash, setShowSplash] = useState(true);
   const [isConnected, setIsConnected] = useState(true);
   const [access_token, setAccess_token] = useState<string | null>(null);
+  const [goToHomePage, setGoToHomePage] = useState(false);
+
+  const getPratihariStatus = async () => {
+    const token = await AsyncStorage.getItem('storeAccesstoken');
+    try {
+      const response = await fetch(`${base_url}api/pratihari/status`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        console.log("Failed to fetch Pratihari status");
+        return;
+      }
+
+      const result = await response.json();
+      // console.log("Pratihari Status Result:", result);
+
+      if (result?.empty_tables && result.empty_tables.length > 0) {
+        setGoToHomePage(false);
+      } else {
+        // ✅ empty_tables is empty → go to Home
+        setGoToHomePage(true);
+        // navigation.navigate('Home');
+      }
+
+    } catch (error) {
+      console.error("Error fetching Pratihari status:", error);
+    }
+  };
 
   useEffect(() => {
     const unsubscribe = NetInfo.addEventListener(state => {
@@ -62,6 +112,7 @@ const App = () => {
     };
 
     getToken();
+    getPratihariStatus();
 
     setTimeout(() => {
       setShowSplash(false);
@@ -77,14 +128,24 @@ const App = () => {
           <Stack.Screen name="NoInternet" component={NoInternet} />
         ) : (
           <>
-            {access_token ? <Stack.Screen name="PratihariForm" component={PratihariForm} /> : <Stack.Screen name="Login" component={Login} />}
-            {!access_token ? <Stack.Screen name="PratihariForm" component={PratihariForm} /> : <Stack.Screen name="Login" component={Login} />}
+            {access_token ? <Stack.Screen name="PratihariProfileForm" component={PratihariProfileForm} /> : <Stack.Screen name="NewLogin" component={NewLogin} />}
+            {!access_token ? <Stack.Screen name="PratihariProfileForm" component={PratihariProfileForm} /> : <Stack.Screen name="NewLogin" component={NewLogin} />}
             <Stack.Screen name="Otp" component={Otp} />
             <Stack.Screen name="Register" component={Register} />
             <Stack.Screen name="ThankYouPage" component={ThankYouPage} />
             <Stack.Screen name="MessageScreen" component={MessageScreen} />
             <Stack.Screen name="Home" component={Home} />
             <Stack.Screen name="Profile" component={Profile} />
+            {/* Edit Form */}
+            <Stack.Screen name="ProfileEdit" component={ProfileEdit} />
+            <Stack.Screen name="Familly" component={Familly} />
+            <Stack.Screen name="Address" component={Address} />
+            <Stack.Screen name="IDCard" component={IDCard} />
+            <Stack.Screen name="SebaEdit" component={SebaEdit} />
+            <Stack.Screen name="Occupation" component={Occupation} />
+            <Stack.Screen name="Social" component={Social} />
+
+            <Stack.Screen name="SebaDetails" component={SebaDetails} />
             <Stack.Screen name="Search" component={Search} />
             <Stack.Screen name="PratihariProfileById" component={PratihariProfileById} />
             <Stack.Screen name="UpcomingPali" component={UpcomingPali} />

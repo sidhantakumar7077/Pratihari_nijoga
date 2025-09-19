@@ -3,19 +3,14 @@ import React, { useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
 import { FloatingLabelInput } from 'react-native-floating-label-input';
-// import { Calendar } from 'react-native-calendars';
-// import LinearGradient from 'react-native-linear-gradient';
 import { launchImageLibrary } from 'react-native-image-picker';
 import CheckBox from '@react-native-community/checkbox';
 import DropDownPicker from 'react-native-dropdown-picker';
 import RadioForm from 'react-native-simple-radio-button';
 import DatePicker from 'react-native-date-picker';
 import moment from 'moment';
-// import Fontisto from 'react-native-vector-icons/Fontisto';
-// import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-// import Swiper from 'react-native-swiper';
 import Collapsible from 'react-native-collapsible';
 import { base_url } from '../../../App';
 
@@ -89,7 +84,6 @@ const Index = () => {
                         break;
                 }
             } else {
-                // ✅ empty_tables is empty → go to Home
                 navigation.navigate('Home');
             }
 
@@ -117,7 +111,6 @@ const Index = () => {
             },
             (response) => {
                 if (!response.didCancel && response.assets) {
-                    // console.log("response", response.assets[0]);
                     const { fileName, type, uri } = response.assets[0];
                     const updatedFields = [...fields];
                     updatedFields[index].idProofImage = fileName || 'Select Image';
@@ -156,7 +149,6 @@ const Index = () => {
     };
 
     const saveIdCardDetails = async () => {
-        // if (!validateFields()) return;
         const token = await AsyncStorage.getItem('storeAccesstoken');
         const formData = new FormData();
         fields.forEach((field, index) => {
@@ -170,9 +162,6 @@ const Index = () => {
                 });
             }
         });
-
-        // console.log("ID Card Data", formData._parts);
-        // return;
 
         try {
             const response = await fetch(base_url + "api/save-idcard", {
@@ -251,7 +240,6 @@ const Index = () => {
                 const source = response.assets[0]
                 setUserPhoto_source(source);
                 setUser_photo(response.assets[0].fileName);
-                // console.log("selected User Photo-=-=", response.assets[0])
             }
         });
     };
@@ -274,7 +262,6 @@ const Index = () => {
                 const source = response.assets[0]
                 setHelthCardPhoto_source(source);
                 setHelthCardPhoto(response.assets[0].fileName);
-                // console.log("selected Health Card Photo-=-=", response.assets[0])
             }
         });
     };
@@ -305,9 +292,7 @@ const Index = () => {
         const newErrors = {};
 
         if (!firstName) newErrors.firstName = 'First Name is required';
-        // if (!middleName) newErrors.middleName = 'Middle Name is required';
         if (!lastName) newErrors.lastName = 'Last Name is required';
-        // if (!alias) newErrors.alias = 'Alias is required';
 
         // Phone Number Validation (10 digits only)
         if (!mobileNumber) {
@@ -316,18 +301,9 @@ const Index = () => {
             newErrors.mobileNumber = 'Enter a valid 10-digit Mobile Number';
         }
 
-        // if (!whatsappNumber) {
-        //     newErrors.whatsappNumber = 'Whatsapp Number is required';
-        // } else if (!/^\d{10}$/.test(whatsappNumber)) {
-        //     newErrors.whatsappNumber = 'Enter a valid 10-digit Whatsapp Number';
-        // }
-
-        // if (!dob) newErrors.dob = 'Date of Birth is required';
-        // if (!bloodGroup) newErrors.bloodGroup = 'Blood Group is required';
         if (!helthCardNumber) newErrors.helthCardNumber = 'Health Card Number is required';
         if (!helthCardPhoto_source) newErrors.helthCardPhoto_source = 'Health Card Photo is required';
         if (!userPhoto_source) newErrors.userPhoto_source = 'User Photo is required';
-        // if (!dateOfJoinTempleSeba) newErrors.dateOfJoinTempleSeba = 'Date of Joining Temple Seba is required';
 
         // Set errors and clear them after 5 seconds
         setPersonalDetailsErrors(newErrors);
@@ -366,8 +342,6 @@ const Index = () => {
                 name: userPhoto_source.fileName,
             });
         }
-        // console.log("Profile Data", formData);
-        // return;
 
         try {
             const response = await fetch(base_url + "api/save-profile", {
@@ -380,14 +354,12 @@ const Index = () => {
             const data = await response.json();
             if (response.ok) {
                 console.log('Personal Details saved successfully', data);
-                // setActiveTab('family');
                 handleNextTab('family');
             } else {
                 console.log("Error: ", data.message || 'Failed to save Personal Details. Please try again.');
             }
         } catch (error) {
             console.error("Network request failed: ", error);
-            // alert("Network request failed. Please check your internet connection and try again.");
         }
     };
 
@@ -403,7 +375,6 @@ const Index = () => {
         { label: 'Single', value: 'single' },
         { label: 'Married', value: 'married' },
     ];
-    // const [addSpouseFamilyDetails, setAddSpouseFamilyDetails] = useState(false);
     const [spouseName, setSpouseName] = useState('');
     const [spousePhoto_source, setSpousePhoto_source] = useState(null);
     const [spouse_photo, setSpouse_photo] = useState('Select Image');
@@ -495,14 +466,6 @@ const Index = () => {
         if (marrital_status === 'married') {
             if (!spouseName) newErrors.spouseName = 'Spouse Name is required';
             if (!spousePhoto_source) newErrors.spousePhoto_source = 'Spouse Photo is required';
-            // if (childrenFields?.length > 0 && childrenFields[0]?.name) {
-            //     childrenFields.forEach((child, index) => {
-            //         if (!child.name) newErrors[`childName${index}`] = 'Child Name is required';
-            //         if (!child.dob) newErrors[`childDob${index}`] = 'Child Date of Birth is required';
-            //         if (!child.gender) newErrors[`childGender${index}`] = 'Child Gender is required';
-            //         if (!child.uri) newErrors[`childImage${index}`] = 'Child Image is required';
-            //     });
-            // }
         }
 
         // Set errors and clear them after 5 seconds
@@ -513,7 +476,6 @@ const Index = () => {
     };
 
     const saveFamilyDetails = async () => {
-        // if (!validateFamilyFields()) return;
         const token = await AsyncStorage.getItem('storeAccesstoken');
         const formData = new FormData();
         formData.append('father_name', fatherName);
@@ -558,9 +520,6 @@ const Index = () => {
             }
         }
 
-        // console.log("Family Data", formData._parts);
-        // return;
-
         try {
             const response = await fetch(base_url + "api/save-family", {
                 method: 'POST',
@@ -572,7 +531,6 @@ const Index = () => {
             const data = await response.json();
             if (response.ok) {
                 console.log('Family Details saved successfully', data);
-                // setActiveTab('id_card');
                 handleNextTab('id_card');
             } else {
                 console.log("Error: ", data.message || 'Failed to save Family Details. Please try again.');
@@ -636,8 +594,6 @@ const Index = () => {
     };
 
     const saveAddressDetails = async () => {
-        // if (!validateAddressFields()) return;
-
         const token = await AsyncStorage.getItem('storeAccesstoken');
         const formData = new FormData();
         formData.append('sahi', present_sahi);
@@ -673,7 +629,6 @@ const Index = () => {
             const data = await response.json();
             if (response.ok) {
                 console.log('Address Details saved successfully', data);
-                // setActiveTab('occupation');
                 handleNextTab('occupation');
             } else {
                 console.log("Error: ", data.message || 'Failed to save Address Details. Please try again.');
@@ -718,17 +673,12 @@ const Index = () => {
     };
 
     const saveOccupationDetails = async () => {
-        // if (!validateOccupationFields()) return;
-
         const token = await AsyncStorage.getItem('storeAccesstoken');
         const formData = new FormData();
         formData.append('occupation', occupationType);
         extraCuricularActivity.forEach((activity, index) => {
             formData.append(`extra_activity[${index}]`, activity);
         });
-
-        // console.log("saveOccupationDetails", formData);
-        // return;
 
         try {
             const response = await fetch(base_url + "api/save-occupation", {
@@ -741,7 +691,6 @@ const Index = () => {
             const data = await response.json();
             if (response.ok) {
                 console.log('Occupation Details saved successfully', data);
-                // setActiveTab('seba');
                 handleNextTab('seba');
             } else {
                 console.log("Error: ", data.message || 'Failed to save Occupation Details. Please try again.');
@@ -750,14 +699,6 @@ const Index = () => {
             console.error("Network request failed: ", error);
         }
     };
-
-    // Bank Information
-    // const [bankName, setBankName] = useState('');
-    // const [branchName, setBranchName] = useState('');
-    // const [ifscCode, setIfscCode] = useState('');
-    // const [accountNumber, setAccountNumber] = useState('');
-    // const [accountHolderName, setAccountHolderName] = useState('');
-    // const [upi, setUpi] = useState('');
 
     // Seba Information
     const [nijogaType, setNijogaType] = useState(null);
@@ -855,9 +796,6 @@ const Index = () => {
             beddha_id: bedhaIdMapping,
         };
 
-        // console.log("Seba Details", JSON.stringify(sebaData));
-        // return;
-
         try {
             const response = await fetch(base_url + "api/save-seba", {
                 method: 'POST',
@@ -910,15 +848,12 @@ const Index = () => {
             const data = await response.json();
             if (response.ok) {
                 console.log('Social Media Details saved successfully', data);
-                // Handle success (e.g., navigate to the next tab or show a success message)
                 navigation.navigate('ThankYouPage');
-                // navigation.navigate('Home');
             } else {
                 console.log("Error: ", data.message || 'Failed to save Social Media Details. Please try again.');
             }
         } catch (error) {
             console.error("Network request failed: ", error);
-            // alert("Network request failed. Please check your internet connection and try again.");
         }
     };
 
@@ -945,7 +880,6 @@ const Index = () => {
             <View style={styles.swiperContainer}>
                 <View style={{ alignItems: 'center', justifyContent: 'center' }}>
                     <Image source={require('../../assets/images/icon876.png')} style={{ width: 230, height: 230, marginRight: 10 }} />
-                    {/* <Text style={{ color: '#fff', fontSize: 18, fontFamily: 'Lora-BoldItalic', textTransform: 'capitalize' }}>Account Creation</Text> */}
                 </View>
             </View>
             <View style={{ height: 50, marginBottom: 15, marginHorizontal: 10 }}>
@@ -1092,43 +1026,6 @@ const Index = () => {
                                     maxLength={10}
                                     containerStyles={{ borderWidth: 0.5, borderColor: '#353535', backgroundColor: '#ffffff', padding: 10, borderRadius: 8, marginVertical: 12, borderRadius: 10 }}
                                 />
-                                {/* {personalDetailsErrors.whatsappNumber && <Text style={styles.errorText}>{personalDetailsErrors.whatsappNumber}</Text>} */}
-                                {/* Date Of Birth Input */}
-                                {/* <TouchableOpacity onPress={openDobPicker}>
-                                    <TextInput
-                                        style={{ color: '#000', borderWidth: 0.5, borderColor: '#353535', backgroundColor: '#ffffff', padding: 10, paddingLeft: 18, borderRadius: 8, marginVertical: 12, borderRadius: 10 }}
-                                        value={dob ? moment(dob).format('DD-MM-YYYY') : ''}
-                                        editable={false}
-                                        placeholder="Date Of Birth"
-                                        placeholderTextColor={'#4d6285'}
-                                    />
-                                    <AntDesign name="calendar" size={25} color="#4d6285" style={{ position: 'absolute', right: 20, top: 22 }} />
-                                </TouchableOpacity>
-                                <Modal animationType="slide" transparent={true} visible={isDateOpen} onRequestClose={closeDobPicker}>
-                                    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0, 0, 0, 0.5)' }}>
-                                        <View style={{ width: '90%', padding: 20, backgroundColor: 'white', borderRadius: 10, elevation: 5 }}>
-                                            <Calendar
-                                                onDayPress={handleDObOpen}
-                                                markedDates={{
-                                                    [moment(dob).format('YYYY-MM-DD')]: {
-                                                        selected: true,
-                                                        marked: true,
-                                                        selectedColor: 'blue'
-                                                    }
-                                                }}
-                                            />
-                                        </View>
-                                    </View>
-                                </Modal> */}
-                                {/* Educational Qualification Input */}
-                                {/* <FloatingLabelInput
-                                label="Educational Qualification"
-                                value={educational_qualification}
-                                customLabelStyles={{ colorFocused: '#e96a01', fontSizeFocused: 14 }}
-                                labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
-                                onChangeText={value => setEducational_qualification(value)}
-                                containerStyles={{ borderWidth: 0.5, borderColor: '#353535', backgroundColor: '#ffffff', padding: 10, borderRadius: 8, marginVertical: 12, borderRadius: 10 }}
-                                /> */}
                                 {/* Blood Group Input */}
                                 <Text style={[styles.label, { marginBottom: 10 }, (focusedField === 'bloodGroup' || bloodGroup !== null) && styles.focusedLabel]}>Blood Group</Text>
                                 <View style={{ width: '100%', flexDirection: 'row', alignItems: 'center' }}>
@@ -1188,83 +1085,6 @@ const Index = () => {
                                     </View>
                                 </TouchableOpacity>
                                 {personalDetailsErrors.userPhoto_source && <Text style={styles.errorText}>{personalDetailsErrors.userPhoto_source}</Text>}
-                                {/* Add more For Language Entry */}
-                                {/* <Text style={[styles.label, { marginTop: 0 }]}>Languages</Text> */}
-                                {/* {languages.map((language, index) => (
-                                <View key={index} style={{ width: '100%' }}>
-                                    <View style={{ width: '100%', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                                        Language Input
-                                        <View style={{ width: '45%' }}>
-                                            <FloatingLabelInput
-                                                label="Language"
-                                                value={language.lang}
-                                                customLabelStyles={{ colorFocused: '#e96a01', fontSizeFocused: 14 }}
-                                                labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
-                                                onChangeText={(text) => {
-                                                    const updatedFields = [...languages];
-                                                    updatedFields[index].lang = text;
-                                                    setLanguages(updatedFields);
-                                                }}
-                                                containerStyles={{ borderWidth: 0.5, borderColor: '#353535', backgroundColor: '#ffffff', padding: 10, borderRadius: 8, marginVertical: 12, borderRadius: 10, width: '100%' }}
-                                            />
-                                        </View>
-                                        Read Checkbox
-                                        <View style={{ alignItems: 'center' }}>
-                                            <CheckBox
-                                                disabled={false}
-                                                value={language.read}
-                                                onValueChange={(newValue) => {
-                                                    const updatedFields = [...languages];
-                                                    updatedFields[index].read = newValue;
-                                                    setLanguages(updatedFields);
-                                                }}
-                                                tintColors={{ true: '#56ab2f', false: '#757473' }}
-                                            />
-                                            <Text style={{ fontSize: 16, marginRight: 10, color: '#757473' }}>Read</Text>
-                                        </View>
-                                        Write Checkbox
-                                        <View style={{ alignItems: 'center' }}>
-                                            <CheckBox
-                                                disabled={false}
-                                                value={language.write}
-                                                onValueChange={(newValue) => {
-                                                    const updatedFields = [...languages];
-                                                    updatedFields[index].write = newValue;
-                                                    setLanguages(updatedFields);
-                                                }}
-                                                tintColors={{ true: '#56ab2f', false: '#757473' }}
-                                            />
-                                            <Text style={{ fontSize: 16, marginRight: 10, color: '#757473' }}>Write</Text>
-                                        </View>
-                                        Speak Checkbox
-                                        <View style={{ alignItems: 'center' }}>
-                                            <CheckBox
-                                                disabled={false}
-                                                value={language.speak}
-                                                onValueChange={(newValue) => {
-                                                    const updatedFields = [...languages];
-                                                    updatedFields[index].speak = newValue;
-                                                    setLanguages(updatedFields);
-                                                }}
-                                                tintColors={{ true: '#56ab2f', false: '#757473' }}
-                                            />
-                                            <Text style={{ fontSize: 16, marginRight: 10, color: '#757473' }}>Speak</Text>
-                                        </View>
-                                    </View>
-                                    <View style={{ width: '100%', flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', marginTop: 5 }}>
-                                        {index === languages.length - 1 &&
-                                            <TouchableOpacity style={{ backgroundColor: '#1e7836', padding: 10, borderRadius: 6, marginRight: 20 }} onPress={() => setLanguages([...languages, { lang: '', read: null, write: null, speak: null }])}>
-                                                <Text style={{ color: '#fff', fontSize: 14 }}>Add More</Text>
-                                            </TouchableOpacity>
-                                        }
-                                        {index > 0 &&
-                                            <TouchableOpacity style={{ backgroundColor: '#ba111e', padding: 10, borderRadius: 6 }} onPress={() => setLanguages(languages.filter((_, i) => i !== index))}>
-                                                <Text style={{ color: '#fff', fontSize: 14 }}>Remove</Text>
-                                            </TouchableOpacity>
-                                        }
-                                    </View>
-                                </View>
-                                ))} */}
                                 {/* Date Of Join Temple Seba Input */}
                                 <TouchableOpacity onPress={() => (dateRemember ? setYearPickerVisible(true) : setDatePickerVisibility(true))}>
                                     <TextInput style={{ color: '#000', borderWidth: 0.5, borderColor: '#353535', backgroundColor: '#ffffff', padding: 10, paddingLeft: 18, borderRadius: 10, marginVertical: 12 }}
@@ -1372,7 +1192,6 @@ const Index = () => {
                                     style={{ width: '45%', backgroundColor: '#051b65', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', alignSelf: 'center', borderRadius: 50, paddingVertical: 10, marginVertical: 15 }}
                                 >
                                     <Text style={styles.submitText}>Next</Text>
-                                    {/* <MaterialCommunityIcons name="hand-pointing-right" size={23} color="#fff" /> */}
                                 </TouchableOpacity>
                             </View>
                         </ScrollView>
@@ -1477,39 +1296,6 @@ const Index = () => {
                                             </View>
                                         </TouchableOpacity>
                                         {familyDetailsErrors.spousePhoto_source && <Text style={styles.errorText}>{familyDetailsErrors.spousePhoto_source}</Text>}
-                                        {/* <Text style={{ color: '#000', fontSize: 17, fontWeight: 'bold', marginBottom: 10 }}>Spouse Family Detail's</Text>
-                                        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                        <Text style={{ color: '#000', fontSize: 16, marginRight: 20 }}>Is Under community</Text>
-                                        <Switch
-                                            trackColor={{ false: '#767577', true: '#81b0ff' }}
-                                            thumbColor={'#f4f3f4'}
-                                            ios_backgroundColor="#3e3e3e"
-                                            onValueChange={() => setAddSpouseFamilyDetails(!addSpouseFamilyDetails)}
-                                            value={addSpouseFamilyDetails}
-                                        />
-                                        </View>
-                                        <>
-                                        <FloatingLabelInput
-                                            label="Spouse Father's Name"
-                                            value={spouseFatherName}
-                                            customLabelStyles={{ colorFocused: '#e96a01', fontSizeFocused: 14 }}
-                                            labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
-                                            onChangeText={value => setSpouseFatherName(value)}
-                                            containerStyles={{ borderWidth: 0.5, borderColor: '#353535', backgroundColor: '#ffffff', padding: 10, borderRadius: 8, marginVertical: 12, borderRadius: 10 }}
-                                        />
-                                        <Text style={[styles.label, (spouseFathers_photo !== 'Select Image') && styles.focusedLabel]}>Spouse Father's Photo</Text>
-                                        <TouchableOpacity style={[styles.filePicker, { marginTop: 10 }]} onPress={() => selectParentsImage('spouseFather')}>
-                                            <TextInput
-                                                style={styles.filePickerText}
-                                                editable={false}
-                                                placeholder={spouseFathers_photo}
-                                                placeholderTextColor={'#4d6285'}
-                                            />
-                                            <View style={styles.chooseBtn}>
-                                                <Text style={styles.chooseBtnText}>Choose File</Text>
-                                            </View>
-                                        </TouchableOpacity>
-                                        </> */}
                                     </>
                                 }
                             </View>
@@ -1612,12 +1398,10 @@ const Index = () => {
                             {/* Submit Button */}
                             <View style={{ width: '95%', alignSelf: 'center', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around' }}>
                                 <TouchableOpacity onPress={() => handleNextTab('personal')} style={{ width: '45%', backgroundColor: '#e96a01', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', alignSelf: 'center', borderRadius: 50, paddingVertical: 10, marginVertical: 15 }}>
-                                    {/* <MaterialCommunityIcons name="hand-pointing-left" size={23} color="#fff" /> */}
                                     <Text style={styles.submitText}>Previous</Text>
                                 </TouchableOpacity>
                                 <TouchableOpacity onPress={saveFamilyDetails} style={{ width: '45%', backgroundColor: '#051b65', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', alignSelf: 'center', borderRadius: 50, paddingVertical: 10, marginVertical: 15 }}>
                                     <Text style={styles.submitText}>Next</Text>
-                                    {/* <MaterialCommunityIcons name="hand-pointing-right" size={23} color="#fff" /> */}
                                 </TouchableOpacity>
                             </View>
                         </ScrollView>
@@ -1680,7 +1464,6 @@ const Index = () => {
                                         customLabelStyles={{ colorFocused: '#e96a01', fontSizeFocused: 14 }}
                                         labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
                                         keyboardType="name-phone-pad"
-                                        // maxLength={field.idProof === 'pan' ? 10 : 12}
                                         onChangeText={value => {
                                             const updatedFields = [...fields];
                                             updatedFields[index].idProofNumber = value;
@@ -1708,12 +1491,10 @@ const Index = () => {
                             {/* Submit Button */}
                             <View style={{ width: '95%', alignSelf: 'center', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around' }}>
                                 <TouchableOpacity onPress={() => handleNextTab('family')} style={{ width: '45%', backgroundColor: '#e96a01', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', alignSelf: 'center', borderRadius: 50, paddingVertical: 10, marginVertical: 15 }}>
-                                    {/* <MaterialCommunityIcons name="hand-pointing-left" size={23} color="#fff" /> */}
                                     <Text style={styles.submitText}>Previous</Text>
                                 </TouchableOpacity>
                                 <TouchableOpacity onPress={saveIdCardDetails} style={{ width: '45%', backgroundColor: '#051b65', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', alignSelf: 'center', borderRadius: 50, paddingVertical: 10, marginVertical: 15 }}>
                                     <Text style={styles.submitText}>Next</Text>
-                                    {/* <MaterialCommunityIcons name="hand-pointing-right" size={23} color="#fff" /> */}
                                 </TouchableOpacity>
                             </View>
                         </ScrollView>
@@ -1936,12 +1717,10 @@ const Index = () => {
                             {/* Submit Button */}
                             <View style={{ width: '95%', alignSelf: 'center', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around' }}>
                                 <TouchableOpacity onPress={() => handleNextTab('id_card')} style={{ width: '45%', backgroundColor: '#e96a01', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', alignSelf: 'center', borderRadius: 50, paddingVertical: 10, marginVertical: 15 }}>
-                                    {/* <MaterialCommunityIcons name="hand-pointing-left" size={23} color="#fff" /> */}
                                     <Text style={styles.submitText}>Previous</Text>
                                 </TouchableOpacity>
                                 <TouchableOpacity onPress={saveAddressDetails} style={{ width: '45%', backgroundColor: '#051b65', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', alignSelf: 'center', borderRadius: 50, paddingVertical: 10, marginVertical: 15 }}>
                                     <Text style={styles.submitText}>Next</Text>
-                                    {/* <MaterialCommunityIcons name="hand-pointing-right" size={23} color="#fff" /> */}
                                 </TouchableOpacity>
                             </View>
                         </ScrollView>
@@ -2015,12 +1794,10 @@ const Index = () => {
                             {/* Submit Button */}
                             <View style={{ width: '95%', alignSelf: 'center', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around' }}>
                                 <TouchableOpacity onPress={() => handleNextTab('address')} style={{ width: '45%', backgroundColor: '#e96a01', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', alignSelf: 'center', borderRadius: 50, paddingVertical: 10, marginVertical: 15 }}>
-                                    {/* <MaterialCommunityIcons name="hand-pointing-left" size={23} color="#fff" /> */}
                                     <Text style={styles.submitText}>Previous</Text>
                                 </TouchableOpacity>
                                 <TouchableOpacity onPress={saveOccupationDetails} style={{ width: '45%', backgroundColor: '#051b65', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', alignSelf: 'center', borderRadius: 50, paddingVertical: 10, marginVertical: 15 }}>
                                     <Text style={styles.submitText}>Next</Text>
-                                    {/* <MaterialCommunityIcons name="hand-pointing-right" size={23} color="#fff" /> */}
                                 </TouchableOpacity>
                             </View>
                         </ScrollView>
@@ -2034,23 +1811,6 @@ const Index = () => {
                         </View>
                         <ScrollView style={{ flex: 1 }}>
                             <View style={styles.cardBox}>
-                                {/* Nijoga Type Dropdown */}
-                                {/* {nijogaType !== null && <Text style={[styles.label, (focusedField === 'nijogaType' || nijogaType !== null) ? styles.focusedLabel : { marginBottom: 10 }]}>Select Nijoga</Text>}
-                                <View style={{ width: '100%', flexDirection: 'row', alignItems: 'center' }}>
-                                    <DropDownPicker
-                                        open={focusedField === 'nijogaType'}
-                                        value={nijogaType}
-                                        items={nijogaList}
-                                        setOpen={() => setFocusedField(focusedField === 'nijogaType' ? null : 'nijogaType')}
-                                        setValue={(callback) => setNijogaType(callback(nijogaType))}
-                                        placeholder='Select Nijoga'
-                                        placeholderStyle={{ color: '#4d6285' }}
-                                        listMode='SCROLLVIEW'
-                                        containerStyle={{ width: '100%', marginTop: 5 }}
-                                        style={[styles.input, (focusedField === 'nijogaType' || nijogaType !== null) && styles.focusedInput]}
-                                        dropDownContainerStyle={{ backgroundColor: '#fafafa', zIndex: 999 }}
-                                    />
-                                </View> */}
                                 {/* Seba Details */}
                                 <Text style={[styles.label, styles.focusedLabel, { marginBottom: 10 }]}>Select Your Seba</Text>
                                 {sebaDetails.map((seba) => (
@@ -2076,12 +1836,10 @@ const Index = () => {
                             {/* Submit Button */}
                             <View style={{ width: '95%', alignSelf: 'center', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around' }}>
                                 <TouchableOpacity onPress={() => handleNextTab('occupation')} style={{ width: '45%', backgroundColor: '#e96a01', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', alignSelf: 'center', borderRadius: 50, paddingVertical: 10, marginVertical: 15 }}>
-                                    {/* <MaterialCommunityIcons name="hand-pointing-left" size={23} color="#fff" /> */}
                                     <Text style={styles.submitText}>Previous</Text>
                                 </TouchableOpacity>
                                 <TouchableOpacity onPress={saveSebaDetails} style={{ width: '45%', backgroundColor: '#051b65', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', alignSelf: 'center', borderRadius: 50, paddingVertical: 10, marginVertical: 15 }}>
                                     <Text style={styles.submitText}>Next</Text>
-                                    {/* <MaterialCommunityIcons name="hand-pointing-right" size={23} color="#fff" /> */}
                                 </TouchableOpacity>
                             </View>
                         </ScrollView>
@@ -2144,12 +1902,10 @@ const Index = () => {
                             {/* Submit Button */}
                             <View style={{ width: '95%', alignSelf: 'center', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around' }}>
                                 <TouchableOpacity onPress={() => handleNextTab('seba')} style={{ width: '45%', backgroundColor: '#e96a01', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', alignSelf: 'center', borderRadius: 50, paddingVertical: 10, marginVertical: 15 }}>
-                                    {/* <MaterialCommunityIcons name="hand-pointing-left" size={23} color="#fff" /> */}
                                     <Text style={styles.submitText}>Previous</Text>
                                 </TouchableOpacity>
                                 <TouchableOpacity onPress={saveSocialMediaDetails} style={{ width: '45%', backgroundColor: '#051b65', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', alignSelf: 'center', borderRadius: 50, paddingVertical: 10, marginVertical: 15 }}>
                                     <Text style={styles.submitText}>Next</Text>
-                                    {/* <MaterialCommunityIcons name="hand-pointing-right" size={23} color="#fff" /> */}
                                 </TouchableOpacity>
                             </View>
                         </ScrollView>

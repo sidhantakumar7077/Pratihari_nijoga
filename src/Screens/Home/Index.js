@@ -360,6 +360,18 @@ const Index = () => {
                     />
                 </View>
 
+                <TouchableOpacity onPress={() => navigation.navigate('SebaDetails')} style={styles.footerSection}>
+                    <LinearGradient
+                        colors={['#4c1d95', '#6366f1']}
+                        style={styles.footerCard}
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 1, y: 1 }}
+                    >
+                        <Text style={styles.footerTitle}>Pratihari Seba</Text>
+                        <Text style={styles.footerSubtitle}>All Your Seba Details in One Place</Text>
+                    </LinearGradient>
+                </TouchableOpacity>
+
                 <View style={styles.heroSection}>
                     <View style={styles.swiperContainer}>
                         <Swiper
@@ -390,7 +402,7 @@ const Index = () => {
                     </View>
                 </View>
 
-                <View style={styles.footerSection}>
+                {/* <View style={styles.footerSection}>
                     <LinearGradient
                         colors={['#4c1d95', '#6366f1']}
                         style={styles.footerCard}
@@ -400,7 +412,7 @@ const Index = () => {
                         <Text style={styles.footerTitle}>Pratihari Nijog</Text>
                         <Text style={styles.footerSubtitle}>Serving the Community with Devotion</Text>
                     </LinearGradient>
-                </View>
+                </View> */}
             </ScrollView>
         </SafeAreaView>
     )
@@ -764,7 +776,7 @@ const styles = StyleSheet.create({
     },
     servicesSection: {
         marginHorizontal: 20,
-        marginBottom: 20,
+        marginBottom: 10,
     },
     servicesContainer: {
         paddingHorizontal: 0,
@@ -814,7 +826,8 @@ const styles = StyleSheet.create({
     },
     footerCard: {
         borderRadius: 20,
-        padding: 30,
+        paddingHorizontal: 30,
+        paddingVertical: 20,
         alignItems: 'center',
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 4 },

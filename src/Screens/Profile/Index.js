@@ -13,12 +13,9 @@ import {
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useIsFocused } from '@react-navigation/native';
 import { base_url } from '../../../App';
-
 import Feather from 'react-native-vector-icons/Feather';
-import Ionicons from 'react-native-vector-icons/Ionicons';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
 const InfoRow = ({ icon: Icon, label, value, iconName, iconColor = '#6366f1', rightContent = null }) => (
   <View style={styles.infoRow}>
@@ -33,13 +30,20 @@ const InfoRow = ({ icon: Icon, label, value, iconName, iconColor = '#6366f1', ri
   </View>
 );
 
-const SectionCard = ({ title, icon: Icon, iconName, children, gradient = ['#6366f1', '#8b5cf6'] }) => (
+const SectionCard = ({ title, icon: Icon, iconName, children, gradient = ['#6366f1', '#8b5cf6'], onEditPress }) => (
   <View style={styles.sectionCard}>
     <View style={styles.sectionHeader}>
-      <LinearGradient colors={gradient} style={styles.sectionIconContainer}>
-        <Icon name={iconName} size={20} color="#fff" />
-      </LinearGradient>
-      <Text style={styles.sectionTitle}>{title}</Text>
+      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+        <LinearGradient colors={gradient} style={styles.sectionIconContainer}>
+          <Icon name={iconName} size={20} color="#fff" />
+        </LinearGradient>
+        <Text style={styles.sectionTitle}>{title}</Text>
+      </View>
+      {title !== 'Seba' && (
+        <TouchableOpacity onPress={() => onEditPress?.(title)}>
+          <Feather name="edit" size={20} color="#94a3b8" />
+        </TouchableOpacity>
+      )}
     </View>
     <View style={styles.sectionContent}>{children}</View>
   </View>
@@ -77,6 +81,7 @@ const ActionCard = ({ title, subtitle, icon: Icon, iconName, color, onPress }) =
 export default function Index() {
 
   const navigation = useNavigation();
+  const isFocused = useIsFocused();
   const mounted = useRef(true);
   const [profileData, setProfileData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -94,26 +99,30 @@ export default function Index() {
 
   useEffect(() => {
     mounted.current = true;
-    (async () => {
-      try {
-        const token = await AsyncStorage.getItem('storeAccesstoken');
-        const res = await fetch(`${base_url}api/get-all-pratihari-profile`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const json = await res.json();
-        if (mounted.current && json.success) {
-          setProfileData(json.data);
+
+    if (isFocused) {
+      (async () => {
+        try {
+          const token = await AsyncStorage.getItem('storeAccesstoken');
+          const res = await fetch(`${base_url}api/get-all-pratihari-profile`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          const json = await res.json();
+          if (mounted.current && json.success) {
+            setProfileData(json.data);
+            console.log("Profile Data:", json.data.sebaDetails);
+          }
+        } catch (e) {
+          console.error(e);
+        } finally {
+          if (mounted.current) setLoading(false);
         }
-      } catch (e) {
-        console.error(e);
-      } finally {
-        if (mounted.current) setLoading(false);
-      }
-    })();
+      })();
+    }
     return () => {
       mounted.current = false;
     };
-  }, []);
+  }, [isFocused]);
 
   if (loading) {
     return (
@@ -133,6 +142,62 @@ export default function Index() {
   }
 
   const { profile, family, address, idcard, occupation, sebaDetails } = profileData;
+
+  const getSectionData = (section) => {
+    switch (section) {
+      case 'Personal Info':
+        return profile;
+      case 'Address':
+        return address;
+      case 'Family Members':
+        return family;
+      case 'Seba':
+        return sebaDetails;
+      case 'ID Cards':
+        return idcard;
+      case 'Occupation':
+        return occupation;
+      default:
+        return {};
+    }
+  };
+
+  const handleEditPress = (section) => {
+    const dataToSend = getSectionData(section);
+
+    let screenName = '';
+    switch (section) {
+      case 'Personal Info':
+        screenName = 'ProfileEdit';
+        break;
+      case 'Address':
+        screenName = 'Address';
+        break;
+      case 'Family Members':
+      case 'Family':
+        screenName = 'Familly';
+        break;
+      case 'Seba':
+        screenName = 'SebaEdit';
+        break;
+      case 'ID Cards':
+        screenName = 'IDCard';
+        break;
+      case 'Occupation':
+        screenName = 'Occupation';
+        break;
+      case 'Social':
+        screenName = 'Social';
+        break;
+      default:
+        return;
+    }
+
+    navigation.navigate(screenName, {
+      section,
+      data: dataToSend,
+    });
+  };
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -160,13 +225,14 @@ export default function Index() {
 
   const renderOverview = () => (
     <ScrollView style={styles.tabContent} showsVerticalScrollIndicator={false}>
-      <SectionCard title="Personal Info" icon={Feather} iconName="user">
+      <SectionCard title="Personal Info" icon={Feather} iconName="user" onEditPress={() => handleEditPress('Personal Info')}>
         <InfoRow icon={Feather} iconName="mail" label="Email" value={profile.email} />
         <InfoRow icon={Feather} iconName="phone" label="Phone" value={profile.phone_no} iconColor="#10b981" />
         <InfoRow icon={Feather} iconName="message-circle" label="WhatsApp" value={profile.whatsapp_no} iconColor="#25d366" />
         <InfoRow icon={Feather} iconName="calendar" label="Date of Birth" value={profile.date_of_birth} iconColor="#f59e0b" />
         <InfoRow icon={Feather} iconName="droplet" label="Blood Group" value={profile.blood_group} iconColor="#ef4444" />
-        <InfoRow icon={Feather} iconName="clock" label="Joining Date" value={profile.joining_date} iconColor="#8b5cf6" />
+        {profile.joining_date && <InfoRow icon={Feather} iconName="clock" label="Joining Date" value={profile.joining_date} iconColor="#8b5cf6" />}
+        {profile.joining_year && !profile.joining_date && <InfoRow icon={Feather} iconName="clock" label="Joining Year" value={profile.joining_year} iconColor="#8b5cf6" />}
         <InfoRow
           icon={Feather}
           iconName="credit-card"
@@ -209,7 +275,7 @@ export default function Index() {
         </View>
       </Modal>
 
-      <SectionCard title="Address" icon={Feather} iconName="map-pin" gradient={['#10b981', '#059669']}>
+      <SectionCard title="Address" icon={Feather} iconName="map-pin" gradient={['#10b981', '#059669']} onEditPress={() => handleEditPress('Address')}>
         <Text style={styles.addressSubHeading}>Current Address :</Text>
         <InfoRow icon={Feather} iconName="map-pin" label="Address" value={address.address} />
         <InfoRow icon={Feather} iconName="map" label="Sahi" value={address.sahi} />
@@ -241,8 +307,8 @@ export default function Index() {
 
       <View style={styles.actionsSection}>
         <Text style={styles.actionsSectionTitle}>Quick Actions</Text>
-        <ActionCard title="Edit Profile" subtitle="Update info" icon={Feather} iconName="edit" color="#6366f1" />
-        {/* <ActionCard title="Settings" subtitle="Preferences" icon={Feather} iconName="settings" color="#10b981" /> */}
+        {/* <ActionCard title="Edit Profile" subtitle="Update info" icon={Feather} iconName="edit" color="#6366f1" />
+        <ActionCard title="Settings" subtitle="Preferences" icon={Feather} iconName="settings" color="#10b981" /> */}
         <ActionCard title="Sign Out" subtitle="Logout" icon={Feather} iconName="log-out" color="#ef4444" onPress={() => setLogoutModalVisible(true)} />
       </View>
 
@@ -285,7 +351,7 @@ export default function Index() {
 
   const renderFamily = () => (
     <ScrollView style={styles.tabContent} showsVerticalScrollIndicator={false}>
-      <SectionCard title="Family Members" icon={Feather} iconName="users">
+      <SectionCard title="Family Members" icon={Feather} iconName="users" onEditPress={() => handleEditPress('Family Members')}>
         <View style={styles.familyGrid}>
           <FamilyMember name={family.father_name} relation="Father" imageUrl={family.father_photo_url} onImagePress={(url) => { setSelectedFamilyImageUrl(url); setFamilyImageModal(true); }} />
           <FamilyMember name={family.mother_name} relation="Mother" imageUrl={family.mother_photo_url} onImagePress={(url) => { setSelectedFamilyImageUrl(url); setFamilyImageModal(true); }} />
@@ -303,7 +369,7 @@ export default function Index() {
                   key={child.id}
                   name={child.children_name}
                   relation={`${child.gender === 'male' ? 'Son' : 'Daughter'} (DOB: ${child.date_of_birth})`}
-                  imageUrl={child.photo}
+                  imageUrl={child.photo_url}
                   onImagePress={(url) => {
                     if (url) {
                       setSelectedFamilyImageUrl(url);
@@ -341,14 +407,14 @@ export default function Index() {
 
   const renderDetails = () => (
     <ScrollView style={styles.tabContent} showsVerticalScrollIndicator={false}>
-      <SectionCard title="Seba" icon={Feather} iconName="award" gradient={['#f59e0b', '#d97706']}>
+      {/* <SectionCard title="Seba" icon={Feather} iconName="award" gradient={['#f59e0b', '#d97706']}>
         {sebaDetails.map((seba, i) => (
           <View key={i}>
             <InfoRow icon={Feather} iconName="award" label={seba.seba_name} value={seba.beddha_id.join(', ')} />
           </View>
         ))}
-      </SectionCard>
-      <SectionCard title="ID Cards" icon={Feather} iconName="credit-card" gradient={['#8b5cf6', '#7c3aed']}>
+      </SectionCard> */}
+      <SectionCard title="ID Cards" icon={Feather} iconName="credit-card" gradient={['#8b5cf6', '#7c3aed']} onEditPress={() => handleEditPress('ID Cards')}>
         {idcard.map((item, i) => (
           <InfoRow
             key={i}
@@ -372,7 +438,7 @@ export default function Index() {
           />
         ))}
       </SectionCard>
-      <SectionCard title="Occupation" icon={Feather} iconName="briefcase" gradient={['#f59e0b', '#d97706']}>
+      <SectionCard title="Occupation" icon={Feather} iconName="briefcase" gradient={['#f59e0b', '#d97706']} onEditPress={() => handleEditPress('Occupation')}>
         {occupation.map((occ, i) => (
           <View key={i}>
             <InfoRow icon={Feather} iconName="briefcase" label="Type" value={occ.occupation_type} />
@@ -706,6 +772,7 @@ const styles = StyleSheet.create({
   sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     padding: 20,
     paddingBottom: 16,
   },

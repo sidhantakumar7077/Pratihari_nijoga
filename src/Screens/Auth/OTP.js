@@ -105,7 +105,7 @@ const OTP = (props) => {
 
             const formData = {
                 otp: otp,
-                phone: props.route.params.phone,
+                mobile_number: props.route.params.phone,
             };
 
             const response = await fetch(`${base_url}api/verify-otp`, {
