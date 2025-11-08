@@ -97,7 +97,7 @@ export default function UpcomingPali() {
       <LinearGradient colors={['#667eea', '#764ba2']} style={styles.eventGradient}>
         <View style={styles.eventContent}>
           <Text style={styles.eventTitle}>{item.seba}</Text>
-          <Text style={styles.eventSubtitle}>🕒 {item.time} | ID: {item.beddha_id}</Text>
+          <Text style={styles.eventSubtitle}>🕒 {item.time} | Beddha: {item.beddha_id}</Text>
         </View>
       </LinearGradient>
     </View>

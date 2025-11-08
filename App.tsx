@@ -53,7 +53,6 @@ export const base_url = "https://pratiharinijog.mandirparikrama.com/";
 
 const App = () => {
 
-
   const [showSplash, setShowSplash] = useState(true);
   const [isConnected, setIsConnected] = useState(true);
   const [access_token, setAccess_token] = useState<string | null>(null);
@@ -128,8 +127,8 @@ const App = () => {
           <Stack.Screen name="NoInternet" component={NoInternet} />
         ) : (
           <>
-            {access_token ? <Stack.Screen name="PratihariProfileForm" component={PratihariProfileForm} /> : <Stack.Screen name="NewLogin" component={NewLogin} />}
-            {!access_token ? <Stack.Screen name="PratihariProfileForm" component={PratihariProfileForm} /> : <Stack.Screen name="NewLogin" component={NewLogin} />}
+            {access_token ? <Stack.Screen name="PratihariForm" component={PratihariForm} /> : <Stack.Screen name="NewLogin" component={NewLogin} />}
+            {!access_token ? <Stack.Screen name="PratihariForm" component={PratihariForm} /> : <Stack.Screen name="NewLogin" component={NewLogin} />}
             <Stack.Screen name="Otp" component={Otp} />
             <Stack.Screen name="Register" component={Register} />
             <Stack.Screen name="ThankYouPage" component={ThankYouPage} />

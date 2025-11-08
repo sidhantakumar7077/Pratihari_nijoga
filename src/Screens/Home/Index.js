@@ -1,4 +1,4 @@
-import { SafeAreaView, StyleSheet, Text, View, TouchableOpacity, Image, FlatList, ImageBackground, ScrollView, BackHandler, ToastAndroid, StatusBar } from 'react-native'
+import { SafeAreaView, StyleSheet, Text, View, TouchableOpacity, Image, FlatList, ImageBackground, ScrollView, BackHandler, ToastAndroid, StatusBar, Modal, Alert, ActivityIndicator } from 'react-native'
 import React, { useEffect, useRef, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation, useIsFocused } from '@react-navigation/native';
@@ -11,6 +11,7 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import Swiper from 'react-native-swiper';
 import { base_url } from '../../../App';
 import DrawerModal from "../../Component/DrawerModal";
+import moment from 'moment';
 
 // images
 const image1 = require('../../assets/images/slideImg5.jpg');
@@ -99,6 +100,11 @@ const Index = () => {
     const closeDrawer = () => setIsDrawerOpen(false);
     const navigation = useNavigation();
     const isFocused = useIsFocused();
+    const [currentSeba, setCurrentSeba] = useState(null);
+    const [isRunning, setIsRunning] = useState(false);
+    const [actionLoading, setActionLoading] = useState(false);
+    const [confirmVisible, setConfirmVisible] = useState(false);
+    const [confirmAction, setConfirmAction] = useState(null);
 
     useEffect(() => {
         const handleBackPress = () => {
@@ -126,7 +132,8 @@ const Index = () => {
 
     const [profileDetails, setProfileDetails] = useState(null);
     const [rejetedReason, setRejetedReason] = useState(null);
-    // const [todayBedhhaData, setTodayBedhhaData] = useState(null);
+    const [todayPratihariBedha, setTodayPratihariBedha] = useState(null);
+    const [todayGochhikarBedha, setTodayGochhikarBedha] = useState(null);
 
     const getProfileDetails = async () => {
         try {
@@ -143,7 +150,8 @@ const Index = () => {
                 // console.log('Profile details fetched successfully', data.data.profile);
                 setProfileDetails(data.data.profile);
                 setRejetedReason(data.data.reject_reason.reason);
-                // setTodayBedhhaData();
+                setTodayPratihariBedha(data.data.today_pratihari_beddha);
+                setTodayGochhikarBedha(data.data.today_gochhikar_beddha);
             } else {
                 console.log('Failed to fetch profile details', data);
             }
@@ -152,9 +160,106 @@ const Index = () => {
         }
     }
 
+    // ---- FETCH & PICK CURRENT/UPCOMING ----
+    const fetchSebaAndBedhas = async () => {
+        try {
+            const token = await AsyncStorage.getItem('storeAccesstoken');
+            const res = await fetch(`${base_url}api/pratihari-seba-dates`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+
+            const text = await res.text();
+            let data;
+            try { data = JSON.parse(text); } catch { throw new Error(text?.slice(0, 300) || 'Non-JSON'); }
+
+            if (data?.status && data?.data) {
+                const today = moment().format('YYYY-MM-DD');
+                const dates = Object.keys(data.data).sort();
+
+                if (data.data[today]) {
+                    const sebaObj = data.data[today][0]; // { seba_id, seba, beddha_id, type }
+                    setCurrentSeba({ date: today, ...sebaObj }); // keep seba_id as string
+                    setIsRunning(sebaObj?.seba_status === 'started');
+                } else {
+                    const upcoming = dates.find(d => moment(d).isAfter(moment()));
+                    if (upcoming) {
+                        const sebaObj = data.data[upcoming][0];
+                        setCurrentSeba({ date: upcoming, ...sebaObj });
+                    } else {
+                        setCurrentSeba(null);
+                    }
+                }
+            }
+        } catch (e) {
+            console.log('Error fetching events:', e);
+        }
+    };
+
+    // ---- GENERIC AUTH POST + ENDPOINTS ----
+    const apiPost = async (path, body) => {
+        const token = await AsyncStorage.getItem('storeAccesstoken');
+        const res = await fetch(`${base_url}${path}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify(body),
+        });
+        const text = await res.text();
+        let data;
+        try { data = JSON.parse(text); } catch { throw new Error(text?.slice(0, 300) || 'Non-JSON response'); }
+        if (!res.ok) throw new Error(data?.message || `HTTP ${res.status}`);
+        return data;
+    };
+
+    const startSeba = (payload) => apiPost('api/start-seba', payload);
+    const endSeba = (payload) => apiPost('api/end-seba', payload);
+
+    // ---- CONFIRM & EXECUTE ----
+    const handleStartStopPress = () => {
+        if (!currentSeba) return;
+        const isToday = moment().isSame(currentSeba.date, 'day');
+        if (!isToday) return;
+
+        const willStart = currentSeba.seba_status !== 'started';
+        setConfirmAction(willStart ? 'start' : 'stop');
+        setConfirmVisible(true);
+    };
+
+    const confirmActionNow = async () => {
+        if (!currentSeba) return;
+        const { seba_id, beddha_id } = currentSeba;
+        if (!seba_id || !beddha_id) return;
+
+        setActionLoading(true);
+        try {
+            if (confirmAction === 'start') {
+                await startSeba({ seba_id, beddha_id });
+                setCurrentSeba(prev => ({ ...prev, seba_status: 'started' }));
+                setIsRunning(true);
+            } else {
+                await endSeba({ seba_id, beddha_id });
+                // backend marks completed; reflect that here
+                setCurrentSeba(prev => ({ ...prev, seba_status: 'completed' }));
+                setIsRunning(false);
+            }
+        } catch (e) {
+            Alert.alert('Error', e.message);
+        } finally {
+            setActionLoading(false);
+            setConfirmVisible(false);
+        }
+    };
+
     useEffect(() => {
         if (isFocused) {
             getProfileDetails();
+            fetchSebaAndBedhas();
         }
     }, [isFocused]);
 
@@ -177,25 +282,6 @@ const Index = () => {
             </TouchableOpacity>
         );
     };
-
-    // const renderStat = ({ item }) => (
-    //     <View style={styles.statCard}>
-    //         <View style={styles.statIconContainer}>
-    //             <Ionicons name={item.icon} size={24} color="#6366f1" />
-    //         </View>
-    //         <Text style={styles.statValue}>{item.value}</Text>
-    //         <Text style={styles.statLabel}>{item.label}</Text>
-    //     </View>
-    // );
-
-    // const renderQuickAction = ({ item }) => (
-    //     <TouchableOpacity style={[styles.quickActionCard, { backgroundColor: item.color + '15' }]}>
-    //         <View style={[styles.quickActionIcon, { backgroundColor: item.color }]}>
-    //             <Ionicons name={item.icon} size={20} color="#ffffff" />
-    //         </View>
-    //         <Text style={styles.quickActionTitle}>{item.title}</Text>
-    //     </TouchableOpacity>
-    // );
 
     return (
         <SafeAreaView style={styles.container}>
@@ -266,53 +352,188 @@ const Index = () => {
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={styles.scrollContent}
             >
-                {/* <View style={styles.statsSection}>
-                    <Text style={styles.sectionTitle}>Overview</Text>
-                    <FlatList
-                        data={stats}
-                        renderItem={renderStat}
-                        keyExtractor={(item) => item.label}
-                        horizontal
-                        showsHorizontalScrollIndicator={false}
-                        contentContainerStyle={styles.statsContainer}
-                    />
-                </View> */}
 
-                <View style={styles.currentEventSection}>
-                    <View style={styles.currentEventCard}>
-                        <LinearGradient
-                            colors={['#ff6b6b', '#feca57']}
-                            // colors={['#4c1d95', '#6366f1']}
-                            style={styles.currentEventGradient}
-                            start={{ x: 0, y: 0 }}
-                            end={{ x: 1, y: 0 }}
-                        >
-                            <View style={styles.currentEventContent}>
-                                <View style={styles.currentEventInfo}>
-                                    <Text style={styles.currentEventTitle}>Pratihari Seba</Text>
-                                    <View style={styles.currentEventDetails}>
-                                        <View style={styles.currentEventDetail}>
-                                            <Ionicons name="calendar-outline" size={16} color="#ffffff" />
-                                            <Text style={styles.currentEventDetailText}>Start Time: </Text>
-                                        </View>
-                                        <View style={styles.currentEventDetail}>
-                                            <Ionicons name="time-outline" size={16} color="#ffffff" />
-                                            <Text style={styles.currentEventDetailText}>Duration</Text>
-                                        </View>
-                                    </View>
-                                </View>
-                                <View style={styles.currentEventStatus}>
-                                    <View style={styles.statusBadge}>
-                                        <Text style={styles.statusText}>Running</Text>
-                                    </View>
-                                    <Ionicons name="chevron-forward" size={24} color="#ffffff" />
-                                </View>
-                            </View>
-                        </LinearGradient>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 15, marginHorizontal: 20 }}>
+                    {/* Pratihari Card */}
+                    <View
+                        style={{
+                            width: '48%',
+                            height: 80,
+                            backgroundColor: '#e7f7d7',
+                            borderRadius: 16,
+                            padding: 15,
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            shadowColor: '#000',
+                            shadowOpacity: 0.1,
+                            shadowRadius: 6,
+                            elevation: 4,
+                        }}
+                    >
+                        <View style={{ width: '35%', alignItems: 'center' }}>
+                            <Ionicons name="people" size={32} color="#16a34a" />
+                        </View>
+                        <View style={{ width: '60%' }}>
+                            <Text style={{ fontSize: 16, fontWeight: '700', color: '#16a34a' }}>
+                                Pratihari
+                            </Text>
+                            <Text style={{ fontSize: 13, color: '#16a34a', marginTop: 4 }}>
+                                {todayPratihariBedha || '-'}
+                            </Text>
+                        </View>
+                    </View>
+
+                    {/* Gochhikar Card */}
+                    <View
+                        style={{
+                            width: '48%',
+                            height: 80,
+                            backgroundColor: '#d7f7f4',
+                            borderRadius: 16,
+                            padding: 15,
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            shadowColor: '#000',
+                            shadowOpacity: 0.1,
+                            shadowRadius: 6,
+                            elevation: 4,
+                        }}
+                    >
+                        <View style={{ width: '35%', alignItems: 'center' }}>
+                            <Feather name="users" size={32} color="#0ea5e9" />
+                        </View>
+                        <View style={{ width: '60%' }}>
+                            <Text style={{ fontSize: 16, fontWeight: '700', color: '#0ea5e9' }}>
+                                Gochhikar
+                            </Text>
+                            <Text style={{ fontSize: 13, color: '#0ea5e9', marginTop: 4 }}>
+                                {todayGochhikarBedha || '-'}
+                            </Text>
+                        </View>
                     </View>
                 </View>
 
-                {/* {rejetedReason && (
+                {currentSeba && (
+                    <View style={styles.currentEventSection}>
+                        <View style={styles.currentEventCard}>
+                            <LinearGradient
+                                colors={['#ff6b6b', '#feca57']}
+                                style={styles.currentEventGradient}
+                                start={{ x: 0, y: 0 }}
+                                end={{ x: 1, y: 0 }}
+                            >
+                                <View style={styles.currentEventContent}>
+                                    {/* Info */}
+                                    <View style={styles.currentEventInfo}>
+                                        <Text style={styles.currentEventTitle}>
+                                            {currentSeba?.seba || 'No Seba'}
+                                        </Text>
+                                        {currentSeba && (
+                                            <View style={styles.currentEventDetails}>
+                                                <View style={styles.currentEventDetail}>
+                                                    <Ionicons name="calendar-outline" size={16} color="#fff" />
+                                                    <Text style={styles.currentEventDetailText}>
+                                                        {moment(currentSeba.date).format('DD MMM YYYY')}
+                                                    </Text>
+                                                </View>
+                                                <View style={styles.currentEventDetail}>
+                                                    <Ionicons name="person-outline" size={16} color="#fff" />
+                                                    <Text style={styles.currentEventDetailText}>
+                                                        Beddha: {currentSeba.beddha_id}
+                                                    </Text>
+                                                </View>
+                                            </View>
+                                        )}
+                                    </View>
+
+                                    {/* Status / Button */}
+                                    <View style={styles.currentEventStatus}>
+                                        {currentSeba ? (
+                                            moment().isSame(currentSeba.date, 'day') ? (
+                                                currentSeba.seba_status === 'completed' ? (
+                                                    <View style={[styles.statusBadge, { backgroundColor: 'rgba(16,185,129,0.25)' }]}>
+                                                        <Text style={styles.statusText}>Completed</Text>
+                                                    </View>
+                                                ) : (
+                                                    <TouchableOpacity
+                                                        style={styles.statusBadge}
+                                                        onPress={handleStartStopPress}
+                                                        disabled={actionLoading}
+                                                        activeOpacity={0.8}
+                                                    >
+                                                        {actionLoading ? (
+                                                            <ActivityIndicator size="small" color="#fff" />
+                                                        ) : (
+                                                            <Text style={styles.statusText}>
+                                                                {currentSeba.seba_status === 'started' ? 'Stop' : 'Start'}
+                                                            </Text>
+                                                        )}
+                                                    </TouchableOpacity>
+                                                )
+                                            ) : (
+                                                <View style={styles.statusBadge}>
+                                                    <Text style={styles.statusText}>
+                                                        {currentSeba.seba_status === 'started'
+                                                            ? 'Started'
+                                                            : currentSeba.seba_status === 'completed' || currentSeba.seba_status === 'ended'
+                                                                ? 'Completed'
+                                                                : 'Upcoming'}
+                                                    </Text>
+                                                </View>
+                                            )
+                                        ) : null}
+                                    </View>
+                                </View>
+                            </LinearGradient>
+                        </View>
+
+                        {/* Confirm Modal */}
+                        <Modal
+                            visible={confirmVisible}
+                            transparent
+                            animationType="fade"
+                            onRequestClose={() => setConfirmVisible(false)}
+                        >
+                            <View style={styles.modalOverlay}>
+                                <View style={styles.modalCard}>
+                                    <Text style={styles.modalTitle}>
+                                        {confirmAction === 'start' ? 'Start Seba?' : 'Stop Seba?'}
+                                    </Text>
+                                    <Text style={styles.modalText}>
+                                        {currentSeba?.seba} • {moment(currentSeba?.date).format('DD MMM YYYY')}
+                                        {'\n'}Beddha: {currentSeba?.beddha_id}
+                                    </Text>
+                                    <View style={styles.modalButtons}>
+                                        <TouchableOpacity
+                                            style={[styles.modalBtn, styles.modalCancel]}
+                                            onPress={() => setConfirmVisible(false)}
+                                            disabled={actionLoading}
+                                        >
+                                            <Text style={styles.modalBtnText}>Cancel</Text>
+                                        </TouchableOpacity>
+                                        <TouchableOpacity
+                                            style={[styles.modalBtn, styles.modalConfirm]}
+                                            onPress={confirmActionNow}
+                                            disabled={actionLoading}
+                                        >
+                                            {actionLoading ? (
+                                                <ActivityIndicator size="small" color="#fff" />
+                                            ) : (
+                                                <Text style={styles.modalBtnText}>
+                                                    {confirmAction === 'start' ? 'Start' : 'Stop'}
+                                                </Text>
+                                            )}
+                                        </TouchableOpacity>
+                                    </View>
+                                </View>
+                            </View>
+                        </Modal>
+                    </View>
+                )}
+
+                {rejetedReason && (
                     <View style={styles.noticeSection}>
                         <View style={styles.noticeCard}>
                             <LinearGradient
@@ -333,19 +554,7 @@ const Index = () => {
                             </LinearGradient>
                         </View>
                     </View>
-                )} */}
-
-                {/* <View style={styles.quickActionsSection}>
-                    <Text style={styles.sectionTitle}>Quick Actions</Text>
-                    <FlatList
-                        data={quickActions}
-                        renderItem={renderQuickAction}
-                        keyExtractor={(item) => item.id.toString()}
-                        horizontal
-                        showsHorizontalScrollIndicator={false}
-                        contentContainerStyle={styles.quickActionsContainer}
-                    />
-                </View> */}
+                )}
 
                 <View style={styles.servicesSection}>
                     {/* <Text style={styles.sectionTitle}>Featured Services</Text> */}
@@ -362,7 +571,7 @@ const Index = () => {
 
                 <TouchableOpacity onPress={() => navigation.navigate('SebaDetails')} style={styles.footerSection}>
                     <LinearGradient
-                        colors={['#4c1d95', '#6366f1']}
+                        colors={['#ff6b6b', '#feca57']}
                         style={styles.footerCard}
                         start={{ x: 0, y: 0 }}
                         end={{ x: 1, y: 1 }}
@@ -691,17 +900,26 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     statusBadge: {
-        backgroundColor: 'rgba(255,255,255,0.2)',
-        paddingHorizontal: 12,
-        paddingVertical: 6,
+        backgroundColor: 'rgba(26, 8, 182, 0.71)',
+        paddingHorizontal: 15,
+        paddingVertical: 9,
         borderRadius: 12,
         marginBottom: 8,
     },
     statusText: {
-        color: '#ffffff',
-        fontSize: 12,
+        color: '#ffffffff',
+        fontSize: 14,
         fontWeight: 'bold',
     },
+    modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center', padding: 20 },
+    modalCard: { width: '100%', maxWidth: 380, backgroundColor: '#fff', borderRadius: 16, padding: 20 },
+    modalTitle: { fontSize: 18, fontWeight: '700', marginBottom: 6, color: '#111827' },
+    modalText: { color: '#374151', marginBottom: 16, lineHeight: 20 },
+    modalButtons: { flexDirection: 'row', justifyContent: 'flex-end', gap: 12 },
+    modalBtn: { paddingVertical: 10, paddingHorizontal: 16, borderRadius: 10 },
+    modalCancel: { backgroundColor: '#e5e7eb' },
+    modalConfirm: { backgroundColor: '#10b981' }, // green; change to red for stop if you like
+    modalBtnText: { color: '#111827', fontWeight: '600' },
     noticeSection: {
         marginHorizontal: 20,
         marginBottom: 20,
@@ -843,7 +1061,7 @@ const styles = StyleSheet.create({
     },
     footerSubtitle: {
         fontSize: 16,
-        color: '#94a3b8',
+        color: '#3e3406ff',
         marginTop: 8,
         textAlign: 'center',
     },

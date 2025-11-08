@@ -181,7 +181,7 @@ const NewLogin = () => {
             if (res.ok) {
                 console.log("OTP verified successfully", data.user);
                 await AsyncStorage.setItem('storeAccesstoken', data.token);
-                navigation.replace('PratihariProfileForm');
+                navigation.replace('PratihariForm');
             } else {
                 showError(data?.message || 'Failed to verify OTP. Please try again.');
                 console.log("OTP verification failed", data);
@@ -240,7 +240,7 @@ const NewLogin = () => {
                                 <Image source={require('../../assets/images/icon876.png')} style={{ width: 200, height: 100 }} />
                             </View>
                             <Text style={styles.brandName}>Pratihari Nijoga</Text>
-                            <Text style={styles.tagline}>Your trusted job portal</Text>
+                            {/* <Text style={styles.tagline}>Your trusted job portal</Text> */}
                         </View>
 
                         {/* Main Card */}

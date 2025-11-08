@@ -1,4 +1,4 @@
-import { SafeAreaView, StyleSheet, Text, View, TouchableOpacity, ScrollView, FlatList, TextInput, Image, Modal, KeyboardAvoidingView, Platform, Switch } from 'react-native';
+import { SafeAreaView, StyleSheet, Text, View, TouchableOpacity, ScrollView, FlatList, TextInput, Image, Modal, KeyboardAvoidingView, Platform, Switch, ActivityIndicator } from 'react-native';
 import React, { useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
@@ -35,6 +35,7 @@ const Index = () => {
     const [activeTab, setActiveTab] = useState('personal');
     const [isFocused, setIsFocused] = useState(null);
     const navigation = useNavigation();
+    const [isLoading, setIsLoading] = useState(false);
 
     const getPratihariStatus = async () => {
         const token = await AsyncStorage.getItem('storeAccesstoken');
@@ -174,7 +175,6 @@ const Index = () => {
             const data = await response.json();
             if (response.ok) {
                 console.log('ID Card Details saved successfully', data);
-                // setActiveTab('address');
                 handleNextTab('address');
             } else {
                 console.log("Error: ", data.message || 'Failed to save ID Card Details. Please try again.');
@@ -215,6 +215,7 @@ const Index = () => {
     const [user_photo, setUser_photo] = useState('Select Image');
     const [dateOfJoinTempleSeba, setDateOfJoinTempleSeba] = useState(null);
     const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
+    const [sebaYear, setSebaYear] = useState(null);
     const [isYearPickerVisible, setYearPickerVisible] = useState(false);
     const [dateRemember, setDateRemember] = useState(null);
     const [personalDetailsErrors, setPersonalDetailsErrors] = useState({});
@@ -315,6 +316,7 @@ const Index = () => {
     const SavePersonalDetails = async () => {
         if (!validateProfileFields()) return;
 
+        setIsLoading(true);
         const token = await AsyncStorage.getItem('storeAccesstoken');
         const formData = new FormData();
         formData.append('first_name', firstName);
@@ -334,14 +336,18 @@ const Index = () => {
                 name: helthCardPhoto_source.fileName,
             });
         }
-        formData.append('joining_date', moment(dateOfJoinTempleSeba).format('YYYY-MM-DD'));
+        formData.append('joining_date', dateOfJoinTempleSeba ? moment(dateOfJoinTempleSeba).format('YYYY-MM-DD') : null);
+        formData.append('joining_year', sebaYear);
         if (userPhoto_source) {
-            formData.append('profile_photo', {
+            formData.append('original_photo', {
                 uri: userPhoto_source.uri,
                 type: userPhoto_source.type,
                 name: userPhoto_source.fileName,
             });
         }
+
+        // console.log("Form Data to be sent:", formData);
+        // return; // Debugging line to check formData before sending
 
         try {
             const response = await fetch(base_url + "api/save-profile", {
@@ -351,7 +357,17 @@ const Index = () => {
                 },
                 body: formData,
             });
-            const data = await response.json();
+            const text = await response.text();
+            console.log("Raw response:", text);
+
+            let data;
+            try {
+                data = JSON.parse(text);
+            } catch (err) {
+                console.error("Response was not valid JSON", err);
+                return;
+            }
+
             if (response.ok) {
                 console.log('Personal Details saved successfully', data);
                 handleNextTab('family');
@@ -360,10 +376,17 @@ const Index = () => {
             }
         } catch (error) {
             console.error("Network request failed: ", error);
+        } finally {
+            setIsLoading(false);
         }
     };
 
     // Family Information
+    const [familySuggestions, setFamilySuggestions] = useState({ father: [], mother: [] });
+    const [filteredFatherSuggestions, setFilteredFatherSuggestions] = useState([]);
+    const [filteredMotherSuggestions, setFilteredMotherSuggestions] = useState([]);
+    const [showFatherSuggestions, setShowFatherSuggestions] = useState(false);
+    const [showMotherSuggestions, setShowMotherSuggestions] = useState(false);
     const [fatherName, setFatherName] = useState('');
     const [motherName, setMotherName] = useState('');
     const [fathersPhoto_source, setFathersPhoto_source] = useState(null);
@@ -422,6 +445,7 @@ const Index = () => {
                 console.log('ImagePicker Error: ', response.error);
             } else {
                 const source = response.assets[0]
+                // console.log("source", source);
                 if (type === 'father') {
                     setFathersPhoto_source(source);
                     setFathers_photo(response.assets[0].fileName);
@@ -473,6 +497,56 @@ const Index = () => {
         setTimeout(() => setFamilyDetailsErrors({}), 5000);
 
         return Object.keys(newErrors).length === 0; // Returns true if no errors
+    };
+
+    useEffect(() => {
+        const fetchFamilySuggestions = async () => {
+            try {
+                const token = await AsyncStorage.getItem('storeAccesstoken');
+                const response = await fetch(`${base_url}api/pratihari-family`, {
+                    headers: { Authorization: `Bearer ${token}` },
+                });
+
+                const json = await response.json();
+
+                if (json?.status === 200) {
+                    setFamilySuggestions({
+                        father: json.data.father.filter(item => item.name),
+                        mother: json.data.mother.filter(item => item.name),
+                    });
+                }
+            } catch (err) {
+                console.log("Error fetching family list:", err);
+            }
+        };
+
+        fetchFamilySuggestions();
+    }, []);
+
+    const handleFatherInput = (text) => {
+        setFatherName(text);
+        if (text.length > 0) {
+            const filtered = familySuggestions.father.filter(item =>
+                item.name.toLowerCase().includes(text.toLowerCase())
+            );
+            setFilteredFatherSuggestions(filtered);
+            setShowFatherSuggestions(true);
+        } else {
+            setShowFatherSuggestions(false);
+        }
+    };
+
+    const handleMotherInput = (text) => {
+        setMotherName(text);
+        if (text.length > 0) {
+            const filtered = familySuggestions.mother.filter(item =>
+                item.name.toLowerCase().includes(text.toLowerCase())
+            );
+            setFilteredMotherSuggestions(filtered);
+            setShowMotherSuggestions(true);
+        } else {
+            setShowMotherSuggestions(false);
+        }
     };
 
     const saveFamilyDetails = async () => {
@@ -528,6 +602,10 @@ const Index = () => {
                 },
                 body: formData,
             });
+            // const text = await response.text(); // 👈 read raw response first
+            // console.log("Raw response:", text);
+            // return; // Debugging line to check raw response
+
             const data = await response.json();
             if (response.ok) {
                 console.log('Family Details saved successfully', data);
@@ -545,9 +623,9 @@ const Index = () => {
     const [present_sahi, setPresent_sahi] = useState('');
     const [present_post, setPresent_post] = useState('');
     const [present_PS, setPresent_PS] = useState('');
-    const [present_district, setPresent_district] = useState('');
-    const [present_state, setPresent_state] = useState('');
-    const [present_country, setPresent_country] = useState('');
+    const [present_district, setPresent_district] = useState('Puri');
+    const [present_state, setPresent_state] = useState('Odisha');
+    const [present_country, setPresent_country] = useState('India');
     const [present_pincode, setPresent_pincode] = useState('');
     const [present_landmark, setPresent_landmark] = useState('');
     const [isPermanentSameAsPresent, setIsPermanentSameAsPresent] = useState(true);
@@ -555,9 +633,9 @@ const Index = () => {
     const [permanent_sahi, setPermanent_sahi] = useState('');
     const [permanent_post, setPermanent_post] = useState('');
     const [permanent_PS, setPermanent_PS] = useState('');
-    const [permanent_district, setPermanent_district] = useState('');
-    const [permanent_state, setPermanent_state] = useState('');
-    const [permanent_country, setPermanent_country] = useState('');
+    const [permanent_district, setPermanent_district] = useState('Puri');
+    const [permanent_state, setPermanent_state] = useState('Odisha');
+    const [permanent_country, setPermanent_country] = useState('India');
     const [permanent_pincode, setPermanent_pincode] = useState('');
     const [permanent_landmark, setPermanent_landmark] = useState('');
     const [addressDetailsErrors, setAddressDetailsErrors] = useState({});
@@ -565,25 +643,25 @@ const Index = () => {
     const validateAddressFields = () => {
         const newErrors = {};
 
-        if (!present_address) newErrors.present_address = 'Present Address is required';
-        if (!present_sahi) newErrors.present_sahi = 'Present Sahi is required';
-        if (!present_post) newErrors.present_post = 'Present Post is required';
-        if (!present_PS) newErrors.present_PS = 'Present Police Station is required';
-        if (!present_district) newErrors.present_district = 'Present District is required';
-        if (!present_state) newErrors.present_state = 'Present State is required';
-        if (!present_country) newErrors.present_country = 'Present Country is required';
-        if (!present_pincode) newErrors.present_pincode = 'Present Pincode is required';
-        if (!present_landmark) newErrors.present_landmark = 'Present Landmark is required';
+        if (!permanent_address) newErrors.permanent_address = 'Permanent Address is required';
+        if (!permanent_sahi) newErrors.permanent_sahi = 'Permanent Sahi is required';
+        if (!permanent_post) newErrors.permanent_post = 'Permanent Post is required';
+        if (!permanent_PS) newErrors.permanent_PS = 'Permanent Police Station is required';
+        if (!permanent_district) newErrors.permanent_district = 'Permanent District is required';
+        if (!permanent_state) newErrors.permanent_state = 'Permanent State is required';
+        if (!permanent_country) newErrors.permanent_country = 'Permanent Country is required';
+        if (!permanent_pincode) newErrors.permanent_pincode = 'Permanent Pincode is required';
+        if (!permanent_landmark) newErrors.permanent_landmark = 'Permanent Landmark is required';
         if (!isPermanentSameAsPresent) {
-            if (!permanent_address) newErrors.permanent_address = 'Permanent Address is required';
-            if (!permanent_sahi) newErrors.permanent_sahi = 'Permanent Sahi is required';
-            if (!permanent_post) newErrors.permanent_post = 'Permanent Post is required';
-            if (!permanent_PS) newErrors.permanent_PS = 'Permanent Police Station is required';
-            if (!permanent_district) newErrors.permanent_district = 'Permanent District is required';
-            if (!permanent_state) newErrors.permanent_state = 'Permanent State is required';
-            if (!permanent_country) newErrors.permanent_country = 'Permanent Country is required';
-            if (!permanent_pincode) newErrors.permanent_pincode = 'Permanent Pincode is required';
-            if (!permanent_landmark) newErrors.permanent_landmark = 'Permanent Landmark is required';
+            if (!present_address) newErrors.present_address = 'Present Address is required';
+            if (!present_sahi) newErrors.present_sahi = 'Present Sahi is required';
+            if (!present_post) newErrors.present_post = 'Present Post is required';
+            if (!present_PS) newErrors.present_PS = 'Present Police Station is required';
+            if (!present_district) newErrors.present_district = 'Present District is required';
+            if (!present_state) newErrors.present_state = 'Present State is required';
+            if (!present_country) newErrors.present_country = 'Present Country is required';
+            if (!present_pincode) newErrors.present_pincode = 'Present Pincode is required';
+            if (!present_landmark) newErrors.present_landmark = 'Present Landmark is required';
         }
 
         // Set errors and clear them after 5 seconds
@@ -596,17 +674,6 @@ const Index = () => {
     const saveAddressDetails = async () => {
         const token = await AsyncStorage.getItem('storeAccesstoken');
         const formData = new FormData();
-        formData.append('sahi', present_sahi);
-        formData.append('post', present_post);
-        formData.append('police_station', present_PS);
-        formData.append('district', present_district);
-        formData.append('state', present_state);
-        formData.append('country', present_country);
-        formData.append('pincode', present_pincode);
-        formData.append('landmark', present_landmark);
-        formData.append('address', present_address);
-
-        formData.append('same_as_permanent_address', isPermanentSameAsPresent);
 
         formData.append('per_address', permanent_address);
         formData.append('per_sahi', permanent_sahi);
@@ -617,6 +684,21 @@ const Index = () => {
         formData.append('per_country', permanent_country);
         formData.append('per_pincode', permanent_pincode);
         formData.append('per_landmark', permanent_landmark);
+
+        formData.append('same_as_permanent_address', isPermanentSameAsPresent);
+
+        formData.append('sahi', present_sahi);
+        formData.append('post', present_post);
+        formData.append('police_station', present_PS);
+        formData.append('district', present_district);
+        formData.append('state', present_state);
+        formData.append('country', present_country);
+        formData.append('pincode', present_pincode);
+        formData.append('landmark', present_landmark);
+        formData.append('address', present_address);
+
+        // console.log("Form Data to be sent:", formData);
+        // return; // Debugging line to check formData before sending
 
         try {
             const response = await fetch(base_url + "api/save-address", {
@@ -1088,7 +1170,7 @@ const Index = () => {
                                 {/* Date Of Join Temple Seba Input */}
                                 <TouchableOpacity onPress={() => (dateRemember ? setYearPickerVisible(true) : setDatePickerVisibility(true))}>
                                     <TextInput style={{ color: '#000', borderWidth: 0.5, borderColor: '#353535', backgroundColor: '#ffffff', padding: 10, paddingLeft: 18, borderRadius: 10, marginVertical: 12 }}
-                                        value={dateOfJoinTempleSeba ? moment(dateOfJoinTempleSeba).format(dateRemember ? 'YYYY' : 'DD-MM-YYYY') : ''}
+                                        value={dateRemember ? (sebaYear ? sebaYear.toString() : '') : (dateOfJoinTempleSeba ? moment(dateOfJoinTempleSeba).format('DD-MM-YYYY') : '')}
                                         editable={false}
                                         placeholder="Year of seba / joining seba"
                                         placeholderTextColor={'#4d6285'}
@@ -1131,22 +1213,12 @@ const Index = () => {
                                                 renderItem={({ item }) => (
                                                     <TouchableOpacity
                                                         onPress={() => {
-                                                            setDateOfJoinTempleSeba(new Date(item, 0, 1));
+                                                            setSebaYear(item);
                                                             setYearPickerVisible(false);
                                                         }}
-                                                        style={{
-                                                            paddingVertical: 12,
-                                                            marginVertical: 4,
-                                                            backgroundColor: '#f8f8f8',
-                                                            borderRadius: 10,
-                                                            alignItems: 'center',
-                                                            shadowColor: '#000',
-                                                            shadowOffset: { width: 0, height: 2 },
-                                                            shadowOpacity: 0.2,
-                                                            shadowRadius: 3,
-                                                            elevation: 3,
-                                                        }}>
-                                                        <Text style={{ fontSize: 18, fontWeight: 'bold', color: '#4d6285' }}>{item}</Text>
+                                                        style={styles.yearItem}
+                                                    >
+                                                        <Text style={styles.yearText}>{item}</Text>
                                                     </TouchableOpacity>
                                                 )}
                                             />
@@ -1191,7 +1263,11 @@ const Index = () => {
                                     onPress={SavePersonalDetails}
                                     style={{ width: '45%', backgroundColor: '#051b65', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', alignSelf: 'center', borderRadius: 50, paddingVertical: 10, marginVertical: 15 }}
                                 >
-                                    <Text style={styles.submitText}>Next</Text>
+                                    {isLoading ? (
+                                        <ActivityIndicator size="small" color="#fff" style={{ marginRight: 8 }} />
+                                    ) : (
+                                        <Text style={styles.submitText}>Next</Text>
+                                    )}
                                 </TouchableOpacity>
                             </View>
                         </ScrollView>
@@ -1211,9 +1287,29 @@ const Index = () => {
                                     value={fatherName}
                                     customLabelStyles={{ colorFocused: '#e96a01', fontSizeFocused: 14 }}
                                     labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
-                                    onChangeText={value => setFatherName(value)}
+                                    // onChangeText={value => setFatherName(value)}
+                                    onChangeText={handleFatherInput}
                                     containerStyles={{ borderWidth: 0.5, borderColor: '#353535', backgroundColor: '#ffffff', padding: 10, borderRadius: 8, marginVertical: 12, borderRadius: 10 }}
                                 />
+                                {showFatherSuggestions && filteredFatherSuggestions.length > 0 && (
+                                    <View style={styles.suggestionBox}>
+                                        {filteredFatherSuggestions.map((item, index) => (
+                                            <TouchableOpacity
+                                                key={index}
+                                                onPress={() => {
+                                                    setFatherName(item.name);
+                                                    if (item.photo) {
+                                                        setFathers_photo(item.photo);
+                                                        setFathersPhoto_source({ uri: item.photo, fileName: item.photo.split("/").pop(), type: 'image/jpeg' });
+                                                    }
+                                                    setShowFatherSuggestions(false);
+                                                }}
+                                            >
+                                                <Text style={styles.suggestionItem}>{item.name}</Text>
+                                            </TouchableOpacity>
+                                        ))}
+                                    </View>
+                                )}
                                 {familyDetailsErrors.fatherName && <Text style={styles.errorText}>{familyDetailsErrors.fatherName}</Text>}
                                 {/* Father's Photo Input */}
                                 <Text style={[styles.label, (fathers_photo !== 'Select Image') && styles.focusedLabel]}>Father's Photo</Text>
@@ -1237,9 +1333,29 @@ const Index = () => {
                                     value={motherName}
                                     customLabelStyles={{ colorFocused: '#e96a01', fontSizeFocused: 14 }}
                                     labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
-                                    onChangeText={value => setMotherName(value)}
+                                    // onChangeText={value => setMotherName(value)}
+                                    onChangeText={handleMotherInput}
                                     containerStyles={{ borderWidth: 0.5, borderColor: '#353535', backgroundColor: '#ffffff', padding: 10, borderRadius: 8, marginVertical: 12, borderRadius: 10 }}
                                 />
+                                {showMotherSuggestions && filteredMotherSuggestions.length > 0 && (
+                                    <View style={styles.suggestionBox}>
+                                        {filteredMotherSuggestions.map((item, index) => (
+                                            <TouchableOpacity
+                                                key={index}
+                                                onPress={() => {
+                                                    setMotherName(item.name);
+                                                    if (item.photo) {
+                                                        setMothers_photo(item.photo);
+                                                        setMothersPhoto_source({ uri: item.photo, fileName: item.photo.split("/").pop(), type: 'image/jpeg' });
+                                                    }
+                                                    setShowMotherSuggestions(false);
+                                                }}
+                                            >
+                                                <Text style={styles.suggestionItem}>{item.name}</Text>
+                                            </TouchableOpacity>
+                                        ))}
+                                    </View>
+                                )}
                                 {familyDetailsErrors.motherName && <Text style={styles.errorText}>{familyDetailsErrors.motherName}</Text>}
                                 {/* Mother's Photo Input */}
                                 <Text style={[styles.label, (mothers_photo !== 'Select Image') && styles.focusedLabel]}>Mother's Photo</Text>
@@ -1508,102 +1624,102 @@ const Index = () => {
                         </View>
                         <ScrollView style={{ flex: 1 }}>
                             <View style={styles.cardBox}>
-                                {/* Present Sahi */}
+                                {/* Permanent Sahi */}
                                 <FloatingLabelInput
-                                    label="Present Sahi"
-                                    value={present_sahi}
+                                    label="Permanent Sahi"
+                                    value={permanent_sahi}
                                     customLabelStyles={{ colorFocused: '#e96a01', fontSizeFocused: 14 }}
                                     labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
-                                    onChangeText={value => setPresent_sahi(value)}
+                                    onChangeText={value => setPermanent_sahi(value)}
                                     containerStyles={{ borderWidth: 0.5, borderColor: '#353535', backgroundColor: '#ffffff', padding: 10, borderRadius: 8, marginVertical: 12, borderRadius: 10 }}
                                 />
-                                {addressDetailsErrors.present_sahi && <Text style={styles.errorText}>{addressDetailsErrors.present_sahi}</Text>}
-                                {/* Present Landmark Input */}
+                                {addressDetailsErrors.permanent_sahi && <Text style={styles.errorText}>{addressDetailsErrors.permanent_sahi}</Text>}
+                                {/* Permanent Landmark Input */}
                                 <FloatingLabelInput
-                                    label="Present Landmark"
-                                    value={present_landmark}
+                                    label="Permanent Landmark"
+                                    value={permanent_landmark}
                                     customLabelStyles={{ colorFocused: '#e96a01', fontSizeFocused: 14 }}
                                     labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
-                                    onChangeText={value => setPresent_landmark(value)}
+                                    onChangeText={value => setPermanent_landmark(value)}
                                     containerStyles={{ borderWidth: 0.5, borderColor: '#353535', backgroundColor: '#ffffff', padding: 10, borderRadius: 8, marginVertical: 12, borderRadius: 10 }}
                                 />
-                                {addressDetailsErrors.present_landmark && <Text style={styles.errorText}>{addressDetailsErrors.present_landmark}</Text>}
-                                {/* Present Post Input */}
+                                {addressDetailsErrors.permanent_landmark && <Text style={styles.errorText}>{addressDetailsErrors.permanent_landmark}</Text>}
+                                {/* Permanent Post Input */}
                                 <FloatingLabelInput
-                                    label="Present Post"
-                                    value={present_post}
+                                    label="Permanent Post"
+                                    value={permanent_post}
                                     customLabelStyles={{ colorFocused: '#e96a01', fontSizeFocused: 14 }}
                                     labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
-                                    onChangeText={value => setPresent_post(value)}
+                                    onChangeText={value => setPermanent_post(value)}
                                     containerStyles={{ borderWidth: 0.5, borderColor: '#353535', backgroundColor: '#ffffff', padding: 10, borderRadius: 8, marginVertical: 12, borderRadius: 10 }}
                                 />
-                                {addressDetailsErrors.present_post && <Text style={styles.errorText}>{addressDetailsErrors.present_post}</Text>}
-                                {/* Present Police station */}
+                                {addressDetailsErrors.permanent_post && <Text style={styles.errorText}>{addressDetailsErrors.permanent_post}</Text>}
+                                {/* Permanent Police station */}
                                 <FloatingLabelInput
-                                    label="Present Police Station"
-                                    value={present_PS}
+                                    label="Permanent Police Station"
+                                    value={permanent_PS}
                                     customLabelStyles={{ colorFocused: '#e96a01', fontSizeFocused: 14 }}
                                     labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
-                                    onChangeText={value => setPresent_PS(value)}
+                                    onChangeText={value => setPermanent_PS(value)}
                                     containerStyles={{ borderWidth: 0.5, borderColor: '#353535', backgroundColor: '#ffffff', padding: 10, borderRadius: 8, marginVertical: 12, borderRadius: 10 }}
                                 />
-                                {addressDetailsErrors.present_PS && <Text style={styles.errorText}>{addressDetailsErrors.present_PS}</Text>}
-                                {/* Present District Input */}
+                                {addressDetailsErrors.permanent_PS && <Text style={styles.errorText}>{addressDetailsErrors.permanent_PS}</Text>}
+                                {/* Permanent District Input */}
                                 <FloatingLabelInput
-                                    label="Present District"
-                                    value={present_district}
+                                    label="Permanent District"
+                                    value={permanent_district}
                                     customLabelStyles={{ colorFocused: '#e96a01', fontSizeFocused: 14 }}
                                     labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
-                                    onChangeText={value => setPresent_district(value)}
+                                    onChangeText={value => setPermanent_district(value)}
                                     containerStyles={{ borderWidth: 0.5, borderColor: '#353535', backgroundColor: '#ffffff', padding: 10, borderRadius: 8, marginVertical: 12, borderRadius: 10 }}
                                 />
-                                {addressDetailsErrors.present_district && <Text style={styles.errorText}>{addressDetailsErrors.present_district}</Text>}
-                                {/* Present State Input */}
+                                {addressDetailsErrors.permanent_district && <Text style={styles.errorText}>{addressDetailsErrors.permanent_district}</Text>}
+                                {/* Permanent State Input */}
                                 <FloatingLabelInput
-                                    label="Present State"
-                                    value={present_state}
+                                    label="Permanent State"
+                                    value={permanent_state}
                                     customLabelStyles={{ colorFocused: '#e96a01', fontSizeFocused: 14 }}
                                     labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
-                                    onChangeText={value => setPresent_state(value)}
+                                    onChangeText={value => setPermanent_state(value)}
                                     containerStyles={{ borderWidth: 0.5, borderColor: '#353535', backgroundColor: '#ffffff', padding: 10, borderRadius: 8, marginVertical: 12, borderRadius: 10 }}
                                 />
-                                {addressDetailsErrors.present_state && <Text style={styles.errorText}>{addressDetailsErrors.present_state}</Text>}
-                                {/* Present Pincode Input */}
+                                {addressDetailsErrors.permanent_state && <Text style={styles.errorText}>{addressDetailsErrors.permanent_state}</Text>}
+                                {/* Permanent Pincode Input */}
                                 <FloatingLabelInput
-                                    label="Present Pincode"
-                                    value={present_pincode}
+                                    label="Permanent Pincode"
+                                    value={permanent_pincode}
                                     customLabelStyles={{ colorFocused: '#e96a01', fontSizeFocused: 14 }}
                                     labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
                                     keyboardType="numeric"
                                     maxLength={6}
-                                    onChangeText={value => setPresent_pincode(value)}
+                                    onChangeText={value => setPermanent_pincode(value)}
                                     containerStyles={{ borderWidth: 0.5, borderColor: '#353535', backgroundColor: '#ffffff', padding: 10, borderRadius: 8, marginVertical: 12, borderRadius: 10 }}
                                 />
-                                {addressDetailsErrors.present_pincode && <Text style={styles.errorText}>{addressDetailsErrors.present_pincode}</Text>}
-                                {/* Present Country Input */}
+                                {addressDetailsErrors.permanent_pincode && <Text style={styles.errorText}>{addressDetailsErrors.permanent_pincode}</Text>}
+                                {/* Permanent Country Input */}
                                 <FloatingLabelInput
-                                    label="Present Country"
-                                    value={present_country}
+                                    label="Permanent Country"
+                                    value={permanent_country}
                                     customLabelStyles={{ colorFocused: '#e96a01', fontSizeFocused: 14 }}
                                     labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
-                                    onChangeText={value => setPresent_country(value)}
+                                    onChangeText={value => setPermanent_country(value)}
                                     containerStyles={{ borderWidth: 0.5, borderColor: '#353535', backgroundColor: '#ffffff', padding: 10, borderRadius: 8, marginVertical: 12, borderRadius: 10 }}
                                 />
-                                {addressDetailsErrors.present_country && <Text style={styles.errorText}>{addressDetailsErrors.present_country}</Text>}
-                                {/* Present Address Input */}
+                                {addressDetailsErrors.permanent_country && <Text style={styles.errorText}>{addressDetailsErrors.permanent_country}</Text>}
+                                {/* Permanent Address Input */}
                                 <FloatingLabelInput
-                                    label="Present Address"
-                                    value={present_address}
+                                    label="Permanent Address"
+                                    value={permanent_address}
                                     customLabelStyles={{ colorFocused: '#e96a01', fontSizeFocused: 14 }}
                                     labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
-                                    onChangeText={value => setPresent_address(value)}
+                                    onChangeText={value => setPermanent_address(value)}
                                     containerStyles={{ borderWidth: 0.5, borderColor: '#353535', backgroundColor: '#ffffff', padding: 10, borderRadius: 8, marginVertical: 12, borderRadius: 10 }}
                                 />
-                                {addressDetailsErrors.present_address && <Text style={styles.errorText}>{addressDetailsErrors.present_address}</Text>}
+                                {addressDetailsErrors.permanent_address && <Text style={styles.errorText}>{addressDetailsErrors.permanent_address}</Text>}
                             </View>
-                            {/* Is Permanent Same As Present Address */}
+                            {/* Is Present Same As Permanent Address */}
                             <View style={{ width: '90%', alignSelf: 'center' }}>
-                                <Text style={{ color: '#757473', fontSize: 16 }}>Is permanent address is same as present address?</Text>
+                                <Text style={{ color: '#757473', fontSize: 16 }}>Is present address is same as permanent address?</Text>
                                 <View style={{ width: '50%', marginTop: 10 }}>
                                     <RadioForm
                                         radio_props={[{ label: 'Yes', value: true }, { label: 'No', value: false }]}
@@ -1618,102 +1734,102 @@ const Index = () => {
                                     />
                                 </View>
                             </View>
-                            {!isPermanentSameAsPresent &&
+                            {!isPermanentSameAsPresent && (
                                 <View style={[styles.cardBox, { marginTop: 10 }]}>
-                                    {/* Permanent Sahi */}
+                                    {/* Present Sahi */}
                                     <FloatingLabelInput
-                                        label="Permanent Sahi"
-                                        value={permanent_sahi}
+                                        label="Present Sahi"
+                                        value={present_sahi}
                                         customLabelStyles={{ colorFocused: '#e96a01', fontSizeFocused: 14 }}
                                         labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
-                                        onChangeText={value => setPermanent_sahi(value)}
+                                        onChangeText={value => setPresent_sahi(value)}
                                         containerStyles={{ borderWidth: 0.5, borderColor: '#353535', backgroundColor: '#ffffff', padding: 10, borderRadius: 8, marginVertical: 12, borderRadius: 10 }}
                                     />
-                                    {addressDetailsErrors.permanent_sahi && <Text style={styles.errorText}>{addressDetailsErrors.permanent_sahi}</Text>}
-                                    {/* Permanent Landmark Input */}
+                                    {addressDetailsErrors.present_sahi && <Text style={styles.errorText}>{addressDetailsErrors.present_sahi}</Text>}
+                                    {/* Present Landmark Input */}
                                     <FloatingLabelInput
-                                        label="Permanent Landmark"
-                                        value={permanent_landmark}
+                                        label="Present Landmark"
+                                        value={present_landmark}
                                         customLabelStyles={{ colorFocused: '#e96a01', fontSizeFocused: 14 }}
                                         labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
-                                        onChangeText={value => setPermanent_landmark(value)}
+                                        onChangeText={value => setPresent_landmark(value)}
                                         containerStyles={{ borderWidth: 0.5, borderColor: '#353535', backgroundColor: '#ffffff', padding: 10, borderRadius: 8, marginVertical: 12, borderRadius: 10 }}
                                     />
-                                    {addressDetailsErrors.permanent_landmark && <Text style={styles.errorText}>{addressDetailsErrors.permanent_landmark}</Text>}
-                                    {/* Permanent Post Input */}
+                                    {addressDetailsErrors.present_landmark && <Text style={styles.errorText}>{addressDetailsErrors.present_landmark}</Text>}
+                                    {/* Present Post Input */}
                                     <FloatingLabelInput
-                                        label="Permanent Post"
-                                        value={permanent_post}
+                                        label="Present Post"
+                                        value={present_post}
                                         customLabelStyles={{ colorFocused: '#e96a01', fontSizeFocused: 14 }}
                                         labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
-                                        onChangeText={value => setPermanent_post(value)}
+                                        onChangeText={value => setPresent_post(value)}
                                         containerStyles={{ borderWidth: 0.5, borderColor: '#353535', backgroundColor: '#ffffff', padding: 10, borderRadius: 8, marginVertical: 12, borderRadius: 10 }}
                                     />
-                                    {addressDetailsErrors.permanent_post && <Text style={styles.errorText}>{addressDetailsErrors.permanent_post}</Text>}
-                                    {/* Permanent Police station */}
+                                    {addressDetailsErrors.present_post && <Text style={styles.errorText}>{addressDetailsErrors.present_post}</Text>}
+                                    {/* Present Police station */}
                                     <FloatingLabelInput
-                                        label="Permanent Police Station"
-                                        value={permanent_PS}
+                                        label="Present Police Station"
+                                        value={present_PS}
                                         customLabelStyles={{ colorFocused: '#e96a01', fontSizeFocused: 14 }}
                                         labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
-                                        onChangeText={value => setPermanent_PS(value)}
+                                        onChangeText={value => setPresent_PS(value)}
                                         containerStyles={{ borderWidth: 0.5, borderColor: '#353535', backgroundColor: '#ffffff', padding: 10, borderRadius: 8, marginVertical: 12, borderRadius: 10 }}
                                     />
-                                    {addressDetailsErrors.permanent_PS && <Text style={styles.errorText}>{addressDetailsErrors.permanent_PS}</Text>}
-                                    {/* Permanent District Input */}
+                                    {addressDetailsErrors.present_PS && <Text style={styles.errorText}>{addressDetailsErrors.present_PS}</Text>}
+                                    {/* Present District Input */}
                                     <FloatingLabelInput
-                                        label="Permanent District"
-                                        value={permanent_district}
+                                        label="Present District"
+                                        value={present_district}
                                         customLabelStyles={{ colorFocused: '#e96a01', fontSizeFocused: 14 }}
                                         labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
-                                        onChangeText={value => setPermanent_district(value)}
+                                        onChangeText={value => setPresent_district(value)}
                                         containerStyles={{ borderWidth: 0.5, borderColor: '#353535', backgroundColor: '#ffffff', padding: 10, borderRadius: 8, marginVertical: 12, borderRadius: 10 }}
                                     />
-                                    {addressDetailsErrors.permanent_district && <Text style={styles.errorText}>{addressDetailsErrors.permanent_district}</Text>}
-                                    {/* Permanent State Input */}
+                                    {addressDetailsErrors.present_district && <Text style={styles.errorText}>{addressDetailsErrors.present_district}</Text>}
+                                    {/* Present State Input */}
                                     <FloatingLabelInput
-                                        label="Permanent State"
-                                        value={permanent_state}
+                                        label="Present State"
+                                        value={present_state}
                                         customLabelStyles={{ colorFocused: '#e96a01', fontSizeFocused: 14 }}
                                         labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
-                                        onChangeText={value => setPermanent_state(value)}
+                                        onChangeText={value => setPresent_state(value)}
                                         containerStyles={{ borderWidth: 0.5, borderColor: '#353535', backgroundColor: '#ffffff', padding: 10, borderRadius: 8, marginVertical: 12, borderRadius: 10 }}
                                     />
-                                    {addressDetailsErrors.permanent_state && <Text style={styles.errorText}>{addressDetailsErrors.permanent_state}</Text>}
-                                    {/* Permanent Pincode Input */}
+                                    {addressDetailsErrors.present_state && <Text style={styles.errorText}>{addressDetailsErrors.present_state}</Text>}
+                                    {/* Present Pincode Input */}
                                     <FloatingLabelInput
-                                        label="Permanent Pincode"
-                                        value={permanent_pincode}
+                                        label="Present Pincode"
+                                        value={present_pincode}
                                         customLabelStyles={{ colorFocused: '#e96a01', fontSizeFocused: 14 }}
                                         labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
                                         keyboardType="numeric"
                                         maxLength={6}
-                                        onChangeText={value => setPermanent_pincode(value)}
+                                        onChangeText={value => setPresent_pincode(value)}
                                         containerStyles={{ borderWidth: 0.5, borderColor: '#353535', backgroundColor: '#ffffff', padding: 10, borderRadius: 8, marginVertical: 12, borderRadius: 10 }}
                                     />
-                                    {addressDetailsErrors.permanent_pincode && <Text style={styles.errorText}>{addressDetailsErrors.permanent_pincode}</Text>}
-                                    {/* Permanent Country Input */}
+                                    {addressDetailsErrors.present_pincode && <Text style={styles.errorText}>{addressDetailsErrors.present_pincode}</Text>}
+                                    {/* Present Country Input */}
                                     <FloatingLabelInput
-                                        label="Permanent Country"
-                                        value={permanent_country}
+                                        label="Present Country"
+                                        value={present_country}
                                         customLabelStyles={{ colorFocused: '#e96a01', fontSizeFocused: 14 }}
                                         labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
-                                        onChangeText={value => setPermanent_country(value)}
+                                        onChangeText={value => setPresent_country(value)}
                                         containerStyles={{ borderWidth: 0.5, borderColor: '#353535', backgroundColor: '#ffffff', padding: 10, borderRadius: 8, marginVertical: 12, borderRadius: 10 }}
                                     />
-                                    {addressDetailsErrors.permanent_country && <Text style={styles.errorText}>{addressDetailsErrors.permanent_country}</Text>}
-                                    {/* Permanent Address Input */}
+                                    {addressDetailsErrors.present_country && <Text style={styles.errorText}>{addressDetailsErrors.present_country}</Text>}
+                                    {/* Present Address Input */}
                                     <FloatingLabelInput
-                                        label="Permanent Address"
-                                        value={permanent_address}
+                                        label="Present Address"
+                                        value={present_address}
                                         customLabelStyles={{ colorFocused: '#e96a01', fontSizeFocused: 14 }}
                                         labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
-                                        onChangeText={value => setPermanent_address(value)}
+                                        onChangeText={value => setPresent_address(value)}
                                         containerStyles={{ borderWidth: 0.5, borderColor: '#353535', backgroundColor: '#ffffff', padding: 10, borderRadius: 8, marginVertical: 12, borderRadius: 10 }}
                                     />
-                                    {addressDetailsErrors.permanent_address && <Text style={styles.errorText}>{addressDetailsErrors.permanent_address}</Text>}
+                                    {addressDetailsErrors.present_address && <Text style={styles.errorText}>{addressDetailsErrors.present_address}</Text>}
                                 </View>
-                            }
+                            )}
                             {/* Submit Button */}
                             <View style={{ width: '95%', alignSelf: 'center', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around' }}>
                                 <TouchableOpacity onPress={() => handleNextTab('id_card')} style={{ width: '45%', backgroundColor: '#e96a01', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', alignSelf: 'center', borderRadius: 50, paddingVertical: 10, marginVertical: 15 }}>
@@ -2130,5 +2246,37 @@ const styles = StyleSheet.create({
         marginLeft: 10,
         fontSize: 14,
         color: '#000',
+    },
+    yearItem: {
+        paddingVertical: 12,
+        paddingHorizontal: 20,
+        marginVertical: 2,
+        backgroundColor: '#f8f9ff',
+        borderRadius: 10,
+        alignItems: 'center',
+    },
+    yearText: {
+        fontSize: 16,
+        fontWeight: '600',
+        color: '#051b65',
+    },
+
+    suggestionBox: {
+        backgroundColor: "#fff",
+        borderWidth: 1,
+        borderColor: "#ccc",
+        borderRadius: 8,
+        maxHeight: 120,
+        padding: 6,
+        marginTop: -10,
+        marginBottom: 10,
+        elevation: 5,
+        zIndex: 999,
+    },
+    suggestionItem: {
+        paddingVertical: 8,
+        borderBottomWidth: 1,
+        borderBottomColor: "#eee",
+        fontSize: 14,
     },
 });

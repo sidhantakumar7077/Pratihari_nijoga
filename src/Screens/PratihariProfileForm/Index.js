@@ -18,6 +18,7 @@ import FormHeader from './FormHeader';
 import { FormProvider } from './FormContext';
 
 const Index = () => {
+    
     const tabs = [
         { key: 'personal', label: 'Personal', icon: 'account' },
         { key: 'family', label: 'Family', icon: 'account-supervisor' },

@@ -130,7 +130,7 @@ const Index = () => {
 
   // New application submit
   const handleSubmit = async () => {
-    if (!date || !header?.trim() || !body?.trim() || !photo?.uri) {
+    if (!date || !header?.trim() || !body?.trim()) {
       showToast('Please complete all fields.');
       return;
     }
@@ -349,14 +349,14 @@ const Index = () => {
               {/* Header & Body */}
               <TextInput
                 style={styles.input}
-                placeholder="Header"
+                placeholder="Subject"
                 value={header}
                 onChangeText={setHeader}
                 placeholderTextColor="#aaa"
               />
               <TextInput
                 style={[styles.input, styles.textArea]}
-                placeholder="Application Body"
+                placeholder="Application"
                 value={body}
                 onChangeText={setBody}
                 multiline
@@ -367,7 +367,7 @@ const Index = () => {
               {/* Photo */}
               <TouchableOpacity style={styles.imageButton} onPress={pickImage}>
                 <Ionicons name="image-outline" size={20} color="#555" />
-                <Text style={styles.imageButtonText}>Select Photo</Text>
+                <Text style={styles.imageButtonText}>Select application photo to send</Text>
               </TouchableOpacity>
               {photo && (
                 <Image source={{ uri: photo.uri }} style={styles.previewImage} resizeMode="contain" />
