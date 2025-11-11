@@ -4,13 +4,13 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  SafeAreaView,
   FlatList,
   Image,
   ActivityIndicator,
   ToastAndroid,
 } from 'react-native';
 import { useNavigation, useIsFocused } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import axios from 'axios';
@@ -19,6 +19,8 @@ import { base_url } from '../../../App';
 const DEFAULT_IMAGE = 'https://cdn-icons-png.flaticon.com/512/149/149071.png';
 
 const Index = () => {
+
+  const insets = useSafeAreaInsets();
   const navigation = useNavigation();
   const isFocused = useIsFocused();
 
@@ -71,7 +73,7 @@ const Index = () => {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <View style={[styles.safeArea, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
       <LinearGradient
         colors={['#4c1d95', '#6366f1']}
         style={styles.header}
@@ -98,7 +100,7 @@ const Index = () => {
           />
         )}
       </View>
-    </SafeAreaView>
+    </View>
   );
 };
 

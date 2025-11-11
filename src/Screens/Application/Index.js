@@ -4,7 +4,6 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  SafeAreaView,
   Image,
   FlatList,
   ActivityIndicator,
@@ -16,6 +15,7 @@ import {
   Platform,
 } from 'react-native';
 import { useNavigation, useIsFocused } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -32,6 +32,8 @@ const STATUS_COLORS = {
 };
 
 const Index = () => {
+
+  const insets = useSafeAreaInsets();
   const navigation = useNavigation();
   const isFocused = useIsFocused();
 
@@ -226,7 +228,7 @@ const Index = () => {
   );
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom, }]}>
       {/* Header */}
       <LinearGradient colors={['#4c1d95', '#6366f1']} style={styles.header}>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
@@ -308,7 +310,7 @@ const Index = () => {
 
       {/* New Application Modal */}
       <Modal visible={modalVisible} animationType="slide">
-        <SafeAreaView style={styles.modalContainer}>
+        <View style={styles.modalContainer}>
           <LinearGradient colors={['#4c1d95', '#6366f1']} style={styles.header}>
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
               <TouchableOpacity onPress={() => setModalVisible(false)}>
@@ -378,7 +380,7 @@ const Index = () => {
               </TouchableOpacity>
             </ScrollView>
           </View>
-        </SafeAreaView>
+        </View>
       </Modal>
 
       {/* Rejection Reason Modal */}
@@ -406,7 +408,7 @@ const Index = () => {
           </View>
         </View>
       </Modal>
-    </SafeAreaView>
+    </View>
   );
 };
 

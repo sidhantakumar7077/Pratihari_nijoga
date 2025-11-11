@@ -5,12 +5,12 @@ import {
     ScrollView,
     TouchableOpacity,
     StyleSheet,
-    SafeAreaView,
     ToastAndroid,
     ActivityIndicator,
 } from 'react-native';
 import { FloatingLabelInput } from 'react-native-floating-label-input';
 import { useNavigation } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -50,6 +50,8 @@ const parseResponseSafely = async (response) => {
 };
 
 const Occupation = (props) => {
+
+    const insets = useSafeAreaInsets();
     const navigation = useNavigation();
 
     const [loading, setLoading] = useState(false);
@@ -164,7 +166,7 @@ const Occupation = (props) => {
     }, [props.route?.params]);
 
     return (
-        <SafeAreaView style={styles.safeArea}>
+        <View style={[styles.safeArea, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
             <LinearGradient colors={['#4c1d95', '#6366f1']} style={styles.header}>
                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                     <TouchableOpacity onPress={() => navigation.goBack()}>
@@ -269,7 +271,7 @@ const Occupation = (props) => {
                     </TouchableOpacity>
                 </View>
             </ScrollView>
-        </SafeAreaView>
+        </View>
     );
 };
 

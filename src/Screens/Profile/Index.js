@@ -12,6 +12,7 @@ import {
   Modal,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation, useIsFocused } from '@react-navigation/native';
 import { base_url } from '../../../App';
@@ -80,6 +81,7 @@ const ActionCard = ({ title, subtitle, icon: Icon, iconName, color, onPress }) =
 
 export default function Index() {
 
+  const insets = useSafeAreaInsets();
   const navigation = useNavigation();
   const isFocused = useIsFocused();
   const mounted = useRef(true);
@@ -476,7 +478,7 @@ export default function Index() {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { paddingBottom: insets.bottom, }]}>
       <StatusBar barStyle="light-content" backgroundColor="#4c1d95" />
       <LinearGradient colors={['#4c1d95', '#6366f1']} style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={{ position: 'absolute', left: 20, top: 25 }}>

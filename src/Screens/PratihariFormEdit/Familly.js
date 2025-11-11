@@ -6,7 +6,6 @@ import {
     ScrollView,
     TouchableOpacity,
     StyleSheet,
-    SafeAreaView,
     Platform,
     Modal,
     FlatList,
@@ -15,6 +14,7 @@ import {
 } from 'react-native';
 import { FloatingLabelInput } from 'react-native-floating-label-input';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import RadioForm from 'react-native-simple-radio-button';
@@ -29,6 +29,7 @@ import moment from 'moment';
 
 const Familly = (props) => {
 
+    const insets = useSafeAreaInsets();
     const navigation = useNavigation();
     const [focusedField, setFocusedField] = useState(null);
     const [loading, setLoading] = useState(false);
@@ -268,7 +269,7 @@ const Familly = (props) => {
     }, []);
 
     return (
-        <SafeAreaView style={styles.safeArea}>
+        <View style={[styles.safeArea, { paddingTop: insets.top, paddingBottom: insets.bottom, }]}>
             <LinearGradient
                 colors={['#4c1d95', '#6366f1']}
                 style={styles.header}
@@ -502,7 +503,7 @@ const Familly = (props) => {
                     </ScrollView>
                 </View>
             </ScrollView>
-        </SafeAreaView>
+        </View>
     );
 }
 

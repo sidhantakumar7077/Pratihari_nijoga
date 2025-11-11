@@ -2,6 +2,7 @@ import { SafeAreaView, StyleSheet, Text, View, TouchableOpacity, Image, FlatList
 import React, { useEffect, useRef, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation, useIsFocused } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import AntDesign from 'react-native-vector-icons/AntDesign';
@@ -95,6 +96,7 @@ const Index = () => {
 
     const images = [image3, image2, image1];
 
+    const insets = useSafeAreaInsets();
     const [backPressCount, setBackPressCount] = useState(0);
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
     const closeDrawer = () => setIsDrawerOpen(false);
@@ -284,8 +286,8 @@ const Index = () => {
     };
 
     return (
-        <SafeAreaView style={styles.container}>
-            <StatusBar barStyle="light-content" backgroundColor="#4c1d95" />
+        <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom, }]}>
+            <StatusBar barStyle="dark-content" backgroundColor="#4c1d95" />
             <DrawerModal visible={isDrawerOpen} onClose={closeDrawer} profileDetails={profileDetails} />
             <LinearGradient
                 colors={['#4c1d95', '#6366f1', '#8b5cf6']}
@@ -623,7 +625,7 @@ const Index = () => {
                     </LinearGradient>
                 </View> */}
             </ScrollView>
-        </SafeAreaView>
+        </View>
     )
 }
 

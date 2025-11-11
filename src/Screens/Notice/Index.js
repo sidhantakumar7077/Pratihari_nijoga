@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { View, FlatList, Text, StyleSheet, TouchableOpacity, SafeAreaView } from 'react-native';
+import { View, FlatList, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useNavigation, useIsFocused } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -9,6 +10,7 @@ import moment from 'moment';
 
 const Index = () => {
 
+    const insets = useSafeAreaInsets();
     const navigation = useNavigation();
     const isFocused = useIsFocused();
     const [loading, setLoading] = useState(false);
@@ -91,7 +93,7 @@ const Index = () => {
     );
 
     return (
-        <SafeAreaView style={styles.safeArea}>
+        <View style={[styles.safeArea, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
             <LinearGradient
                 colors={['#4c1d95', '#6366f1']}
                 style={styles.header}
@@ -124,7 +126,7 @@ const Index = () => {
                     showsVerticalScrollIndicator={false}
                 />
             </View>
-        </SafeAreaView>
+        </View>
     );
 };
 
