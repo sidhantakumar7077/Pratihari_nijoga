@@ -10,7 +10,6 @@ import {
   ToastAndroid,
 } from 'react-native';
 import { useNavigation, useIsFocused } from '@react-navigation/native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import axios from 'axios';
@@ -20,7 +19,6 @@ const DEFAULT_IMAGE = 'https://cdn-icons-png.flaticon.com/512/149/149071.png';
 
 const Index = () => {
 
-  const insets = useSafeAreaInsets();
   const navigation = useNavigation();
   const isFocused = useIsFocused();
 
@@ -73,7 +71,7 @@ const Index = () => {
   };
 
   return (
-    <View style={[styles.safeArea, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
+    <View style={styles.safeArea}>
       <LinearGradient
         colors={['#4c1d95', '#6366f1']}
         style={styles.header}

@@ -1,7 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { View, FlatList, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import {
+    View,
+    FlatList,
+    Text,
+    StyleSheet,
+    TouchableOpacity,
+    Image,
+    RefreshControl,
+    Modal,
+} from 'react-native';
 import { useNavigation, useIsFocused } from '@react-navigation/native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -9,39 +17,13 @@ import { base_url } from '../../../App';
 import moment from 'moment';
 
 const Index = () => {
-
-    const insets = useSafeAreaInsets();
+    
     const navigation = useNavigation();
     const isFocused = useIsFocused();
+
     const [loading, setLoading] = useState(false);
     const [notices, setNotices] = useState([]);
-
-    const noticeData = [
-        {
-            id: 1,
-            title: 'General Meeting Announcement',
-            description: 'A general meeting will be held on Saturday to discuss upcoming community events and plans.',
-            date: '10 Jun 2025',
-        },
-        {
-            id: 2,
-            title: 'Water Supply Maintenance',
-            description: 'Water supply will be interrupted from 9:00 AM to 1:00 PM due to maintenance.',
-            date: '08 Jun 2025',
-        },
-        {
-            id: 3,
-            title: 'Cultural Function',
-            description: 'Join us for a cultural event filled with performances and fun. All are welcome!',
-            date: '05 Jun 2025',
-        },
-        {
-            id: 4,
-            title: 'Committee Formation',
-            description: 'The Nijoga committee for 2025-26 has been officially formed. View the full list inside.',
-            date: '01 Jun 2025',
-        },
-    ];
+    const [selectedImage, setSelectedImage] = useState(null); // full image modal
 
     const getNotices = async () => {
         const token = await AsyncStorage.getItem('storeAccesstoken');
@@ -56,20 +38,19 @@ const Index = () => {
             });
             const res = await response.json();
             if (response.ok) {
-                setLoading(false);
-                setNotices(res.data);
-                console.log("Notices fetched successfully:", res.data);
+                setNotices(res.data || []);
+                console.log('Notices fetched successfully:', res.data);
             } else {
-                setLoading(false);
                 console.error('Failed to fetch notices:', res.data);
                 setNotices([]);
             }
         } catch (error) {
-            setLoading(false);
-            setNotices([]);
             console.error('Error fetching notices:', error);
+            setNotices([]);
+        } finally {
+            setLoading(false);
         }
-    }
+    };
 
     useEffect(() => {
         if (isFocused) {
@@ -77,46 +58,115 @@ const Index = () => {
         }
     }, [isFocused]);
 
-    const renderItem = ({ item }) => (
-        <View style={styles.noticeCard}>
-            <View style={styles.leftAccent} />
-            <View style={styles.noticeContent}>
-                <View style={styles.headerRow}>
-                    <Text style={styles.noticeTitle}>{item.notice_name}</Text>
-                    <Text style={styles.noticeDate}>
-                        {moment(item.created_at).format('DD MMM YYYY')}
-                    </Text>
-                </View>
-                <Text style={styles.noticeDesc}>{item.description}</Text>
+    const renderItem = ({ item }) => {
+        const imageUrl = item.notice_photo
+            ? `${base_url}storage/${item.notice_photo}` // tweak if your API returns full URL
+            : null;
+
+        const isNew = moment().diff(moment(item.created_at), 'days') <= 3;
+
+        return (
+            <View style={styles.noticeCardShadow}>
+                <LinearGradient
+                    colors={['#eef2ff', '#fdf2ff']}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={styles.noticeCard}
+                >
+                    {/* Left accent stripe */}
+                    <View style={styles.leftAccent} />
+
+                    {/* Main content row: image + text */}
+                    <View style={styles.noticeContent}>
+                        <View style={styles.noticeRow}>
+                            {/* Image on left (if exists) */}
+                            {imageUrl && (
+                                <TouchableOpacity
+                                    activeOpacity={0.9}
+                                    onPress={() => setSelectedImage(imageUrl)}
+                                >
+                                    <Image
+                                        source={{ uri: imageUrl }}
+                                        style={styles.noticeThumb}
+                                        resizeMode="cover"
+                                    />
+                                </TouchableOpacity>
+                            )}
+
+                            {/* Text on right */}
+                            <View
+                                style={[
+                                    styles.noticeTextContainer,
+                                    !imageUrl && { marginLeft: 0 }, // no extra margin when no image
+                                ]}
+                            >
+                                {/* Title + icon */}
+                                <View style={styles.titleRow}>
+                                    <Text style={styles.noticeTitle} numberOfLines={2}>
+                                        {item.notice_name}
+                                    </Text>
+                                    <Ionicons
+                                        name="notifications-outline"
+                                        size={18}
+                                        color="#4c1d95"
+                                        style={{ marginLeft: 6 }}
+                                    />
+                                </View>
+
+                                {/* Date + NEW badge */}
+                                <View style={styles.metaRow}>
+                                    <Ionicons name="calendar-outline" size={14} color="#6366f1" />
+                                    <Text style={styles.noticeDate}>
+                                        {moment(item.created_at).format('DD MMM YYYY')}
+                                    </Text>
+                                    {isNew && (
+                                        <View style={styles.badgeNew}>
+                                            <Text style={styles.badgeNewText}>NEW</Text>
+                                        </View>
+                                    )}
+                                </View>
+
+                                {/* Description */}
+                                {!!item.description && (
+                                    <Text style={styles.noticeDesc} numberOfLines={3}>
+                                        {item.description}
+                                    </Text>
+                                )}
+                            </View>
+                        </View>
+                    </View>
+                </LinearGradient>
             </View>
-        </View>
-    );
+        );
+    };
 
     return (
-        <View style={[styles.safeArea, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
-            <LinearGradient
-                colors={['#4c1d95', '#6366f1']}
-                style={styles.header}
-            >
+        <View style={styles.safeArea}>
+            {/* Header */}
+            <LinearGradient colors={['#4c1d95', '#6366f1']} style={styles.header}>
                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                     <TouchableOpacity onPress={() => navigation.goBack()}>
                         <Ionicons name="arrow-back" size={24} color="#fff" marginRight={10} />
                     </TouchableOpacity>
                     <Text style={styles.headerTitle}>Notices</Text>
                 </View>
-                <Text style={styles.headerSubtitle}>Stay updated with the latest notices and announcements</Text>
+                <Text style={styles.headerSubtitle}>
+                    Stay updated with the latest notices and announcements
+                </Text>
             </LinearGradient>
 
+            {/* Body */}
             <View style={styles.scrollContainer}>
-                {loading ? (
+                {loading && notices.length === 0 ? (
                     <View style={styles.centerMessage}>
                         <Text style={styles.messageText}>Loading notices...</Text>
                     </View>
-                ) : notices.length === 0 ? (
+                ) : !loading && notices.length === 0 ? (
                     <View style={styles.centerMessage}>
                         <Text style={styles.messageText}>No notices available at the moment.</Text>
                     </View>
                 ) : null}
+
                 <FlatList
                     style={{ flex: 1, marginTop: 10 }}
                     data={notices}
@@ -124,8 +174,37 @@ const Index = () => {
                     renderItem={renderItem}
                     contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 20 }}
                     showsVerticalScrollIndicator={false}
+                    refreshControl={
+                        <RefreshControl refreshing={loading} onRefresh={getNotices} />
+                    }
                 />
             </View>
+
+            {/* Full image modal */}
+            <Modal
+                visible={!!selectedImage}
+                transparent
+                animationType="fade"
+                onRequestClose={() => setSelectedImage(null)}
+            >
+                <View style={styles.imageModalOverlay}>
+                    <TouchableOpacity
+                        style={styles.imageModalClose}
+                        onPress={() => setSelectedImage(null)}
+                        activeOpacity={0.9}
+                    >
+                        <Ionicons name="close" size={26} color="#fff" />
+                    </TouchableOpacity>
+
+                    {selectedImage && (
+                        <Image
+                            source={{ uri: selectedImage }}
+                            style={styles.fullImage}
+                            resizeMode="contain"
+                        />
+                    )}
+                </View>
+            </Modal>
         </View>
     );
 };
@@ -135,7 +214,7 @@ export default Index;
 const styles = StyleSheet.create({
     safeArea: {
         flex: 1,
-        backgroundColor: '#f8fafc',
+        backgroundColor: '#f1f5f9',
     },
     header: {
         paddingTop: 10,
@@ -160,56 +239,110 @@ const styles = StyleSheet.create({
         borderTopRightRadius: 20,
         backgroundColor: '#f8fafc',
     },
+
+    /* Card styling */
+    noticeCardShadow: {
+        marginVertical: 8,
+        borderRadius: 18,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 3 },
+        shadowOpacity: 0.12,
+        shadowRadius: 6,
+        elevation: 4,
+        backgroundColor: 'transparent',
+    },
     noticeCard: {
         flexDirection: 'row',
-        backgroundColor: '#ffffff',
-        borderRadius: 14,
-        marginVertical: 8,
+        borderRadius: 18,
         overflow: 'hidden',
-        elevation: 3,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.08,
-        shadowRadius: 4,
     },
     leftAccent: {
-        width: 6,
-        backgroundColor: '#4b0082', // Indigo stripe
+        width: 5,
+        backgroundColor: '#4c1d95',
     },
     noticeContent: {
         flex: 1,
-        padding: 16,
+        padding: 14,
     },
-    headerRow: {
+    noticeRow: {
         flexDirection: 'row',
-        justifyContent: 'space-between',
-        marginBottom: 6,
+        alignItems: 'flex-start',
+    },
+    noticeThumb: {
+        width: 70,
+        height: 70,
+        borderRadius: 10,
+        backgroundColor: '#e5e7eb',
+    },
+    noticeTextContainer: {
+        flex: 1,
+        marginLeft: 10,
+    },
+    titleRow: {
+        flexDirection: 'row',
+        alignItems: 'flex-start',
     },
     noticeTitle: {
+        flex: 1,
         fontSize: 16,
         fontWeight: '700',
-        color: '#222',
-        flex: 1,
-        marginRight: 10,
+        color: '#111827',
+    },
+    metaRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginTop: 4,
     },
     noticeDate: {
         fontSize: 12,
-        color: '#888',
-        fontStyle: 'italic',
+        color: '#6b7280',
+        marginLeft: 4,
+    },
+    badgeNew: {
+        marginLeft: 8,
+        paddingHorizontal: 8,
+        paddingVertical: 2,
+        borderRadius: 999,
+        backgroundColor: '#fee2e2',
+    },
+    badgeNewText: {
+        fontSize: 10,
+        color: '#b91c1c',
+        fontWeight: '700',
     },
     noticeDesc: {
+        marginTop: 6,
         fontSize: 14,
-        color: '#444',
+        color: '#4b5563',
         lineHeight: 20,
     },
+
     centerMessage: {
-        flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
         paddingTop: 30,
     },
     messageText: {
         fontSize: 16,
-        color: '#999',
+        color: '#9ca3af',
+    },
+
+    /* Full image modal */
+    imageModalOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0,0,0,0.9)',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    imageModalClose: {
+        position: 'absolute',
+        top: 40,
+        right: 20,
+        zIndex: 10,
+        padding: 6,
+    },
+    fullImage: {
+        width: '95%',
+        height: '80%',
     },
 });

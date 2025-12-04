@@ -14,7 +14,6 @@ import {
 } from 'react-native';
 import { FloatingLabelInput } from 'react-native-floating-label-input';
 import { useNavigation } from '@react-navigation/native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import CheckBox from '@react-native-community/checkbox';
@@ -75,7 +74,6 @@ const fileFromAsset = (asset, fallbackName = 'upload.jpg') => {
 
 const ProfileEdit = (props) => {
 
-    const insets = useSafeAreaInsets();
     const navigation = useNavigation();
 
     // UI state
@@ -337,7 +335,7 @@ const ProfileEdit = (props) => {
      * Render
      */
     return (
-        <View style={[styles.safeArea, { paddingTop: insets.top, paddingBottom: insets.bottom, }]}>
+        <View style={styles.safeArea}>
             <LinearGradient colors={['#4c1d95', '#6366f1']} style={styles.header}>
                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                     <TouchableOpacity onPress={() => navigation.goBack()}>

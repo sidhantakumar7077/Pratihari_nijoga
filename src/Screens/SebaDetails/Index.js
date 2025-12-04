@@ -11,9 +11,7 @@ import {
     RefreshControl,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import AntDesign from 'react-native-vector-icons/AntDesign';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useIsFocused, useNavigation } from '@react-navigation/native';
 import { base_url } from '../../../App';
@@ -57,7 +55,6 @@ const normalizeRow = (row, idx) => ({
 
 const Index = (props) => {
 
-    const insets = useSafeAreaInsets();
     const navigation = useNavigation();
     const isFocused = useIsFocused();
     const mounted = useRef(false);
@@ -171,7 +168,7 @@ const Index = (props) => {
             </LinearGradient>
 
             <View style={styles.cardBody}>
-                <Text style={styles.subLabel}>Beddha IDs</Text>
+                {/* <Text style={styles.subLabel}>Beddha IDs</Text> */}
                 <View style={styles.chipWrap}>
                     {(item.beddha_id || []).map((b, i) => renderChip(b, i))}
                 </View>
@@ -180,7 +177,7 @@ const Index = (props) => {
     );
 
     return (
-        <View style={[styles.safeArea, { paddingTop: insets.top, paddingBottom: insets.bottom, }]}>
+        <View style={styles.safeArea}>
             {/* Header */}
             <LinearGradient colors={['#4c1d95', '#6366f1']} style={styles.header}>
                 <View style={styles.headerRow}>

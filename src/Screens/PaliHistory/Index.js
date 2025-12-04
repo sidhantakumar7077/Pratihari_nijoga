@@ -10,7 +10,6 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { useNavigation, useIsFocused } from '@react-navigation/native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -201,7 +200,6 @@ const EmptyState = () => (
 // ---------- Screen ----------
 const Index = () => {
 
-  const insets = useSafeAreaInsets();
   const navigation = useNavigation();
   const isFocused = useIsFocused();
 
@@ -244,7 +242,7 @@ const Index = () => {
   }, [isFocused, fetchHistory]);
 
   return (
-    <View style={[styles.safeArea, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
+    <View style={styles.safeArea}>
       <LinearGradient colors={['#4c1d95', '#6366f1']} style={styles.header}>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
           <TouchableOpacity onPress={() => navigation.goBack()} activeOpacity={0.8}>

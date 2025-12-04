@@ -30,7 +30,8 @@ const menuItems = [
     { icon: <MaterialCommunityIcons name="file-document-outline" size={20} color="#fff" />, label: 'Application', route: 'Application', bgColor: '#06B6D4' },
 ];
 
-const DrawerModal = ({ visible, onClose, profileDetails }) => {
+const DrawerModal = ({ visible, onClose, profileDetails, isApproved, setApprovalModalVisible }) => {
+    
     const navigation = useNavigation();
 
     const handleNavigation = (route) => {
@@ -80,8 +81,8 @@ const DrawerModal = ({ visible, onClose, profileDetails }) => {
                                     <TouchableOpacity
                                         key={index}
                                         style={styles.menuItem}
-                                        onPress={() => handleNavigation(item.route)}
                                         activeOpacity={0.7}
+                                        onPress={() => item.route === 'Profile' ? handleNavigation(item.route) : (isApproved ? handleNavigation(item.route) : setApprovalModalVisible(true))}
                                     >
                                         <View style={[styles.iconContainer, { backgroundColor: item.bgColor }]}>{item.icon}</View>
                                         <Text style={styles.menuLabel}>{item.label}</Text>

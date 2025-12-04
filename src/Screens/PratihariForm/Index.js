@@ -1,4 +1,4 @@
-import { SafeAreaView, StyleSheet, Text, View, TouchableOpacity, ScrollView, FlatList, TextInput, Image, Modal, KeyboardAvoidingView, Platform, Switch, ActivityIndicator } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, ScrollView, FlatList, TextInput, Image, Modal, KeyboardAvoidingView, Platform, Switch, ActivityIndicator } from 'react-native';
 import React, { useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
@@ -11,6 +11,7 @@ import DatePicker from 'react-native-date-picker';
 import moment from 'moment';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Collapsible from 'react-native-collapsible';
 import { base_url } from '../../../App';
 
@@ -35,6 +36,7 @@ const Index = () => {
     const [activeTab, setActiveTab] = useState('personal');
     const [isFocused, setIsFocused] = useState(null);
     const navigation = useNavigation();
+    const insets = useSafeAreaInsets();
     const [isLoading, setIsLoading] = useState(false);
 
     const getPratihariStatus = async () => {
@@ -620,7 +622,8 @@ const Index = () => {
 
     // Address Information
     const [present_address, setPresent_address] = useState('');
-    const [present_sahi, setPresent_sahi] = useState('');
+    const [present_sahi, setPresent_sahi] = useState(null);
+    const [present_sahi_list, setPresent_sahi_list] = useState([]);
     const [present_post, setPresent_post] = useState('');
     const [present_PS, setPresent_PS] = useState('');
     const [present_district, setPresent_district] = useState('Puri');
@@ -630,7 +633,8 @@ const Index = () => {
     const [present_landmark, setPresent_landmark] = useState('');
     const [isPermanentSameAsPresent, setIsPermanentSameAsPresent] = useState(true);
     const [permanent_address, setPermanent_address] = useState('');
-    const [permanent_sahi, setPermanent_sahi] = useState('');
+    const [permanent_sahi, setPermanent_sahi] = useState(null);
+    const [permanent_sahi_list, setPermanent_sahi_list] = useState([]);
     const [permanent_post, setPermanent_post] = useState('');
     const [permanent_PS, setPermanent_PS] = useState('');
     const [permanent_district, setPermanent_district] = useState('Puri');
@@ -669,6 +673,37 @@ const Index = () => {
         setTimeout(() => setAddressDetailsErrors({}), 5000);
 
         return Object.keys(newErrors).length === 0; // Returns true if no errors
+    };
+
+    const getSahi = async () => {
+        try {
+            const response = await fetch(`${base_url}api/get-sahi`, {
+                method: "GET",
+                headers: {
+                    Accept: "application/json",
+                    "Content-Type": "application/json",
+                },
+            });
+
+            if (!response.ok) {
+                console.log("Failed to fetch Sahis");
+                return;
+            }
+
+            const result = await response.json();
+
+            // result.data = [{ id, sahi_name, ... }]
+            const formatted = result.data.map(item => ({
+                label: item.sahi_name,         // what you show in dropdown
+                value: item.sahi_name,         // what you store/send
+            }));
+
+            setPresent_sahi_list(formatted);
+            setPermanent_sahi_list(formatted);
+            // console.log("Sahi List", formatted);
+        } catch (error) {
+            console.error("Error fetching Sahis: ", error);
+        }
     };
 
     const saveAddressDetails = async () => {
@@ -719,6 +754,10 @@ const Index = () => {
             console.error("Network request failed: ", error);
         }
     };
+
+    useEffect(() => {
+        getSahi();
+    }, []);
 
     // Occupation Information
     const [occupationType, setOccupationType] = useState('');
@@ -958,7 +997,7 @@ const Index = () => {
     };
 
     return (
-        <SafeAreaView style={{ flex: 1, backgroundColor: '#f5f5f5' }}>
+        <View style={{ flex: 1, backgroundColor: '#f5f5f5', paddingBottom: insets.bottom }}>
             <View style={styles.swiperContainer}>
                 <View style={{ alignItems: 'center', justifyContent: 'center' }}>
                     <Image source={require('../../assets/images/icon876.png')} style={{ width: 230, height: 230, marginRight: 10 }} />
@@ -1624,19 +1663,28 @@ const Index = () => {
                         </View>
                         <ScrollView style={{ flex: 1 }}>
                             <View style={styles.cardBox}>
+                                <Text style={{ color: '#000', fontSize: 16, fontWeight: 'bold', marginBottom: 5 }}>Permanent Address</Text>
                                 {/* Permanent Sahi */}
-                                <FloatingLabelInput
-                                    label="Permanent Sahi"
-                                    value={permanent_sahi}
-                                    customLabelStyles={{ colorFocused: '#e96a01', fontSizeFocused: 14 }}
-                                    labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
-                                    onChangeText={value => setPermanent_sahi(value)}
-                                    containerStyles={{ borderWidth: 0.5, borderColor: '#353535', backgroundColor: '#ffffff', padding: 10, borderRadius: 8, marginVertical: 12, borderRadius: 10 }}
-                                />
+                                <Text style={[styles.label, { marginBottom: 15 }, (focusedField === 'permanent_sahi' || permanent_sahi !== null) && styles.focusedLabel]}>Sahi</Text>
+                                <View style={{ width: '100%', flexDirection: 'row', alignItems: 'center' }}>
+                                    <DropDownPicker
+                                        items={permanent_sahi_list}
+                                        placeholder='Select Sahi'
+                                        placeholderStyle={{ color: '#4d6285' }}
+                                        open={focusedField === 'permanent_sahi'}
+                                        value={permanent_sahi}
+                                        setOpen={() => setFocusedField(focusedField === 'permanent_sahi' ? null : 'permanent_sahi')}
+                                        setValue={(value) => setPermanent_sahi(value())}
+                                        containerStyle={{ width: '100%' }}
+                                        style={[styles.input, (focusedField === 'permanent_sahi' || permanent_sahi !== null) && styles.focusedInput]}
+                                        dropDownContainerStyle={{ backgroundColor: '#fafafa' }}
+                                        listMode='SCROLLVIEW'
+                                    />
+                                </View>
                                 {addressDetailsErrors.permanent_sahi && <Text style={styles.errorText}>{addressDetailsErrors.permanent_sahi}</Text>}
                                 {/* Permanent Landmark Input */}
                                 <FloatingLabelInput
-                                    label="Permanent Landmark"
+                                    label="Landmark"
                                     value={permanent_landmark}
                                     customLabelStyles={{ colorFocused: '#e96a01', fontSizeFocused: 14 }}
                                     labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
@@ -1646,7 +1694,7 @@ const Index = () => {
                                 {addressDetailsErrors.permanent_landmark && <Text style={styles.errorText}>{addressDetailsErrors.permanent_landmark}</Text>}
                                 {/* Permanent Post Input */}
                                 <FloatingLabelInput
-                                    label="Permanent Post"
+                                    label="Post"
                                     value={permanent_post}
                                     customLabelStyles={{ colorFocused: '#e96a01', fontSizeFocused: 14 }}
                                     labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
@@ -1656,7 +1704,7 @@ const Index = () => {
                                 {addressDetailsErrors.permanent_post && <Text style={styles.errorText}>{addressDetailsErrors.permanent_post}</Text>}
                                 {/* Permanent Police station */}
                                 <FloatingLabelInput
-                                    label="Permanent Police Station"
+                                    label="Police Station"
                                     value={permanent_PS}
                                     customLabelStyles={{ colorFocused: '#e96a01', fontSizeFocused: 14 }}
                                     labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
@@ -1666,7 +1714,7 @@ const Index = () => {
                                 {addressDetailsErrors.permanent_PS && <Text style={styles.errorText}>{addressDetailsErrors.permanent_PS}</Text>}
                                 {/* Permanent District Input */}
                                 <FloatingLabelInput
-                                    label="Permanent District"
+                                    label="District"
                                     value={permanent_district}
                                     customLabelStyles={{ colorFocused: '#e96a01', fontSizeFocused: 14 }}
                                     labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
@@ -1676,7 +1724,7 @@ const Index = () => {
                                 {addressDetailsErrors.permanent_district && <Text style={styles.errorText}>{addressDetailsErrors.permanent_district}</Text>}
                                 {/* Permanent State Input */}
                                 <FloatingLabelInput
-                                    label="Permanent State"
+                                    label="State"
                                     value={permanent_state}
                                     customLabelStyles={{ colorFocused: '#e96a01', fontSizeFocused: 14 }}
                                     labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
@@ -1686,7 +1734,7 @@ const Index = () => {
                                 {addressDetailsErrors.permanent_state && <Text style={styles.errorText}>{addressDetailsErrors.permanent_state}</Text>}
                                 {/* Permanent Pincode Input */}
                                 <FloatingLabelInput
-                                    label="Permanent Pincode"
+                                    label="Pincode"
                                     value={permanent_pincode}
                                     customLabelStyles={{ colorFocused: '#e96a01', fontSizeFocused: 14 }}
                                     labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
@@ -1698,7 +1746,7 @@ const Index = () => {
                                 {addressDetailsErrors.permanent_pincode && <Text style={styles.errorText}>{addressDetailsErrors.permanent_pincode}</Text>}
                                 {/* Permanent Country Input */}
                                 <FloatingLabelInput
-                                    label="Permanent Country"
+                                    label="Country"
                                     value={permanent_country}
                                     customLabelStyles={{ colorFocused: '#e96a01', fontSizeFocused: 14 }}
                                     labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
@@ -1708,7 +1756,7 @@ const Index = () => {
                                 {addressDetailsErrors.permanent_country && <Text style={styles.errorText}>{addressDetailsErrors.permanent_country}</Text>}
                                 {/* Permanent Address Input */}
                                 <FloatingLabelInput
-                                    label="Permanent Address"
+                                    label="Address"
                                     value={permanent_address}
                                     customLabelStyles={{ colorFocused: '#e96a01', fontSizeFocused: 14 }}
                                     labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
@@ -1736,19 +1784,28 @@ const Index = () => {
                             </View>
                             {!isPermanentSameAsPresent && (
                                 <View style={[styles.cardBox, { marginTop: 10 }]}>
+                                    <Text style={{ color: '#000', fontSize: 16, fontWeight: 'bold', marginBottom: 5 }}>Present Address</Text>
                                     {/* Present Sahi */}
-                                    <FloatingLabelInput
-                                        label="Present Sahi"
-                                        value={present_sahi}
-                                        customLabelStyles={{ colorFocused: '#e96a01', fontSizeFocused: 14 }}
-                                        labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
-                                        onChangeText={value => setPresent_sahi(value)}
-                                        containerStyles={{ borderWidth: 0.5, borderColor: '#353535', backgroundColor: '#ffffff', padding: 10, borderRadius: 8, marginVertical: 12, borderRadius: 10 }}
-                                    />
+                                    <Text style={[styles.label, { marginBottom: 15 }, (focusedField === 'present_sahi' || present_sahi !== null) && styles.focusedLabel]}>Sahi</Text>
+                                    <View style={{ width: '100%', flexDirection: 'row', alignItems: 'center' }}>
+                                        <DropDownPicker
+                                            items={present_sahi_list}
+                                            placeholder='Select Sahi'
+                                            placeholderStyle={{ color: '#4d6285' }}
+                                            open={focusedField === 'present_sahi'}
+                                            value={present_sahi}
+                                            setOpen={() => setFocusedField(focusedField === 'present_sahi' ? null : 'present_sahi')}
+                                            setValue={(value) => setPresent_sahi(value())}
+                                            containerStyle={{ width: '100%' }}
+                                            style={[styles.input, (focusedField === 'present_sahi' || present_sahi !== null) && styles.focusedInput]}
+                                            dropDownContainerStyle={{ backgroundColor: '#fafafa' }}
+                                            listMode='SCROLLVIEW'
+                                        />
+                                    </View>
                                     {addressDetailsErrors.present_sahi && <Text style={styles.errorText}>{addressDetailsErrors.present_sahi}</Text>}
                                     {/* Present Landmark Input */}
                                     <FloatingLabelInput
-                                        label="Present Landmark"
+                                        label="Landmark"
                                         value={present_landmark}
                                         customLabelStyles={{ colorFocused: '#e96a01', fontSizeFocused: 14 }}
                                         labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
@@ -1758,7 +1815,7 @@ const Index = () => {
                                     {addressDetailsErrors.present_landmark && <Text style={styles.errorText}>{addressDetailsErrors.present_landmark}</Text>}
                                     {/* Present Post Input */}
                                     <FloatingLabelInput
-                                        label="Present Post"
+                                        label="Post"
                                         value={present_post}
                                         customLabelStyles={{ colorFocused: '#e96a01', fontSizeFocused: 14 }}
                                         labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
@@ -1768,7 +1825,7 @@ const Index = () => {
                                     {addressDetailsErrors.present_post && <Text style={styles.errorText}>{addressDetailsErrors.present_post}</Text>}
                                     {/* Present Police station */}
                                     <FloatingLabelInput
-                                        label="Present Police Station"
+                                        label="Police Station"
                                         value={present_PS}
                                         customLabelStyles={{ colorFocused: '#e96a01', fontSizeFocused: 14 }}
                                         labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
@@ -1778,7 +1835,7 @@ const Index = () => {
                                     {addressDetailsErrors.present_PS && <Text style={styles.errorText}>{addressDetailsErrors.present_PS}</Text>}
                                     {/* Present District Input */}
                                     <FloatingLabelInput
-                                        label="Present District"
+                                        label="District"
                                         value={present_district}
                                         customLabelStyles={{ colorFocused: '#e96a01', fontSizeFocused: 14 }}
                                         labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
@@ -1788,7 +1845,7 @@ const Index = () => {
                                     {addressDetailsErrors.present_district && <Text style={styles.errorText}>{addressDetailsErrors.present_district}</Text>}
                                     {/* Present State Input */}
                                     <FloatingLabelInput
-                                        label="Present State"
+                                        label="State"
                                         value={present_state}
                                         customLabelStyles={{ colorFocused: '#e96a01', fontSizeFocused: 14 }}
                                         labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
@@ -1798,7 +1855,7 @@ const Index = () => {
                                     {addressDetailsErrors.present_state && <Text style={styles.errorText}>{addressDetailsErrors.present_state}</Text>}
                                     {/* Present Pincode Input */}
                                     <FloatingLabelInput
-                                        label="Present Pincode"
+                                        label="Pincode"
                                         value={present_pincode}
                                         customLabelStyles={{ colorFocused: '#e96a01', fontSizeFocused: 14 }}
                                         labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
@@ -1810,7 +1867,7 @@ const Index = () => {
                                     {addressDetailsErrors.present_pincode && <Text style={styles.errorText}>{addressDetailsErrors.present_pincode}</Text>}
                                     {/* Present Country Input */}
                                     <FloatingLabelInput
-                                        label="Present Country"
+                                        label="Country"
                                         value={present_country}
                                         customLabelStyles={{ colorFocused: '#e96a01', fontSizeFocused: 14 }}
                                         labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
@@ -1820,7 +1877,7 @@ const Index = () => {
                                     {addressDetailsErrors.present_country && <Text style={styles.errorText}>{addressDetailsErrors.present_country}</Text>}
                                     {/* Present Address Input */}
                                     <FloatingLabelInput
-                                        label="Present Address"
+                                        label="Address"
                                         value={present_address}
                                         customLabelStyles={{ colorFocused: '#e96a01', fontSizeFocused: 14 }}
                                         labelStyles={{ backgroundColor: '#ffffff', paddingHorizontal: 5 }}
@@ -2028,7 +2085,7 @@ const Index = () => {
                     </View>
                 )}
             </View>
-        </SafeAreaView>
+        </View>
     );
 };
 

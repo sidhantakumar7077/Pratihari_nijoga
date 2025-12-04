@@ -8,7 +8,6 @@ import {
   FlatList,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import LinearGradient from 'react-native-linear-gradient';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -18,7 +17,6 @@ import { base_url } from '../../../App';
 
 export default function UpcomingPali() {
 
-  const insets = useSafeAreaInsets();
   const navigation = useNavigation();
   const [events, setEvents] = useState({});
   const [markedDates, setMarkedDates] = useState({});
@@ -105,7 +103,7 @@ export default function UpcomingPali() {
   );
 
   return (
-    <View style={[styles.safeArea, { paddingTop: insets.top, paddingBottom: insets.bottom, }]}>
+    <View style={styles.safeArea}>
       <LinearGradient
         colors={['#4c1d95', '#6366f1']}
         style={styles.header}

@@ -10,19 +10,17 @@ import {
   Image,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { base_url } from '../../../App';
 
 const Index = () => {
 
-  const insets = useSafeAreaInsets();
   const navigation = useNavigation();
   const [query, setQuery] = useState('');
   const [members, setMembers] = useState([]);
   const [filteredMembers, setFilteredMembers] = useState([]);
-  const [searchStarted, setSearchStarted] = useState(false);
+  const [searchStarted, setSearchStarted] = useState(false); // true only when >= 3 chars
 
   const getAllMembers = async () => {
     try {
@@ -35,8 +33,7 @@ const Index = () => {
 
       const data = await response.json();
       if (response.ok) {
-        setMembers(data.data); // Access correct data level
-        setFilteredMembers(data.data);
+        setMembers(data.data);
       }
     } catch (error) {
       console.error('Error fetching members:', error);
@@ -65,15 +62,19 @@ const Index = () => {
       });
 
       setFilteredMembers(results);
+      setSearchStarted(true);
     } else {
-      setFilteredMembers(members);
+      // < 3 letters → don't show list
+      setFilteredMembers([]);
+      setSearchStarted(false);
     }
-
-    setSearchStarted(query.length > 0);
-  }, [query]);
+  }, [query, members]);
 
   const renderItem = ({ item }) => (
-    <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('PratihariProfileById', item)}>
+    <TouchableOpacity
+      style={styles.card}
+      onPress={() => navigation.navigate('PratihariProfileById', item)}
+    >
       {item.profile_photo_url ? (
         <Image
           source={{ uri: item.profile_photo_url }}
@@ -90,7 +91,7 @@ const Index = () => {
   );
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom, }]}>
+    <View style={styles.container}>
       <LinearGradient
         colors={['#4c1d95', '#6366f1']}
         style={styles.header}
@@ -125,7 +126,9 @@ const Index = () => {
         {!searchStarted && (
           <View style={styles.placeholderContainer}>
             <Ionicons name="search-circle" size={80} color="#ddd" />
-            <Text style={styles.placeholderText}>Start typing to search members</Text>
+            <Text style={styles.placeholderText}>
+              Type at least 3 letters to search members
+            </Text>
           </View>
         )}
 
@@ -220,5 +223,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#aaa',
     marginTop: 10,
+    textAlign: 'center',
   },
 });

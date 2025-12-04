@@ -1,8 +1,7 @@
-import { SafeAreaView, StyleSheet, Text, View, TouchableOpacity, Image, FlatList, ImageBackground, ScrollView, BackHandler, ToastAndroid, StatusBar, Modal, Alert, ActivityIndicator } from 'react-native'
-import React, { useEffect, useRef, useState } from 'react';
+import { StyleSheet, Text, View, TouchableOpacity, Image, FlatList, ImageBackground, ScrollView, BackHandler, ToastAndroid, RefreshControl, Modal, Alert, ActivityIndicator } from 'react-native'
+import React, { useEffect, useCallback, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation, useIsFocused } from '@react-navigation/native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import AntDesign from 'react-native-vector-icons/AntDesign';
@@ -96,12 +95,12 @@ const Index = () => {
 
     const images = [image3, image2, image1];
 
-    const insets = useSafeAreaInsets();
     const [backPressCount, setBackPressCount] = useState(0);
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
     const closeDrawer = () => setIsDrawerOpen(false);
     const navigation = useNavigation();
     const isFocused = useIsFocused();
+    const [refreshing, setRefreshing] = useState(false);
     const [currentSeba, setCurrentSeba] = useState(null);
     const [isRunning, setIsRunning] = useState(false);
     const [actionLoading, setActionLoading] = useState(false);
@@ -131,6 +130,15 @@ const Index = () => {
             return () => backHandler.remove(); // Cleanup the event listener when the component unmounts or navigates away
         }
     }, [backPressCount, isFocused]);
+
+    const onRefresh = useCallback(() => {
+        setRefreshing(true);
+        setTimeout(() => {
+            setRefreshing(false);
+            getProfileDetails();
+            fetchSebaAndBedhas();
+        }, 800);
+    }, []);
 
     const [profileDetails, setProfileDetails] = useState(null);
     const [rejetedReason, setRejetedReason] = useState(null);
@@ -222,6 +230,9 @@ const Index = () => {
     const startSeba = (payload) => apiPost('api/start-seba', payload);
     const endSeba = (payload) => apiPost('api/end-seba', payload);
 
+    const isApproved = profileDetails?.pratihari_status === 'approved';
+    const [approvalModalVisible, setApprovalModalVisible] = useState(false);
+
     // ---- CONFIRM & EXECUTE ----
     const handleStartStopPress = () => {
         if (!currentSeba) return;
@@ -272,7 +283,7 @@ const Index = () => {
             <TouchableOpacity
                 style={[styles.menuCard, { backgroundColor: item.backgroundColor }]}
                 activeOpacity={0.8}
-                onPress={() => navigation.navigate(item.page)}
+                onPress={() => !isApproved ? setApprovalModalVisible(true) : navigation.navigate(item.page)}
             >
                 <View style={[styles.menuIconContainer, { backgroundColor: item.icon.color + '20' }]}>
                     {IconComponent && (
@@ -286,9 +297,8 @@ const Index = () => {
     };
 
     return (
-        <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom, }]}>
-            <StatusBar barStyle="dark-content" backgroundColor="#4c1d95" />
-            <DrawerModal visible={isDrawerOpen} onClose={closeDrawer} profileDetails={profileDetails} />
+        <View style={[styles.container]}>
+            <DrawerModal visible={isDrawerOpen} onClose={closeDrawer} profileDetails={profileDetails} isApproved={isApproved} setApprovalModalVisible={setApprovalModalVisible} />
             <LinearGradient
                 colors={['#4c1d95', '#6366f1', '#8b5cf6']}
                 // colors={['#ff6b6b', '#feca57']}
@@ -353,6 +363,7 @@ const Index = () => {
                 style={styles.scrollContainer}
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={styles.scrollContent}
+                refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
             >
 
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 15, marginHorizontal: 20 }}>
@@ -453,37 +464,44 @@ const Index = () => {
                                     {/* Status / Button */}
                                     <View style={styles.currentEventStatus}>
                                         {currentSeba ? (
-                                            moment().isSame(currentSeba.date, 'day') ? (
-                                                currentSeba.seba_status === 'completed' ? (
-                                                    <View style={[styles.statusBadge, { backgroundColor: 'rgba(16,185,129,0.25)' }]}>
-                                                        <Text style={styles.statusText}>Completed</Text>
-                                                    </View>
-                                                ) : (
-                                                    <TouchableOpacity
-                                                        style={styles.statusBadge}
-                                                        onPress={handleStartStopPress}
-                                                        disabled={actionLoading}
-                                                        activeOpacity={0.8}
-                                                    >
-                                                        {actionLoading ? (
-                                                            <ActivityIndicator size="small" color="#fff" />
-                                                        ) : (
-                                                            <Text style={styles.statusText}>
-                                                                {currentSeba.seba_status === 'started' ? 'Stop' : 'Start'}
-                                                            </Text>
-                                                        )}
-                                                    </TouchableOpacity>
-                                                )
-                                            ) : (
-                                                <View style={styles.statusBadge}>
-                                                    <Text style={styles.statusText}>
-                                                        {currentSeba.seba_status === 'started'
-                                                            ? 'Started'
-                                                            : currentSeba.seba_status === 'completed' || currentSeba.seba_status === 'ended'
-                                                                ? 'Completed'
-                                                                : 'Upcoming'}
-                                                    </Text>
+                                            !isApproved ? (
+                                                // 🔒 Not approved → show locked / pending badge, no action
+                                                <View style={[styles.statusBadge, { backgroundColor: 'rgba(148,163,184,0.4)' }]}>
+                                                    <Text style={styles.statusText}>Approval Pending</Text>
                                                 </View>
+                                            ) : (
+                                                moment().isSame(currentSeba.date, 'day') ? (
+                                                    currentSeba.seba_status === 'completed' ? (
+                                                        <View style={[styles.statusBadge, { backgroundColor: 'rgba(16,185,129,0.25)' }]}>
+                                                            <Text style={styles.statusText}>Completed</Text>
+                                                        </View>
+                                                    ) : (
+                                                        <TouchableOpacity
+                                                            style={styles.statusBadge}
+                                                            onPress={handleStartStopPress}
+                                                            disabled={actionLoading}
+                                                            activeOpacity={0.8}
+                                                        >
+                                                            {actionLoading ? (
+                                                                <ActivityIndicator size="small" color="#fff" />
+                                                            ) : (
+                                                                <Text style={styles.statusText}>
+                                                                    {currentSeba.seba_status === 'started' ? 'Stop' : 'Start'}
+                                                                </Text>
+                                                            )}
+                                                        </TouchableOpacity>
+                                                    )
+                                                ) : (
+                                                    <View style={styles.statusBadge}>
+                                                        <Text style={styles.statusText}>
+                                                            {currentSeba.seba_status === 'started'
+                                                                ? 'Started'
+                                                                : currentSeba.seba_status === 'completed' || currentSeba.seba_status === 'ended'
+                                                                    ? 'Completed'
+                                                                    : 'Upcoming'}
+                                                        </Text>
+                                                    </View>
+                                                )
                                             )
                                         ) : null}
                                     </View>
@@ -571,7 +589,7 @@ const Index = () => {
                     />
                 </View>
 
-                <TouchableOpacity onPress={() => navigation.navigate('SebaDetails')} style={styles.footerSection}>
+                <TouchableOpacity onPress={() => !isApproved ? setApprovalModalVisible(true) : navigation.navigate('SebaDetails')} style={styles.footerSection}>
                     <LinearGradient
                         colors={['#ff6b6b', '#feca57']}
                         style={styles.footerCard}
@@ -612,6 +630,57 @@ const Index = () => {
                         </Swiper>
                     </View>
                 </View>
+
+                {/* Approval Modal */}
+                <Modal
+                    visible={approvalModalVisible}
+                    transparent
+                    animationType="fade"
+                    onRequestClose={() => setApprovalModalVisible(false)}
+                >
+                    <View style={styles.approvalModalOverlay}>
+                        <View style={styles.approvalModalContainer}>
+                            {/* Gradient header with icon */}
+                            <LinearGradient
+                                colors={['#ff6b6b', '#feca57']}
+                                start={{ x: 0, y: 0 }}
+                                end={{ x: 1, y: 0 }}
+                                style={styles.approvalModalHeader}
+                            >
+                                <Ionicons name="lock-closed-outline" size={40} color="#fff" />
+                            </LinearGradient>
+
+                            {/* Text content */}
+                            <View style={styles.approvalModalBody}>
+                                <Text style={styles.approvalModalTitle}>Account Not Approved</Text>
+                                <Text style={styles.approvalModalSubtitle}>
+                                    Your account is currently pending approval.
+                                    You’ll be able to access this feature once your account is approved by the admin.
+                                </Text>
+                            </View>
+
+                            {/* Buttons */}
+                            <View style={styles.approvalModalButtons}>
+                                <TouchableOpacity
+                                    style={styles.approvalPrimaryButton}
+                                    onPress={() => setApprovalModalVisible(false)}
+                                    activeOpacity={0.85}
+                                >
+                                    <Text style={styles.approvalPrimaryButtonText}>Got it</Text>
+                                </TouchableOpacity>
+
+                                {/* Optional secondary button */}
+                                {/* <TouchableOpacity
+                                    style={styles.approvalSecondaryButton}
+                                    // onPress={handleContactSupport}
+                                    activeOpacity={0.85}
+                                >
+                                    <Text style={styles.approvalSecondaryButtonText}>Contact Support</Text>
+                                </TouchableOpacity> */}
+                            </View>
+                        </View>
+                    </View>
+                </Modal>
 
                 {/* <View style={styles.footerSection}>
                     <LinearGradient
@@ -1079,5 +1148,82 @@ const styles = StyleSheet.create({
         color: '#cbd5e1',
         textAlign: 'center',
         lineHeight: 20,
+    },
+    approvalModalOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0,0,0,0.5)',
+        justifyContent: 'center',
+        alignItems: 'center',
+        paddingHorizontal: 20,
+    },
+    approvalModalContainer: {
+        width: '100%',
+        backgroundColor: '#fff',
+        borderRadius: 20,
+        overflow: 'hidden',
+        elevation: 12,
+        shadowColor: '#000',
+        shadowOpacity: 0.25,
+        shadowOffset: { width: 0, height: 6 },
+        shadowRadius: 10,
+    },
+    approvalModalHeader: {
+        width: '100%',
+        paddingVertical: 20,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    approvalModalBody: {
+        paddingHorizontal: 20,
+        paddingTop: 18,
+        paddingBottom: 10,
+    },
+    approvalModalTitle: {
+        fontSize: 20,
+        fontWeight: '700',
+        color: '#1f2933',
+        textAlign: 'center',
+        marginBottom: 8,
+    },
+    approvalModalSubtitle: {
+        fontSize: 14,
+        color: '#6b7280',
+        textAlign: 'center',
+        lineHeight: 20,
+    },
+    approvalModalButtons: {
+        flexDirection: 'row',
+        justifyContent: 'space-evenly',
+        alignItems: 'center',
+        paddingHorizontal: 16,
+        paddingBottom: 18,
+        paddingTop: 8,
+    },
+    approvalPrimaryButton: {
+        flex: 1,
+        marginHorizontal: 4,
+        backgroundColor: '#ff6b6b',
+        borderRadius: 999,
+        paddingVertical: 10,
+        alignItems: 'center',
+    },
+    approvalPrimaryButtonText: {
+        color: '#fff',
+        fontWeight: '700',
+        fontSize: 15,
+    },
+    approvalSecondaryButton: {
+        flex: 1,
+        marginHorizontal: 4,
+        borderRadius: 999,
+        borderWidth: 1,
+        borderColor: '#d1d5db',
+        paddingVertical: 10,
+        alignItems: 'center',
+    },
+    approvalSecondaryButtonText: {
+        color: '#4b5563',
+        fontWeight: '600',
+        fontSize: 14,
     },
 })

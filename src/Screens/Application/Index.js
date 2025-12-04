@@ -15,12 +15,10 @@ import {
   Platform,
 } from 'react-native';
 import { useNavigation, useIsFocused } from '@react-navigation/native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import * as ImagePicker from 'react-native-image-picker';
-import DatePicker from 'react-native-date-picker';
 import axios from 'axios';
 import { base_url } from '../../../App';
 
@@ -33,7 +31,6 @@ const STATUS_COLORS = {
 
 const Index = () => {
 
-  const insets = useSafeAreaInsets();
   const navigation = useNavigation();
   const isFocused = useIsFocused();
 
@@ -48,8 +45,6 @@ const Index = () => {
   const [header, setHeader] = useState('');
   const [body, setBody] = useState('');
   const [photo, setPhoto] = useState(null);
-  const [openDatePicker, setOpenDatePicker] = useState(false);
-  const [selectedDate, setSelectedDate] = useState(new Date());
 
   // UX helpers
   const [query, setQuery] = useState('');
@@ -59,6 +54,9 @@ const Index = () => {
   const prevStatusRef = useRef({}); // id -> status map to detect changes
   const mounted = useRef(false);
   const [reasonModal, setReasonModal] = useState({ visible: false, reason: '', title: '' });
+
+  // Full image modal
+  const [imageModal, setImageModal] = useState({ visible: false, uri: '' });
 
   const showToast = (msg) => ToastAndroid.show(msg, ToastAndroid.SHORT);
 
@@ -130,22 +128,51 @@ const Index = () => {
     getApplications({ showLoader: false, detectChanges: true });
   };
 
+  // Helper to format today's date as DD-MM-YYYY
+  const getTodayFormatted = () => {
+    const d = new Date();
+    const dd = String(d.getDate()).padStart(2, '0');
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const yyyy = d.getFullYear();
+    return `${dd}-${mm}-${yyyy}`;
+  };
+
+  // When new application modal opens, set today's date and keep it read-only
+  useEffect(() => {
+    if (modalVisible) {
+      setDate(getTodayFormatted());
+    }
+  }, [modalVisible]);
+
   // New application submit
   const handleSubmit = async () => {
-    if (!date || !header?.trim() || !body?.trim()) {
-      showToast('Please complete all fields.');
+    if (!date) {
+      showToast('Date is missing.');
       return;
+    }
+    const hasPhoto = !!(photo && photo.uri);
+    if (!hasPhoto) {
+      if (!header?.trim()) {
+        showToast('Please enter subject.');
+        return;
+      }
+      if (!body?.trim()) {
+        showToast('Please enter body.');
+        return;
+      }
     }
 
     const formData = new FormData();
-    formData.append('date', date); // DD-MM-YYYY
+    formData.append('date', date); // DD-MM-YYYY (today)
     formData.append('header', header.trim());
     formData.append('body', body.trim());
-    formData.append('photo', {
-      uri: Platform.OS === 'android' ? photo.uri : photo.uri.replace('file://', ''),
-      type: photo.type || 'image/jpeg',
-      name: photo.fileName || 'application.jpg',
-    });
+    if (photo && photo.uri) {
+      formData.append('photo', {
+        uri: Platform.OS === 'android' ? photo.uri : photo.uri.replace('file://', ''),
+        type: photo.type || 'image/jpeg',
+        name: photo.fileName || 'application.jpg',
+      });
+    }
 
     try {
       setLoading(true);
@@ -202,54 +229,108 @@ const Index = () => {
     );
   };
 
-  const renderItem = ({ item }) => (
-    <View style={styles.card}>
-      <Image source={{ uri: item.photo_url || item.photo }} style={styles.image} />
-      <View style={{ flex: 1, marginLeft: 10 }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-          <Text style={styles.cardTitle} numberOfLines={1}>{item.header}</Text>
-          <StatusBadge status={item.status} />
-        </View>
-        <Text style={styles.cardDate}>Date: {item.date}</Text>
-        <Text style={styles.cardBody} numberOfLines={3}>{item.body}</Text>
+  const renderItem = ({ item }) => {
+    const imgUri = item.photo_url || item.photo;
 
-        {/* Rejection reason */}
-        {item.status?.toLowerCase() === 'rejected' && !!item.rejection_reason && (
+    return (
+      <View style={styles.card}>
+        {imgUri ? (
           <TouchableOpacity
-            style={styles.reasonBtn}
-            onPress={() => setReasonModal({ visible: true, reason: item.rejection_reason, title: item.header })}
+            activeOpacity={0.9}
+            onPress={() => setImageModal({ visible: true, uri: imgUri })}
           >
-            <Ionicons name="alert-circle-outline" size={16} color="#991b1b" />
-            <Text style={styles.reasonBtnText}>View reason</Text>
+            <Image source={{ uri: imgUri }} style={styles.image} />
           </TouchableOpacity>
+        ) : (
+          <View style={[styles.image, { backgroundColor: '#e5e7eb' }]} />
         )}
+        <View style={{ flex: 1, marginLeft: 10 }}>
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+            }}
+          >
+            <Text style={styles.cardTitle} numberOfLines={1}>
+              {item.header}
+            </Text>
+            <StatusBadge status={item.status} />
+          </View>
+          <Text style={styles.cardDate}>Date: {item.date}</Text>
+          <Text style={styles.cardBody} numberOfLines={3}>
+            {item.body}
+          </Text>
+
+          {/* Rejection reason */}
+          {item.status?.toLowerCase() === 'rejected' && !!item.rejection_reason && (
+            <TouchableOpacity
+              style={styles.reasonBtn}
+              onPress={() =>
+                setReasonModal({
+                  visible: true,
+                  reason: item.rejection_reason,
+                  title: item.header,
+                })
+              }
+            >
+              <Ionicons name="alert-circle-outline" size={16} color="#991b1b" />
+              <Text style={styles.reasonBtnText}>View reason</Text>
+            </TouchableOpacity>
+          )}
+        </View>
       </View>
-    </View>
-  );
+    );
+  };
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom, }]}>
+    <View style={styles.container}>
       {/* Header */}
       <LinearGradient colors={['#4c1d95', '#6366f1']} style={styles.header}>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
           <TouchableOpacity onPress={() => navigation.goBack()}>
-            <Ionicons name="arrow-back" size={24} color="#fff" style={{ marginRight: 10 }} />
+            <Ionicons
+              name="arrow-back"
+              size={24}
+              color="#fff"
+              style={{ marginRight: 10 }}
+            />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Applications</Text>
-          <View style={{ position: 'absolute', right: 15, flexDirection: 'row', gap: 12 }}>
+          <View
+            style={{
+              position: 'absolute',
+              right: 15,
+              flexDirection: 'row',
+              gap: 12,
+            }}
+          >
             {/* Auto refresh toggle */}
             <TouchableOpacity
               onPress={() => setAutoRefresh((p) => !p)}
-              style={[styles.iconBtn, { backgroundColor: autoRefresh ? 'rgba(255,255,255,0.3)' : 'rgba(255,255,255,0.15)' }]}
+              style={[
+                styles.iconBtn,
+                {
+                  backgroundColor: autoRefresh
+                    ? 'rgba(255,255,255,0.3)'
+                    : 'rgba(255,255,255,0.15)',
+                },
+              ]}
             >
-              <Ionicons name={autoRefresh ? 'refresh-circle' : 'refresh'} size={24} color="#fff" />
+              <Ionicons
+                name={autoRefresh ? 'refresh-circle' : 'refresh'}
+                size={24}
+                color="#fff"
+              />
             </TouchableOpacity>
             <TouchableOpacity onPress={() => setModalVisible(true)}>
               <Ionicons name="add-circle-outline" size={30} color="#fff" />
             </TouchableOpacity>
           </View>
         </View>
-        <Text style={styles.headerSubtitle}>Apply for various services and events</Text>
+        <Text style={styles.headerSubtitle}>
+          Apply for various services and events
+        </Text>
 
         {/* Search + Tabs */}
         <View style={styles.searchBar}>
@@ -277,7 +358,9 @@ const Index = () => {
                 onPress={() => setTab(t)}
                 style={[styles.tab, active && styles.tabActive]}
               >
-                <Text style={[styles.tabText, active && styles.tabTextActive]}>
+                <Text
+                  style={[styles.tabText, active && styles.tabTextActive]}
+                >
                   {t[0].toUpperCase() + t.slice(1)}
                 </Text>
               </TouchableOpacity>
@@ -289,19 +372,31 @@ const Index = () => {
       {/* Content */}
       <View style={styles.scrollContainer}>
         {loading ? (
-          <ActivityIndicator size="large" color="#051b65" style={{ marginTop: 40 }} />
+          <ActivityIndicator
+            size="large"
+            color="#051b65"
+            style={{ marginTop: 40 }}
+          />
         ) : (
           <FlatList
             data={filtered}
             keyExtractor={(item) => String(item.id)}
             renderItem={renderItem}
             contentContainerStyle={{ padding: 16, paddingBottom: 24 }}
-            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+            refreshControl={
+              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+            }
             ListEmptyComponent={
               <View style={styles.emptyState}>
-                <Ionicons name="document-text-outline" size={40} color="#9ca3af" />
+                <Ionicons
+                  name="document-text-outline"
+                  size={40}
+                  color="#9ca3af"
+                />
                 <Text style={styles.emptyTitle}>No applications</Text>
-                <Text style={styles.emptySubtitle}>Create a new application to get started.</Text>
+                <Text style={styles.emptySubtitle}>
+                  Create a new application to get started.
+                </Text>
               </View>
             }
           />
@@ -314,39 +409,28 @@ const Index = () => {
           <LinearGradient colors={['#4c1d95', '#6366f1']} style={styles.header}>
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
               <TouchableOpacity onPress={() => setModalVisible(false)}>
-                <Ionicons name="arrow-back" size={24} color="#fff" style={{ marginRight: 10 }} />
+                <Ionicons
+                  name="arrow-back"
+                  size={24}
+                  color="#fff"
+                  style={{ marginRight: 10 }}
+                />
               </TouchableOpacity>
               <Text style={styles.headerTitle}>New Application</Text>
             </View>
-            <Text style={styles.headerSubtitle}>Fill out the form to submit a new application</Text>
+            <Text style={styles.headerSubtitle}>
+              Fill out the form to submit a new application
+            </Text>
           </LinearGradient>
 
           <View style={styles.scrollContainer}>
             <ScrollView contentContainerStyle={styles.form}>
-              {/* Date picker */}
-              <TouchableOpacity onPress={() => setOpenDatePicker(true)} style={styles.input}>
-                <Text style={date ? styles.inputText : styles.placeholderText}>
-                  {date || 'Select Date'}
+              {/* Date (read-only, today's date) */}
+              <View style={[styles.input, styles.disabledInput]}>
+                <Text style={styles.inputText}>
+                  {date || 'Today'}
                 </Text>
-              </TouchableOpacity>
-              <DatePicker
-                modal
-                mode="date"
-                open={openDatePicker}
-                date={selectedDate}
-                onConfirm={(pickedDate) => {
-                  setOpenDatePicker(false);
-                  setSelectedDate(pickedDate);
-                  // DD-MM-YYYY
-                  const d = pickedDate;
-                  const dd = String(d.getDate()).padStart(2, '0');
-                  const mm = String(d.getMonth() + 1).padStart(2, '0');
-                  const yyyy = d.getFullYear();
-                  setDate(`${dd}-${mm}-${yyyy}`);
-                }}
-                onCancel={() => setOpenDatePicker(false)}
-                maximumDate={new Date()}
-              />
+              </View>
 
               {/* Header & Body */}
               <TextInput
@@ -358,7 +442,7 @@ const Index = () => {
               />
               <TextInput
                 style={[styles.input, styles.textArea]}
-                placeholder="Application"
+                placeholder="Body"
                 value={body}
                 onChangeText={setBody}
                 multiline
@@ -369,14 +453,35 @@ const Index = () => {
               {/* Photo */}
               <TouchableOpacity style={styles.imageButton} onPress={pickImage}>
                 <Ionicons name="image-outline" size={20} color="#555" />
-                <Text style={styles.imageButtonText}>Select application photo to send</Text>
+                <Text style={styles.imageButtonText}>
+                  Select application photo to send
+                </Text>
               </TouchableOpacity>
               {photo && (
-                <Image source={{ uri: photo.uri }} style={styles.previewImage} resizeMode="contain" />
+                <TouchableOpacity
+                  activeOpacity={0.9}
+                  onPress={() =>
+                    setImageModal({ visible: true, uri: photo.uri })
+                  }
+                >
+                  <Image
+                    source={{ uri: photo.uri }}
+                    style={styles.previewImage}
+                    resizeMode="contain"
+                  />
+                </TouchableOpacity>
               )}
 
-              <TouchableOpacity style={styles.submitButton} onPress={handleSubmit} disabled={loading}>
-                {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.submitText}>Submit</Text>}
+              <TouchableOpacity
+                style={styles.submitButton}
+                onPress={handleSubmit}
+                disabled={loading}
+              >
+                {loading ? (
+                  <ActivityIndicator color="#fff" />
+                ) : (
+                  <Text style={styles.submitText}>Submit</Text>
+                )}
               </TouchableOpacity>
             </ScrollView>
           </View>
@@ -388,24 +493,61 @@ const Index = () => {
         visible={reasonModal.visible}
         transparent
         animationType="fade"
-        onRequestClose={() => setReasonModal({ visible: false, reason: '', title: '' })}
+        onRequestClose={() =>
+          setReasonModal({ visible: false, reason: '', title: '' })
+        }
       >
         <View style={styles.reasonOverlay}>
           <View style={styles.reasonCard}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                marginBottom: 8,
+              }}
+            >
               <Ionicons name="alert-circle" size={20} color="#991b1b" />
               <Text style={styles.reasonTitle} numberOfLines={1}>
                 {reasonModal.title || 'Application'}
               </Text>
             </View>
-            <Text style={styles.reasonText}>{reasonModal.reason || 'No reason provided.'}</Text>
+            <Text style={styles.reasonText}>
+              {reasonModal.reason || 'No reason provided.'}
+            </Text>
             <TouchableOpacity
               style={styles.reasonClose}
-              onPress={() => setReasonModal({ visible: false, reason: '', title: '' })}
+              onPress={() =>
+                setReasonModal({ visible: false, reason: '', title: '' })
+              }
             >
               <Text style={styles.reasonCloseText}>Close</Text>
             </TouchableOpacity>
           </View>
+        </View>
+      </Modal>
+
+      {/* Full Image Modal */}
+      <Modal
+        visible={imageModal.visible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setImageModal({ visible: false, uri: '' })}
+      >
+        <View style={styles.imageOverlay}>
+          <TouchableOpacity
+            style={styles.imageClose}
+            onPress={() => setImageModal({ visible: false, uri: '' })}
+            activeOpacity={0.9}
+          >
+            <Ionicons name="close" size={26} color="#fff" />
+          </TouchableOpacity>
+          {imageModal.uri ? (
+            <Image
+              source={{ uri: imageModal.uri }}
+              style={styles.fullImage}
+              resizeMode="contain"
+            />
+          ) : null}
         </View>
       </Modal>
     </View>
@@ -418,7 +560,12 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f8fafc' },
   header: { paddingTop: 10, paddingBottom: 40, paddingHorizontal: 20 },
   headerTitle: { fontSize: 28, fontFamily: 'Poppins-Bold', color: '#ffffff' },
-  headerSubtitle: { fontSize: 16, fontFamily: 'Inter-Regular', color: '#e2e8f0', marginTop: 8 },
+  headerSubtitle: {
+    fontSize: 16,
+    fontFamily: 'Inter-Regular',
+    color: '#e2e8f0',
+    marginTop: 8,
+  },
   scrollContainer: {
     flex: 1,
     marginTop: -20,
@@ -441,7 +588,12 @@ const styles = StyleSheet.create({
     shadowRadius: 3,
   },
   image: { width: 80, height: 80, borderRadius: 8 },
-  cardTitle: { fontSize: 16, fontWeight: 'bold', color: '#333', maxWidth: '55%' },
+  cardTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#333',
+    maxWidth: '55%',
+  },
   cardDate: { fontSize: 13, color: '#888', marginVertical: 4 },
   cardBody: { fontSize: 14, color: '#555' },
 
@@ -457,7 +609,12 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.35)',
   },
-  searchInput: { flex: 1, color: '#111827', fontSize: 15, marginHorizontal: 8 },
+  searchInput: {
+    flex: 1,
+    color: '#111827',
+    fontSize: 15,
+    marginHorizontal: 8,
+  },
   tabs: {
     flexDirection: 'row',
     marginTop: 10,
@@ -513,6 +670,9 @@ const styles = StyleSheet.create({
     borderColor: '#ddd',
     borderWidth: 1,
   },
+  disabledInput: {
+    backgroundColor: '#f3f4f6',
+  },
   inputText: { fontSize: 16, color: '#222' },
   placeholderText: { fontSize: 16, color: '#aaa' },
   textArea: { height: 120, textAlignVertical: 'top' },
@@ -564,7 +724,13 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 16,
   },
-  reasonTitle: { marginLeft: 8, fontSize: 16, fontWeight: '800', color: '#111827', flex: 1 },
+  reasonTitle: {
+    marginLeft: 8,
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#111827',
+    flex: 1,
+  },
   reasonText: { marginTop: 8, fontSize: 14, color: '#374151' },
   reasonClose: {
     marginTop: 14,
@@ -575,4 +741,23 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   reasonCloseText: { color: '#fff', fontWeight: '700' },
+
+  // full image modal
+  imageOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.9)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  imageClose: {
+    position: 'absolute',
+    top: 40,
+    right: 20,
+    zIndex: 10,
+    padding: 6,
+  },
+  fullImage: {
+    width: '95%',
+    height: '80%',
+  },
 });

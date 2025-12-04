@@ -13,7 +13,6 @@ import {
   ActivityIndicator
 } from 'react-native';
 import { FloatingLabelInput } from 'react-native-floating-label-input';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -23,7 +22,6 @@ import LinearGradient from 'react-native-linear-gradient';
 
 const Address = (props) => {
 
-  const insets = useSafeAreaInsets();
   const navigation = useNavigation();
   const [focusedField, setFocusedField] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -163,7 +161,7 @@ const Address = (props) => {
   }, []);
 
   return (
-    <View style={[styles.safeArea, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
+    <View style={styles.safeArea}>
       <LinearGradient
         colors={['#4c1d95', '#6366f1']}
         style={styles.header}

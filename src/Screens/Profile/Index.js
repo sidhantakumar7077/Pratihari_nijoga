@@ -203,7 +203,7 @@ export default function Index() {
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'active': return '#10b981';
+      case 'approved': return '#10b981';
       case 'pending': return '#f59e0b';
       case 'rejected': return '#ef4444';
       default: return '#6b7280';
@@ -212,7 +212,7 @@ export default function Index() {
 
   const getStatusText = (status) => {
     switch (status) {
-      case 'active': return 'Active';
+      case 'approved': return 'Approved';
       case 'pending': return 'Pending Approval';
       case 'rejected': return 'Rejected';
       default: return 'Unknown';
@@ -339,7 +339,7 @@ export default function Index() {
                 onPress={async () => {
                   setLogoutModalVisible(false);
                   await AsyncStorage.clear();
-                  navigation.replace('Login');
+                  navigation.replace('NewLogin');
                 }}
               >
                 <Text style={styles.confirmButtonText}>Yes, Logout</Text>
@@ -478,10 +478,9 @@ export default function Index() {
   };
 
   return (
-    <View style={[styles.container, { paddingBottom: insets.bottom, }]}>
-      <StatusBar barStyle="light-content" backgroundColor="#4c1d95" />
+    <View style={styles.container}>
       <LinearGradient colors={['#4c1d95', '#6366f1']} style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={{ position: 'absolute', left: 20, top: 25 }}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={{ position: 'absolute', left: 20, top: 20 }}>
           <Feather name="arrow-left" size={28} color="#fff" />
         </TouchableOpacity>
         <View style={styles.profileHeader}>
@@ -554,7 +553,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   header: {
-    paddingTop: Platform.OS === 'ios' ? 60 : 40,
+    paddingTop: 20,
     paddingBottom: 40,
     paddingHorizontal: 20,
   },
