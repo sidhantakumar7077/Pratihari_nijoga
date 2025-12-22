@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   View,
   Text,
@@ -16,11 +16,74 @@ import moment from 'moment';
 import { base_url } from '../../../App';
 
 export default function UpcomingPali() {
-
+  
   const navigation = useNavigation();
+
+  const TODAY = moment().format('YYYY-MM-DD');
+  const INITIAL_MONTH_KEY = moment().format('YYYY-MM'); // e.g. "2025-12"
+
   const [events, setEvents] = useState({});
   const [markedDates, setMarkedDates] = useState({});
-  const [selectedDate, setSelectedDate] = useState(moment().format('YYYY-MM-DD'));
+  const [selectedDate, setSelectedDate] = useState(TODAY);
+
+  // This controls which month events show in the FlatList
+  const [visibleMonthKey, setVisibleMonthKey] = useState(INITIAL_MONTH_KEY);
+
+  // Build calendar marks:
+  // - Event dates: round border
+  // - Today's date: different border color (even if not selected)
+  // - Selected date: filled round background
+  const buildMarks = (eventsByDate, selected) => {
+    const marks = {};
+
+    Object.keys(eventsByDate || {}).forEach((date) => {
+      const isToday = date === TODAY;
+
+      marks[date] = {
+        customStyles: {
+          container: {
+            width: 34,
+            height: 34,
+            alignItems: 'center',
+            justifyContent: 'center',
+            borderWidth: 2,
+            borderColor: isToday ? '#10b981' : '#f59e0b',
+            borderRadius: 999,
+            backgroundColor: 'transparent',
+          },
+          text: {
+            color: '#1e293b',
+            fontWeight: '600',
+          },
+        },
+      };
+    });
+
+    // Always highlight selected date (even if no events)
+    if (selected) {
+      marks[selected] = {
+        ...(marks[selected] || {}),
+        customStyles: {
+          container: {
+            width: 34,
+            height: 34,
+            alignItems: 'center',
+            justifyContent: 'center',
+            borderWidth: 2,
+            borderColor: '#667eea',
+            backgroundColor: '#667eea',
+            borderRadius: 999,
+          },
+          text: {
+            color: '#ffffff',
+            fontWeight: '700',
+          },
+        },
+      };
+    }
+
+    return marks;
+  };
 
   useEffect(() => {
     fetchEvents();
@@ -29,6 +92,7 @@ export default function UpcomingPali() {
   const fetchEvents = async () => {
     try {
       const token = await AsyncStorage.getItem('storeAccesstoken');
+
       const response = await fetch(`${base_url}api/pratihari-seba-dates`, {
         method: 'GET',
         headers: {
@@ -42,26 +106,9 @@ export default function UpcomingPali() {
       if (data.status && typeof data.data === 'object') {
         setEvents(data.data);
 
-        const marks = {};
-        Object.keys(data.data).forEach(date => {
-          marks[date] = {
-            marked: true,
-            dotColor: '#f59e0b',
-          };
-        });
-
-        const today = moment().format('YYYY-MM-DD');
-        if (data.data[today]) {
-          marks[today] = {
-            ...marks[today],
-            selected: true,
-            selectedColor: '#667eea',
-            selectedTextColor: '#ffffff',
-          };
-        }
-
-        setMarkedDates(marks);
-        setSelectedDate(today);
+        setSelectedDate(TODAY);
+        setVisibleMonthKey(moment(TODAY).format('YYYY-MM'));
+        setMarkedDates(buildMarks(data.data, TODAY));
       } else {
         console.warn('Unexpected data format:', data);
       }
@@ -73,44 +120,78 @@ export default function UpcomingPali() {
   const onDayPress = (day) => {
     const date = day.dateString;
     setSelectedDate(date);
-
-    const updated = { ...markedDates };
-    Object.keys(updated).forEach(k => {
-      delete updated[k].selected;
-      delete updated[k].selectedColor;
-      delete updated[k].selectedTextColor;
-    });
-
-    updated[date] = {
-      ...(updated[date] || {}),
-      selected: true,
-      selectedColor: '#667eea',
-      selectedTextColor: '#ffffff',
-    };
-
-    setMarkedDates(updated);
+    setMarkedDates(buildMarks(events, date));
   };
 
-  const renderEventCard = ({ item }) => (
-    <View style={styles.eventCard}>
-      <LinearGradient colors={['#667eea', '#764ba2']} style={styles.eventGradient}>
-        <View style={styles.eventContent}>
-          <Text style={styles.eventTitle}>{item.seba}</Text>
-          <Text style={styles.eventSubtitle}>🕒 {item.time} | Beddha: {item.beddha_id}</Text>
+  const onMonthChange = (m) => {
+    // m = { year: 2025, month: 12, ... }
+    const monthKey = `${m.year}-${String(m.month).padStart(2, '0')}`;
+    setVisibleMonthKey(monthKey);
+  };
+
+  // Flatten ONLY visible month events into a single FlatList dataset with date headers
+  const monthEventsList = useMemo(() => {
+    const rows = [];
+
+    const dates = Object.keys(events || {})
+      .filter((date) => date.startsWith(visibleMonthKey)) // "YYYY-MM"
+      .sort((a, b) => a.localeCompare(b));
+
+    dates.forEach((date) => {
+      const dayEvents = events[date];
+      if (!Array.isArray(dayEvents) || dayEvents.length === 0) return;
+
+      rows.push({ type: 'header', id: `h-${date}`, date });
+
+      dayEvents.forEach((ev, idx) => {
+        rows.push({
+          type: 'event',
+          id: `e-${date}-${idx}`,
+          date,
+          ...ev,
+        });
+      });
+    });
+
+    return rows;
+  }, [events, visibleMonthKey]);
+
+  const renderRow = ({ item }) => {
+    if (item.type === 'header') {
+      return (
+        <View style={styles.dateHeader}>
+          <Text style={styles.dateHeaderText}>
+            {moment(item.date).format('dddd, MMMM D, YYYY')}
+          </Text>
         </View>
-      </LinearGradient>
-    </View>
-  );
+      );
+    }
+
+    return (
+      <View style={styles.eventCard}>
+        <LinearGradient colors={['#667eea', '#764ba2']} style={styles.eventGradient}>
+          <View style={styles.eventContent}>
+            <Text style={styles.eventTitle}>{item.seba}</Text>
+            <Text style={styles.eventSubtitle}>
+              🕒 {item.time} | Beddha: {item.beddha_id}
+            </Text>
+          </View>
+        </LinearGradient>
+      </View>
+    );
+  };
+
+  const visibleMonthLabel = useMemo(() => {
+    // visibleMonthKey: "YYYY-MM"
+    return moment(`${visibleMonthKey}-01`).format('MMMM YYYY');
+  }, [visibleMonthKey]);
 
   return (
     <View style={styles.safeArea}>
-      <LinearGradient
-        colors={['#4c1d95', '#6366f1']}
-        style={styles.header}
-      >
+      <LinearGradient colors={['#4c1d95', '#6366f1']} style={styles.header}>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
           <TouchableOpacity onPress={() => navigation.goBack()}>
-            <Ionicons name="arrow-back" size={24} color="#fff" marginRight={10} />
+            <Ionicons name="arrow-back" size={24} color="#fff" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Upcoming Pali</Text>
         </View>
@@ -120,19 +201,17 @@ export default function UpcomingPali() {
       <ScrollView style={styles.scrollContainer}>
         <View style={styles.calendarWrapper}>
           <Calendar
+            markingType="custom"
             onDayPress={onDayPress}
+            onMonthChange={onMonthChange}
             markedDates={markedDates}
             theme={{
               backgroundColor: '#f8fafc',
               calendarBackground: '#ffffff',
               textSectionTitleColor: '#94a3b8',
-              selectedDayBackgroundColor: '#667eea',
-              selectedDayTextColor: '#ffffff',
               todayTextColor: '#10b981',
               dayTextColor: '#1e293b',
               textDisabledColor: '#cbd5e1',
-              dotColor: '#667eea',
-              selectedDotColor: '#ffffff',
               arrowColor: '#667eea',
               monthTextColor: '#1e293b',
               textMonthFontWeight: '700',
@@ -148,22 +227,20 @@ export default function UpcomingPali() {
         </View>
 
         <View style={styles.eventsSection}>
-          <Text style={styles.sectionTitle}>
-            Events for {moment(selectedDate).format('dddd, MMMM D')}
-          </Text>
+          <Text style={styles.sectionTitle}>Events in {visibleMonthLabel}</Text>
 
-          {events[selectedDate]?.length > 0 ? (
+          {monthEventsList.length > 0 ? (
             <FlatList
-              data={events[selectedDate]}
-              renderItem={renderEventCard}
+              data={monthEventsList}
+              renderItem={renderRow}
+              keyExtractor={(item) => item.id}
               scrollEnabled={false}
-              keyExtractor={(_, i) => i.toString()}
               contentContainerStyle={{ paddingBottom: 30 }}
             />
           ) : (
             <View style={styles.noEventsContainer}>
               <Text style={styles.noEventsText}>No events scheduled</Text>
-              <Text style={styles.noEventsSubtext}>Enjoy your peaceful day 🌿</Text>
+              <Text style={styles.noEventsSubtext}>in {visibleMonthLabel}</Text>
             </View>
           )}
         </View>
@@ -173,19 +250,12 @@ export default function UpcomingPali() {
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: '#f8fafc',
-  },
+  safeArea: { flex: 1, backgroundColor: '#f8fafc' },
+
   header: {
     paddingTop: 10,
     paddingBottom: 40,
     paddingHorizontal: 20,
-  },
-  headerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
   },
   headerTitle: {
     fontSize: 28,
@@ -198,6 +268,7 @@ const styles = StyleSheet.create({
     color: '#e2e8f0',
     marginTop: 6,
   },
+
   scrollContainer: {
     flex: 1,
     marginTop: -20,
@@ -205,6 +276,7 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 20,
     backgroundColor: '#f8fafc',
   },
+
   calendarWrapper: {
     marginTop: 15,
     marginHorizontal: 16,
@@ -221,6 +293,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 10,
   },
+
   eventsSection: {
     paddingHorizontal: 16,
     paddingTop: 20,
@@ -231,6 +304,17 @@ const styles = StyleSheet.create({
     color: '#1e293b',
     marginBottom: 12,
   },
+
+  dateHeader: {
+    paddingVertical: 10,
+    paddingHorizontal: 6,
+  },
+  dateHeaderText: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#0f172a',
+  },
+
   eventCard: {
     marginBottom: 14,
     borderRadius: 16,
@@ -254,6 +338,7 @@ const styles = StyleSheet.create({
     color: '#e2e8f0',
     marginTop: 6,
   },
+
   noEventsContainer: {
     paddingVertical: 40,
     alignItems: 'center',
@@ -267,5 +352,15 @@ const styles = StyleSheet.create({
   noEventsSubtext: {
     fontSize: 14,
     color: '#94a3b8',
+    marginTop: 4,
+  },
+
+  selectedInfo: {
+    paddingHorizontal: 16,
+    paddingBottom: 18,
+  },
+  selectedInfoText: {
+    fontSize: 13,
+    color: '#64748b',
   },
 });

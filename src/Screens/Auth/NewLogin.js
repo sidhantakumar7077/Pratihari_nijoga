@@ -179,8 +179,9 @@ const NewLogin = () => {
             const data = await res.json();
 
             if (res.ok) {
-                console.log("OTP verified successfully", data.user);
+                console.log("OTP verified successfully", JSON.stringify(data));
                 await AsyncStorage.setItem('storeAccesstoken', data.token);
+                await AsyncStorage.setItem('storeUser', JSON.stringify(data));
                 navigation.replace('PratihariForm');
             } else {
                 showError(data?.message || 'Failed to verify OTP. Please try again.');

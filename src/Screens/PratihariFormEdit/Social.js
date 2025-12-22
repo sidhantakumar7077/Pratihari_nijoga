@@ -6,7 +6,6 @@ import {
     ScrollView,
     TouchableOpacity,
     StyleSheet,
-    SafeAreaView,
     Platform,
     Modal,
     FlatList,
@@ -33,7 +32,7 @@ const Social = (props) => {
     const [loading, setLoading] = useState(false);
 
     return (
-        <SafeAreaView style={styles.safeArea}>
+        <View style={styles.safeArea}>
             <LinearGradient
                 colors={['#4c1d95', '#6366f1']}
                 style={styles.header}
@@ -49,7 +48,7 @@ const Social = (props) => {
 
             <ScrollView style={styles.scrollContainer}>
             </ScrollView>
-        </SafeAreaView>
+        </View>
     );
 }
 

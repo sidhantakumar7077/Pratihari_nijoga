@@ -12,7 +12,6 @@ import {
   Modal,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation, useIsFocused } from '@react-navigation/native';
 import { base_url } from '../../../App';
@@ -81,7 +80,6 @@ const ActionCard = ({ title, subtitle, icon: Icon, iconName, color, onPress }) =
 
 export default function Index() {
 
-  const insets = useSafeAreaInsets();
   const navigation = useNavigation();
   const isFocused = useIsFocused();
   const mounted = useRef(true);

@@ -1,4 +1,4 @@
-import { SafeAreaView, StyleSheet, Text, View, TouchableOpacity, FlatList, Image } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, FlatList, Image } from 'react-native';
 import React, { useState, useEffect, useRef } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
@@ -144,7 +144,7 @@ const Index = () => {
                 colors={['#F8FAFC', '#EFF6FF', '#F0F9FF']}
                 style={styles.container}
             >
-                <SafeAreaView style={styles.safeArea}>
+                <View style={styles.safeArea}>
                     <FormHeader />
                     <TabNavigation
                         tabs={tabs}
@@ -161,7 +161,7 @@ const Index = () => {
                     >
                         {renderTabContent()}
                     </Animatable.View>
-                </SafeAreaView>
+                </View>
             </LinearGradient>
         </FormProvider>
     );

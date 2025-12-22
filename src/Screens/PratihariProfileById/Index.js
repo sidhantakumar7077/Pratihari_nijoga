@@ -5,7 +5,6 @@ import {
     Text,
     StyleSheet,
     TouchableOpacity,
-    SafeAreaView,
     Image,
     Linking,
     RefreshControl,
@@ -103,7 +102,7 @@ export default function PratihariProfile() {
     const fullName = `${profile.first_name || ''} ${profile.middle_name || ''} ${profile.last_name || ''}`.trim();
 
     return (
-        <SafeAreaView style={styles.container}>
+        <View style={styles.container}>
             <StatusBar barStyle="light-content" backgroundColor="#4c1d95" />
             <LinearGradient colors={['#4c1d95', '#6366f1']} style={styles.header}>
                 <View style={styles.headerRow}>
@@ -188,7 +187,7 @@ export default function PratihariProfile() {
                     )}
                 </Animated.View>
             </ScrollView>
-        </SafeAreaView>
+        </View>
     );
 }
 
