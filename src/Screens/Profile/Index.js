@@ -8,7 +8,6 @@ import {
   Image,
   ActivityIndicator,
   Platform,
-  StatusBar,
   Modal,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
@@ -364,20 +363,30 @@ export default function Index() {
           <>
             <Text style={styles.childrenTitle}>Children</Text>
             <View style={styles.familyGrid}>
-              {family.children.map((child, index) => (
-                <FamilyMember
-                  key={child.id}
-                  name={child.children_name}
-                  relation={`${child.gender === 'male' ? 'Son' : 'Daughter'} (DOB: ${child.date_of_birth})`}
-                  imageUrl={child.photo_url}
-                  onImagePress={(url) => {
-                    if (url) {
-                      setSelectedFamilyImageUrl(url);
-                      setFamilyImageModal(true);
-                    }
-                  }}
-                />
-              ))}
+              {family.children.map((child) => {
+                const ms = String(child?.marital_status || "").toLowerCase(); // API may send "null" as string
+
+                const relationBase = `${child.gender === "male" ? "Son" : "Daughter"}`;
+                const dobLine = child.date_of_birth ? `DOB: ${child.date_of_birth}` : null;
+                const maritalLine = `Marital: ${ms && ms !== "null" ? ms : "N/A"}`;
+                const spouseLine =
+                  ms === "married" && child?.spouse_name ? `Spouse: ${child.spouse_name}` : null;
+
+                return (
+                  <FamilyMember
+                    key={child.id}
+                    name={child.children_name}
+                    relation={[relationBase, dobLine, maritalLine, spouseLine].filter(Boolean).join("\n")}
+                    imageUrl={child.photo_url}
+                    onImagePress={(url) => {
+                      if (url) {
+                        setSelectedFamilyImageUrl(url);
+                        setFamilyImageModal(true);
+                      }
+                    }}
+                  />
+                );
+              })}
             </View>
           </>
         )}

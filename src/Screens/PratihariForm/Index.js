@@ -531,11 +531,11 @@ const Index = () => {
         if (!motherName) newErrors.motherName = 'Mother Name is required';
         if (!fathersPhoto_source) newErrors.fathersPhoto_source = 'Father Photo is required';
         if (!mothersPhoto_source) newErrors.mothersPhoto_source = 'Mother Photo is required';
-        if (!marrital_status) newErrors.marrital_status = 'Marital Status is required';
-        if (marrital_status === 'married') {
-            if (!spouseName) newErrors.spouseName = 'Spouse Name is required';
-            if (!spousePhoto_source) newErrors.spousePhoto_source = 'Spouse Photo is required';
-        }
+        // if (!marrital_status) newErrors.marrital_status = 'Marital Status is required';
+        // if (marrital_status === 'married') {
+        //     if (!spouseName) newErrors.spouseName = 'Spouse Name is required';
+        //     if (!spousePhoto_source) newErrors.spousePhoto_source = 'Spouse Photo is required';
+        // }
         // Add children DOB fields validation if child name is entered
         childrenFields.forEach((child, index) => {
             if (child.name) {
@@ -635,7 +635,7 @@ const Index = () => {
                 name: mothersPhoto_source.fileName,
             });
         }
-        formData.append('marital_status', marrital_status);
+        formData.append('marital_status', marrital_status ? marrital_status : 'single');
         if (marrital_status === 'married') {
             formData.append('spouse_name', spouseName);
             if (spousePhoto_source) {
@@ -657,7 +657,7 @@ const Index = () => {
                             name: child.image,
                         });
                     }
-                    formData.append(`children_marital_status[${index}]`, child.maritalStatus);
+                    formData.append(`children_marital_status[${index}]`, child.maritalStatus ? child.maritalStatus : 'single');
                     formData.append(`children_spouse_name[${index}]`, child.spouseName || '');
                 });
             }
