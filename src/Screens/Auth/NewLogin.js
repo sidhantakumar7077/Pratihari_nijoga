@@ -17,6 +17,7 @@ import {
 import LinearGradient from 'react-native-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Feather from 'react-native-vector-icons/Feather';
+import { getMessaging, getToken, requestPermission, AuthorizationStatus } from '@react-native-firebase/messaging';
 import DeviceInfo from 'react-native-device-info';
 import { useNavigation } from '@react-navigation/native';
 import { base_url } from '../../../App';
@@ -155,8 +156,8 @@ const NewLogin = () => {
         }
         setLoading(true);
         try {
-            // const platformName = DeviceInfo.getSystemName();
-            // const deviceModel = DeviceInfo.getModel();
+            const platformName = DeviceInfo.getSystemName();
+            const deviceModel = DeviceInfo.getModel();
 
             // const formData = new FormData();
             // formData.append('otp', otp);
@@ -171,8 +172,11 @@ const NewLogin = () => {
             const res = await fetch(`${base_url}api/pratihari/verify-otp`, {
                 method: 'POST',
                 body: JSON.stringify({
-                    otp: otp,
-                    mobile_number: phone,
+                    mobile_number: phone,          // e.g. "919861302347"
+                    otp: otp,                      // e.g. "378397"
+                    device_id: fcmToken || '',     // your FCM token
+                    device_model: deviceModel,     // e.g. "Poco"
+                    platform: platformName,
                 }),
                 headers: { 'Content-Type': 'application/json' }
             });
@@ -189,6 +193,7 @@ const NewLogin = () => {
             }
         } catch (e) {
             showError('Verification failed. Please try again.');
+            console.log("Error during OTP verification:", e);
         } finally {
             setLoading(false);
         }
@@ -241,7 +246,6 @@ const NewLogin = () => {
                                 <Image source={require('../../assets/images/icon876.png')} style={{ width: 200, height: 100 }} />
                             </View>
                             <Text style={styles.brandName}>Pratihari Nijoga</Text>
-                            {/* <Text style={styles.tagline}>Your trusted job portal</Text> */}
                         </View>
 
                         {/* Main Card */}
@@ -399,12 +403,6 @@ const NewLogin = () => {
                                 </>
                             )}
                         </View>
-
-                        {/* Security blurb */}
-                        {/* <View style={styles.securityFooter}>
-                            <Feather name="lock" size={14} color="rgba(255,255,255,0.7)" />
-                            <Text style={styles.securityText}>Your data is encrypted and secure</Text>
-                        </View> */}
                     </Animated.View>
                 </ScrollView>
             </KeyboardAvoidingView>

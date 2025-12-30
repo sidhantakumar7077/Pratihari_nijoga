@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "643675701846",
+    "project_id": "pratiharinijog-498c4",
+    "storage_bucket": "pratiharinijog-498c4.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:643675701846:android:4ac48101d67fadbcfaf1f7",
+        "android_client_info": {
+          "package_name": "com.pratihari"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB53VYhugXAxAsSRV9NHwKJc39zEJ_eSsY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

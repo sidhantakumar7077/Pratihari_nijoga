@@ -1,9 +1,11 @@
-import { StyleSheet, Text, View, StatusBar } from 'react-native'
+import { StatusBar, Platform } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { NavigationContainer } from '@react-navigation/native';
 import NetInfo from "@react-native-community/netinfo";
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { request, RESULTS, type Permission } from 'react-native-permissions';
+import { getMessaging, getToken, requestPermission, AuthorizationStatus } from '@react-native-firebase/messaging';
 
 // SplashScreen
 import SplashScreen from './src/Screens/SplashScreen/Index'
@@ -103,14 +105,60 @@ const App = () => {
     }
   }, []);
 
-  useEffect(() => {
-    const getToken = async () => {
-      const token = await AsyncStorage.getItem('storeAccesstoken');
-      setAccess_token(token);
-      console.log("access_token-=-=-=-=-=-=-", token);
-    };
+  const getAccesstoken = async () => {
+    const token = await AsyncStorage.getItem('storeAccesstoken');
+    setAccess_token(token);
+    console.log("access_token-=-=-=-=-=-=-", token);
+  };
 
-    getToken();
+  // Request Notification Permission
+  const askNotificationPermissionOnce = async () => {
+    const hasAsked = await AsyncStorage.getItem('notificationPermissionAsked');
+    if (hasAsked) return;
+
+    try {
+      if (Platform.OS === 'android') {
+        // Android 13+ only
+        if (Platform.Version >= 33) {
+          const result = await request(
+            'android.permission.POST_NOTIFICATIONS' as Permission
+          );
+
+          if (result !== RESULTS.GRANTED) {
+            console.log('🚫 Android notification permission denied');
+            await AsyncStorage.setItem('notificationPermissionAsked', 'true');
+            return;
+          }
+        }
+
+        console.log('✅ Android notifications enabled');
+        await getToken(getMessaging());
+      } else if (Platform.OS === 'ios') {
+        const authStatus = await requestPermission(getMessaging());
+        const enabled =
+          authStatus === AuthorizationStatus.AUTHORIZED ||
+          authStatus === AuthorizationStatus.PROVISIONAL;
+
+        if (!enabled) {
+          console.log('🚫 iOS notification permission denied');
+          await AsyncStorage.setItem('notificationPermissionAsked', 'true');
+          return;
+        }
+
+        console.log('✅ iOS notifications enabled');
+        await getToken(getMessaging());
+      }
+
+      await AsyncStorage.setItem('notificationPermissionAsked', 'true');
+    } catch (error) {
+      console.log('Permission error:', error);
+      await AsyncStorage.setItem('notificationPermissionAsked', 'true');
+    }
+  };
+
+  useEffect(() => {
+    getAccesstoken();
+    askNotificationPermissionOnce();
     getPratihariStatus();
 
     setTimeout(() => {

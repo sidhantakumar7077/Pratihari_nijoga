@@ -11,6 +11,7 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import Swiper from 'react-native-swiper';
 import { base_url } from '../../../App';
 import DrawerModal from "../../Component/DrawerModal";
+import Notification from '../../Component/Notification';
 import moment from 'moment';
 
 // images
@@ -298,6 +299,7 @@ const Index = () => {
 
     return (
         <View style={[styles.container]}>
+            <Notification />
             <DrawerModal visible={isDrawerOpen} onClose={closeDrawer} profileDetails={profileDetails} isApproved={isApproved} setApprovalModalVisible={setApprovalModalVisible} />
             <LinearGradient
                 colors={['#4c1d95', '#6366f1', '#8b5cf6']}
